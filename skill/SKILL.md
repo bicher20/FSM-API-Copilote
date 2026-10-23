@@ -1,11 +1,21 @@
 ---
 name: nomadia-scheduler-api
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.2
+version: 1.3
 homepage: https://scheduler-json-api.readme.io
 ---
 
 # Nomadia Scheduler API — Copilote d'intégration
+
+> **Agent-agnostique.** Ce fichier est du Markdown simple + des fichiers plats
+> (`reference/`, `examples/`, `scripts/`, `snippets/`) — aucune instruction ci-dessous ne
+> dépend d'un agent IA précis. Que tu sois Claude Code, Cursor, GitHub Copilot agent, un
+> agent LLM custom ou autre, tant que tu as accès à (a) lire des fichiers et (b) exécuter
+> des commandes shell (terminal, sous-processus, peu importe le nom de l'outil), tu peux
+> suivre cette procédure à la lettre. Partout où il est écrit "exécute via ton outil
+> d'exécution de commandes", comprends : utilise le mécanisme d'exécution shell dont tu
+> disposes, quel qu'il soit — jamais besoin de demander à l'utilisateur de le lancer à ta
+> place.
 
 ## 0. Procédure à suivre quand ce skill est invoqué
 
@@ -54,9 +64,11 @@ t'arrête pas au premier jet — boucle jusqu'à un résultat vérifié :
    langage/stack identifié à l'étape 1, pars de `snippets/client.js` ou
    `snippets/client.py` plutôt que de réécrire un client HTTP from scratch.
 4. **Avant tout appel réel**, valide : `python3 <chemin-du-skill>/scripts/validate_payload.py payload.json`
-   (exécute-le toi-même via Bash, ne demande pas à l'utilisateur de le faire). S'il
-   remonte des `[ERROR]`, corrige le payload et relance la validation — répète jusqu'à
-   0 erreur avant de continuer. Les `[WARN]` sont à examiner mais ne bloquent pas.
+   (exécute-le toi-même via ton outil d'exécution de commandes — terminal, shell,
+   sous-processus, peu importe comment ton environnement l'appelle — ne demande pas à
+   l'utilisateur de le lancer à ta place). S'il remonte des `[ERROR]`, corrige le payload
+   et relance la validation — répète jusqu'à 0 erreur avant de continuer. Les `[WARN]`
+   sont à examiner mais ne bloquent pas.
 5. Si une clé API est disponible, fais l'appel réel (`curl` ou le client) plutôt que de
    rester théorique. Si l'API renvoie une erreur HTTP ou des `unallocated_job_reasons`
    inattendues : ouvre `troubleshooting.md`, identifie la cause précise par le symptôme
@@ -310,6 +322,14 @@ Ce SKILL.md est un résumé de navigation. Trois fichiers complètent le skill e
 | `reference/entities.md` | tu écris un payload/code et as besoin du nom exact d'un champ, son type, ou sa valeur par défaut — transcription complète et fiable du schéma, y compris l'énumération entière des `unallocated_reason` |
 | `troubleshooting.md` | un appel échoue, un job n'est pas planifié, ou le plan ne correspond pas à l'attendu — diagnostic par symptôme, à suivre avant de modifier du code au hasard |
 | `snippets/client.js` et `snippets/client.py` | tu démarres une intégration dans un projet JS/Node ou Python — client HTTP minimal + validation locale du payload (détecte les `id` qui ne se référencent pas entre eux, les dates de shift incohérentes, etc. avant de consommer des crédits) |
+| `reference/kpis-metier.md` | tu dois argumenter en rendez-vous commercial ou traduire un résultat technique (taux d'allocation, trajet, SLA) en impact business |
+| `scripts/test_validate_payload.py` | tu modifies `validate_payload.py` — lance ces tests pour vérifier que tu n'as rien cassé avant de committer |
+
+**Portabilité.** Rien ici ne suppose un agent ou un éditeur précis : `scripts/` sont des
+scripts Python autonomes exécutables en CLI (`python3 chemin/script.py`), `examples/` et
+`reference/` sont du JSON/Markdown lisibles par n'importe quel outil de lecture de
+fichiers. Si ton environnement n'a pas Python 3 disponible, dis-le explicitement plutôt
+que de deviner le résultat de la validation.
 
 ## 14. Sources
 

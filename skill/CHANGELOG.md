@@ -1,5 +1,18 @@
 # Changelog du skill
 
+## 1.3 — 2026-10-23
+- Ajout `reference/kpis-metier.md` : traduction des paramètres/résultats techniques en
+  arguments business (taux d'allocation, ratio trajet/temps utile, respect SLA,
+  équilibrage de charge, coût en crédits vs planification manuelle, stabilité du plan).
+- Ajout `scripts/test_validate_payload.py` : suite de tests automatisés sur le
+  validateur (régression du bug lat/lng corrigé en 1.2, détection de chaque type
+  d'erreur, les 5 exemples doivent tous passer).
+- `SKILL.md` explicitement rendu agent-agnostique : note en tête de fichier précisant
+  que la procédure ne dépend d'aucun agent IA précis (Claude Code, Cursor, Copilot
+  agent, etc.), et reformulation des références à "Bash" en "ton outil d'exécution de
+  commandes". Reste volontairement scopé à Nomadia uniquement (pas de couche
+  multi-fournisseur).
+
 ## 1.2 — 2026-10-23
 - Ajout `scripts/validate_payload.py` : validateur exécutable (plus un simple snippet à
   copier), testé contre un payload volontairement cassé.
