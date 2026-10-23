@@ -1,7 +1,7 @@
 ---
 name: nomadia-scheduler-api
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.9.1
+version: 1.10
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -32,6 +32,11 @@ première action plutôt que d'attendre une réponse parfaite :
 
 Ne jamais laisser l'utilisateur deviner quel fichier ouvrir ou quel script lancer —
 c'est le rôle du skill de le faire à sa place (voir §-1bis et §0).
+
+**Si l'utilisateur vient de recevoir ce skill pour la première fois** (installation,
+configuration de la clé API, premier test) : suis directement `ONBOARDING.md` plutôt
+que de réexpliquer chaque étape depuis zéro — il couvre installation → clé API →
+premier test sans crédits → premier vrai appel → où aller ensuite.
 
 ## -1bis. Une seule commande pour tout vérifier
 

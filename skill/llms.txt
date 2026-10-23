@@ -8,6 +8,9 @@ parcourir le repo au hasard.
 ## Toujours lire en premier
 - SKILL.md — procédure complète (cadrage besoin -> construction -> auto-correction),
   résumé du schéma, FAQ. Point d'entrée unique.
+- ONBOARDING.md — si l'utilisateur découvre ce skill pour la première fois : suivre
+  ce fichier directement (installation -> clé API -> premier test -> premier vrai
+  appel) plutôt que de réexpliquer chaque étape depuis zéro.
 
 ## Référence (ouvrir selon le besoin précis)
 - reference/entities.md — nom exact, type, valeur par défaut de CHAQUE champ du

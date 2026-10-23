@@ -1,5 +1,19 @@
 # Changelog du skill
 
+## 1.10 — 2026-10-23
+- Ajout `ONBOARDING.md` : démarrage rapide pour un client qui reçoit ce skill —
+  installation (Claude Code et autres agents), configuration sécurisée de la clé API,
+  premier test sans crédits (`doctor.py` sur un exemple), premier vrai appel API, et
+  où aller ensuite. Objectif : qu'un agent IA qui découvre le skill en premier contact
+  suive ce document au lieu de réexpliquer chaque étape depuis zéro à chaque client.
+- `ONBOARDING.md` documente aussi 2 scénarios de blocage réseau réels, rencontrés en
+  testant ce skill lui-même : (1) sandbox cloud avec proxy à liste blanche (erreur
+  HTTP/connexion) et (2) résolveur DNS local qui ne connaît pas le domaine
+  (`scheduler-api.nomadia-app.com` reconfirmé exact et inchangé via la doc officielle
+  au moment de l'ajout) — avec la commande `dig @1.1.1.1` pour trancher.
+- `SKILL.md` §-1 et `llms.txt` pointent maintenant vers `ONBOARDING.md` en premier
+  contact.
+
 ## 1.9.1 — 2026-10-23
 - Correctif : `scripts/doctor.py --help` (ou `-h`, ou aucun argument) plantait en
   essayant d'ouvrir "--help" comme chemin de fichier. Repéré lors d'un premier test en

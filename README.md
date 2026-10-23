@@ -11,6 +11,8 @@ directement le code/payload — et diagnostique une erreur ou un job non planifi
 que de renvoyer un extrait de doc.
 
 - `SKILL.md` — procédure à suivre + résumé de navigation du modèle de données
+- `ONBOARDING.md` — démarrage rapide pour un client qui reçoit le skill (installation,
+  clé API, premier test, premier vrai appel, dépannage réseau/DNS)
 - `llms.txt` — index priorisé des fichiers pour un agent IA qui découvre le skill
 - `reference/entities.md` — transcription exhaustive de toutes les entités (champs,
   types, valeurs par défaut) + l'énumération complète des raisons de non-allocation
