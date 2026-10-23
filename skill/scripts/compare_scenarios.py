@@ -41,6 +41,26 @@ from recommend_improvements import recommend_from_payload  # noqa: E402
 # défaut — surchargeable via NOMADIA_BASE_URL.
 BASE_URL = os.environ.get("NOMADIA_BASE_URL", "https://scheduler-api-test.nomadia-app.com")
 
+_env_announced = False
+
+
+def _announce_env():
+    """Affiche une fois par process quel environnement (test/prod) est ciblé — pour
+    qu'un vrai appel API ne passe jamais inaperçu sur le mauvais environnement."""
+    global _env_announced
+    if _env_announced:
+        return
+    _env_announced = True
+    if "-test" in BASE_URL:
+        print(f"[INFO] Appel vers l'environnement de TEST Nomadia ({BASE_URL}) — pas la "
+              f"prod. Pour basculer sur la prod une fois confirmée active, définir "
+              f"NOMADIA_BASE_URL=https://scheduler-api.nomadia-app.com avant d'exécuter.")
+    else:
+        print(f"[ATTENTION] Appel vers {BASE_URL} — vérifie que c'est bien l'environnement "
+              f"de PRODUCTION voulu et non le test (impact réel : données, crédits, "
+              f"abonnement actif requis).")
+
+
 _ERROR_HINTS = {
     400: "requête invalide — vérifie les id référencés et le format des dates/durées",
     401: "clé API manquante, invalide ou bloquée",
@@ -50,6 +70,7 @@ _ERROR_HINTS = {
 
 
 def call_schedule(api_key: str, payload: dict) -> dict:
+    _announce_env()
     req = urllib.request.Request(
         f"{BASE_URL}/api/schedule",
         data=json.dumps(payload).encode("utf-8"),

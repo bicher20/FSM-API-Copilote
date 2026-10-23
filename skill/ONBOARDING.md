@@ -70,13 +70,20 @@ recommandations basées sur la configuration.
 python3 -c "
 import os, json, urllib.request, urllib.error
 
+# Ce lien est un lien de TEST, pas de production (voir §0 ci-dessus). Le jour où tu
+# passes en prod, change cette URL — et seulement après confirmation que la prod est
+# active (sinon tu retomberas sur l'erreur DNS déjà rencontrée).
+BASE_URL = os.environ.get('NOMADIA_BASE_URL', 'https://scheduler-api-test.nomadia-app.com')
+print(f'[INFO] Appel vers {BASE_URL} — vérifie que c\'est bien l\'environnement voulu '
+      f'(test tant que la prod n\'est pas confirmée active).')
+
 key = os.environ['NOMADIA_API_KEY']
 with open('skill/examples/01_minimal.json') as f:
     payload = json.load(f)
 payload.pop('_comment', None)
 
 req = urllib.request.Request(
-    'https://scheduler-api-test.nomadia-app.com/api/schedule',
+    BASE_URL + '/api/schedule',
     data=json.dumps(payload).encode('utf-8'),
     headers={'Content-Type': 'application/json', 'x-api-key': key},
     method='POST',

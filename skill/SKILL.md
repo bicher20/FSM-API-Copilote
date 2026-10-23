@@ -1,7 +1,7 @@
 ---
 name: nomadia-scheduler-api
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.11
+version: 1.12
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -174,6 +174,16 @@ définitives à cette date) :**
 Cibler le domaine prod aujourd'hui échoue en erreur DNS (`NXDOMAIN`), pas en erreur
 d'authentification — ce n'est pas un problème de clé ni de payload. Voir
 `ONBOARDING.md` §0 pour le détail et le dépannage.
+
+**Tant que ce skill cible le test, ne pas l'oublier au moment de passer en prod :**
+tous les appels réels envoyés par ce skill (`snippets/client.py`, `client.js`,
+`scripts/compare_scenarios.py`, le script de `ONBOARDING.md` §4) ciblent
+`scheduler-api-test.nomadia-app.com` par défaut et l'affichent explicitement à
+l'écran à chaque appel (`[INFO] Appel vers l'environnement de TEST...`) pour que ça
+ne passe jamais inaperçu. Pour basculer sur la prod une fois confirmée active par
+Nomadia, définir `NOMADIA_BASE_URL=https://scheduler-api.nomadia-app.com` — aucun
+code à modifier, mais c'est une bascule volontaire à faire, pas un changement
+automatique.
 
 - Endpoint principal (test) : `POST https://scheduler-api-test.nomadia-app.com/api/schedule`
 - Endpoint géocodage (test) : `POST https://scheduler-api-test.nomadia-app.com/api/geocode`

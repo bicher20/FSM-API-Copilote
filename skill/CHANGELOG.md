@@ -1,5 +1,19 @@
 # Changelog du skill
 
+## 1.12 — 2026-10-23
+- **Annonce explicite de l'environnement visé à l'exécution**, pas seulement dans la
+  doc : chaque appel réel (`snippets/client.py` et `client.js` — `schedule_request`/
+  `scheduleRequest` et `geocode_request`/`geocodeRequest` —, `scripts/compare_scenarios.py`
+  en mode `--api-key`, et le script autonome de `ONBOARDING.md` §4) affiche désormais
+  au lancement `[INFO] Appel vers l'environnement de TEST Nomadia (...)` ou
+  `[ATTENTION] Appel vers ... — vérifie que c'est bien la PRODUCTION voulue`, selon
+  le hostname réellement ciblé. Objectif : qu'un client ne découvre jamais après coup
+  qu'il visait le test en pensant viser la prod (ou l'inverse) — l'info est visible à
+  chaque appel, pas seulement lisible dans un README qu'on peut sauter.
+- `SKILL.md` §1 : paragraphe explicite rappelant que la bascule test→prod se fait via
+  `NOMADIA_BASE_URL` (aucun code à changer) mais reste une action volontaire, jamais
+  automatique.
+
 ## 1.11 — 2026-10-23
 - **Correction majeure, confirmée par Nomadia (email de Maxime, 23/10/2026)** : il
   existe deux environnements distincts avec des hostnames différents —

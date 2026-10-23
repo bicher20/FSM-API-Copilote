@@ -13,6 +13,26 @@ const BASE_URL =
   (typeof process !== "undefined" && process.env && process.env.NOMADIA_BASE_URL) ||
   "https://scheduler-api-test.nomadia-app.com";
 
+// Affiche une fois par process quel environnement (test/prod) est ciblé — pour qu'un
+// vrai appel API ne passe jamais inaperçu sur le mauvais environnement.
+let _envAnnounced = false;
+function _announceEnv() {
+  if (_envAnnounced) return;
+  _envAnnounced = true;
+  if (BASE_URL.includes("-test")) {
+    console.log(
+      `[INFO] Appel vers l'environnement de TEST Nomadia (${BASE_URL}) — pas la prod. ` +
+        `Pour basculer sur la prod une fois confirmée active, définir ` +
+        `NOMADIA_BASE_URL=https://scheduler-api.nomadia-app.com avant d'exécuter.`
+    );
+  } else {
+    console.log(
+      `[ATTENTION] Appel vers ${BASE_URL} — vérifie que c'est bien l'environnement de ` +
+        `PRODUCTION voulu et non le test (impact réel : données, crédits, abonnement actif requis).`
+    );
+  }
+}
+
 class NomadiaApiError extends Error {
   constructor(status, body) {
     const hint = {
@@ -53,6 +73,7 @@ async function withRetry(fn, { retries = 2, baseDelayMs = 500 } = {}) {
  * @returns {Promise<{allocations, travels, unallocated_job_reasons, break_allocations}>}
  */
 async function scheduleRequest(apiKey, payload) {
+  _announceEnv();
   return withRetry(async () => {
     const res = await fetch(`${BASE_URL}/api/schedule`, {
       method: "POST",
@@ -73,6 +94,7 @@ async function geocodeRequest(apiKey, addresses) {
   if (addresses.length > 100) {
     throw new Error("geocodeRequest: max 100 adresses par appel — découpe en lots");
   }
+  _announceEnv();
   return withRetry(async () => {
     const res = await fetch(`${BASE_URL}/api/geocode`, {
       method: "POST",

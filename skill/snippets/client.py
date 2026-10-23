@@ -21,6 +21,25 @@ import requests
 # domaine prod pas encore résolu. Surchargeable via la variable d'env NOMADIA_BASE_URL.
 BASE_URL = os.environ.get("NOMADIA_BASE_URL", "https://scheduler-api-test.nomadia-app.com")
 
+_env_announced = False
+
+
+def _announce_env():
+    """Affiche une fois par process quel environnement (test/prod) est ciblé — pour
+    qu'un vrai appel API ne passe jamais inaperçu sur le mauvais environnement."""
+    global _env_announced
+    if _env_announced:
+        return
+    _env_announced = True
+    if "-test" in BASE_URL:
+        print(f"[INFO] Appel vers l'environnement de TEST Nomadia ({BASE_URL}) — pas la "
+              f"prod. Pour basculer sur la prod une fois confirmée active, définir "
+              f"NOMADIA_BASE_URL=https://scheduler-api.nomadia-app.com avant d'exécuter.")
+    else:
+        print(f"[ATTENTION] Appel vers {BASE_URL} — vérifie que c'est bien l'environnement "
+              f"de PRODUCTION voulu et non le test (impact réel : données, crédits, "
+              f"abonnement actif requis).")
+
 _ERROR_HINTS = {
     400: "requête invalide — vérifie les id référencés et le format des dates/durées (voir skill/troubleshooting.md)",
     401: "clé API manquante, invalide ou bloquée — vérifie le header x-api-key",
@@ -61,6 +80,7 @@ def _with_retry(fn, retries=2, base_delay=0.5):
 
 def schedule_request(api_key: str, payload: dict) -> dict:
     """payload : voir skill/reference/entities.md pour le schéma complet."""
+    _announce_env()
     def _call():
         res = requests.post(
             f"{BASE_URL}/api/schedule",
@@ -78,6 +98,7 @@ def geocode_request(api_key: str, addresses: list[dict]) -> dict:
     """addresses : max 100 par appel — [{id, address_line?, post_code?, city?, country_code?}]"""
     if len(addresses) > 100:
         raise ValueError("geocode_request: max 100 adresses par appel — découpe en lots")
+    _announce_env()
     def _call():
         res = requests.post(
             f"{BASE_URL}/api/geocode",
