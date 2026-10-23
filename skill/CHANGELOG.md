@@ -17,6 +17,17 @@
   cette date.
 - Versions explicitement annoncées par Nomadia comme non définitives — à revérifier
   avant toute mise en production réelle chez un client.
+- **Premier test réel réussi (23/10/2026)** : `POST /api/schedule` sur
+  `scheduler-api-test.nomadia-app.com` avec `examples/01_minimal.json` → HTTP 200, 2
+  jobs/2 alloués, 3 `travels`, `unallocated_job_reasons` et `break_allocations` vides.
+  Confirme que les noms de champs de réponse utilisés dans `recommend_improvements.py`
+  (`allocations`, `travels`, `unallocated_job_reasons`) sont exacts — plus seulement
+  déduits de la doc. `doctor.py --response` sur cette vraie réponse a produit un
+  ratio trajet/temps utile de 133% (cohérent : micro-exemple à 2 jobs, trajet
+  aller-retour dépôt proportionnellement lourd — sans valeur commerciale à ce volume,
+  comme `kpis-metier.md` l'indique déjà). La convention `schedule_definitions` reste
+  **ni confirmée ni infirmée** (cet exemple n'en envoie pas) — à tester spécifiquement
+  si besoin.
 
 ## 1.10 — 2026-10-23
 - Ajout `ONBOARDING.md` : démarrage rapide pour un client qui reçoit ce skill —
