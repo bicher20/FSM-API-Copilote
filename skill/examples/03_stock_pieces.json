@@ -1,38 +1,109 @@
 {
   "_comment": "Stock embarqué limité : chaque job consomme 1 'filtre', la ressource part avec 2 filtres -> un 3e job de ce type ne pourra pas lui être affecté sur ce shift (PossibleResourcesInsufficientParts).",
   "locations": [
-    { "id": "DEPOT", "latitude": 48.8566, "longitude": 2.3522 },
-    { "id": "LOC-1", "latitude": 48.8738, "longitude": 2.2950 },
-    { "id": "LOC-2", "latitude": 48.8462, "longitude": 2.3372 },
-    { "id": "LOC-3", "latitude": 48.8900, "longitude": 2.2400 }
+    {
+      "id": "DEPOT",
+      "latitude": 48.8566,
+      "longitude": 2.3522
+    },
+    {
+      "id": "LOC-1",
+      "latitude": 48.8738,
+      "longitude": 2.295
+    },
+    {
+      "id": "LOC-2",
+      "latitude": 48.8462,
+      "longitude": 2.3372
+    },
+    {
+      "id": "LOC-3",
+      "latitude": 48.89,
+      "longitude": 2.24
+    }
   ],
   "job_types": [
-    { "id": "CHANGEMENT_FILTRE", "custom_duration": "PT45M" }
+    {
+      "id": "CHANGEMENT_FILTRE",
+      "custom_duration": "PT45M"
+    }
   ],
   "parts": [
-    { "id": "FILTRE" }
+    {
+      "id": "FILTRE"
+    }
   ],
   "jobs": [
-    { "id": "JOB-1", "job_type_id": "CHANGEMENT_FILTRE", "location_id": "LOC-1",
-      "sla": { "earliest_start_date_time": "2026-11-02T08:00:00", "latest_start_date_time": "2026-11-02T18:00:00" } },
-    { "id": "JOB-2", "job_type_id": "CHANGEMENT_FILTRE", "location_id": "LOC-2",
-      "sla": { "earliest_start_date_time": "2026-11-02T08:00:00", "latest_start_date_time": "2026-11-02T18:00:00" } },
-    { "id": "JOB-3", "job_type_id": "CHANGEMENT_FILTRE", "location_id": "LOC-3",
-      "sla": { "earliest_start_date_time": "2026-11-02T08:00:00", "latest_start_date_time": "2026-11-02T18:00:00" } }
+    {
+      "id": "JOB-1",
+      "job_type_id": "CHANGEMENT_FILTRE",
+      "location_id": "LOC-1",
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00"
+      }
+    },
+    {
+      "id": "JOB-2",
+      "job_type_id": "CHANGEMENT_FILTRE",
+      "location_id": "LOC-2",
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00"
+      }
+    },
+    {
+      "id": "JOB-3",
+      "job_type_id": "CHANGEMENT_FILTRE",
+      "location_id": "LOC-3",
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00"
+      }
+    }
   ],
   "job_parts": [
-    { "job_id": "JOB-1", "part_id": "FILTRE", "consumption": 1 },
-    { "job_id": "JOB-2", "part_id": "FILTRE", "consumption": 1 },
-    { "job_id": "JOB-3", "part_id": "FILTRE", "consumption": 1 }
+    {
+      "job_id": "JOB-1",
+      "part_id": "FILTRE",
+      "consumption": 1
+    },
+    {
+      "job_id": "JOB-2",
+      "part_id": "FILTRE",
+      "consumption": 1
+    },
+    {
+      "job_id": "JOB-3",
+      "part_id": "FILTRE",
+      "consumption": 1
+    }
   ],
   "resource_types": [
-    { "id": "TECH", "start_location_id": "DEPOT", "end_location_id": "DEPOT" }
+    {
+      "id": "TECH",
+      "start_location_id": "DEPOT",
+      "end_location_id": "DEPOT"
+    }
   ],
   "resources": [
-    { "id": "RES-1", "resource_type_id": "TECH",
-      "shifts": [ { "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T18:00:00" } ] }
+    {
+      "id": "RES-1",
+      "resource_type_id": "TECH",
+      "shifts": [
+        {
+          "id": "SHIFT-RES-1-1",
+          "start_date_time": "2026-11-02T08:00:00",
+          "end_date_time": "2026-11-02T18:00:00"
+        }
+      ]
+    }
   ],
   "resource_parts": [
-    { "resource_id": "RES-1", "part_id": "FILTRE", "available_quantity": 2 }
+    {
+      "resource_id": "RES-1",
+      "part_id": "FILTRE",
+      "available_quantity": 2
+    }
   ]
 }

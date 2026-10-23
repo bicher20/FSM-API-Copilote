@@ -1,0 +1,52 @@
+{
+  "_comment": "Démontre JobResource.fixed_resource_id + commit_date_time_stamp : un technicien déjà en route vers JOB-1 (voir reference/replanification-temps-reel.md §1) — l'API ne peut plus le réaffecter ailleurs sur ce job.",
+  "locations": [
+    { "id": "DEPOT", "latitude": 48.8566, "longitude": 2.3522 },
+    { "id": "LOC-1", "latitude": 48.8738, "longitude": 2.2950 },
+    { "id": "LOC-2", "latitude": 48.8462, "longitude": 2.3372 }
+  ],
+  "job_types": [
+    { "id": "DEFAULT", "custom_duration": "PT30M" }
+  ],
+  "jobs": [
+    {
+      "id": "JOB-1",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-1",
+      "sla": { "earliest_start_date_time": "2026-11-02T08:00:00", "latest_start_date_time": "2026-11-02T18:00:00" }
+    },
+    {
+      "id": "JOB-2",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-2",
+      "sla": { "earliest_start_date_time": "2026-11-02T08:00:00", "latest_start_date_time": "2026-11-02T18:00:00" }
+    }
+  ],
+  "job_resources": [
+    {
+      "job_id": "JOB-1",
+      "resource_index": 1,
+      "fixed_resource_id": "RES-1",
+      "commit_date_time_stamp": "2026-11-02T08:05:00"
+    }
+  ],
+  "resource_types": [
+    { "id": "TECH", "start_location_id": "DEPOT", "end_location_id": "DEPOT" }
+  ],
+  "resources": [
+    {
+      "id": "RES-1",
+      "resource_type_id": "TECH",
+      "shifts": [
+        { "id": "SHIFT-RES-1-1", "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T18:00:00" }
+      ]
+    },
+    {
+      "id": "RES-2",
+      "resource_type_id": "TECH",
+      "shifts": [
+        { "id": "SHIFT-RES-2-1", "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T18:00:00" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "_comment": "Démontre appointment_sla_id + appointment_priority : un rendez-vous client avec créneau serré et priorité plus haute (valeur plus basse = prioritaire) qu'un job normal avec job_sla_id.",
+  "locations": [
+    { "id": "DEPOT", "latitude": 48.8566, "longitude": 2.3522 },
+    { "id": "LOC-1", "latitude": 48.8738, "longitude": 2.2950 },
+    { "id": "LOC-2", "latitude": 48.8462, "longitude": 2.3372 }
+  ],
+  "job_types": [
+    { "id": "DEFAULT", "custom_duration": "PT30M" }
+  ],
+  "slas": [
+    {
+      "id": "SLA-RDV-1",
+      "earliest_start_date_time": "2026-11-02T10:00:00",
+      "latest_start_date_time": "2026-11-02T10:30:00",
+      "penalty_per_hour": 50,
+      "base_jeopardy_penalty": 1000
+    },
+    {
+      "id": "SLA-NORMAL-1",
+      "earliest_start_date_time": "2026-11-02T08:00:00",
+      "latest_start_date_time": "2026-11-02T18:00:00"
+    }
+  ],
+  "jobs": [
+    {
+      "id": "JOB-RDV-CLIENT",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-1",
+      "appointment_sla_id": "SLA-RDV-1",
+      "appointment_priority": 1
+    },
+    {
+      "id": "JOB-NORMAL",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-2",
+      "job_sla_id": "SLA-NORMAL-1"
+    }
+  ],
+  "resource_types": [
+    { "id": "TECH", "start_location_id": "DEPOT", "end_location_id": "DEPOT" }
+  ],
+  "resources": [
+    {
+      "id": "RES-1",
+      "resource_type_id": "TECH",
+      "shifts": [
+        { "id": "SHIFT-RES-1-1", "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T18:00:00" }
+      ]
+    }
+  ]
+}

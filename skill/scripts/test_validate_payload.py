@@ -103,6 +103,37 @@ payload["locations"][0]["longitude"] = 200.0
 code, output = run_validator(payload)
 check("longitude hors plage détectée (exit 1)", code == 1, output)
 
+# --- shift sans id ne doit être qu'un WARN, jamais bloquant (cf. quick start officiel) ---
+payload = load_minimal()
+del payload["resources"][0]["shifts"][0]["id"]
+code, output = run_validator(payload)
+check("shift sans id = WARN seulement, pas bloquant (exit 0)", code == 0, output)
+check("message mentionne l'absence d'id de shift", "id" in output and "WARN" in output, output)
+
+# --- pre_requisite_definition avec job inexistant doit être détecté ---
+with open(EXAMPLES_DIR / "04_ordre_entre_jobs.json") as f:
+    payload = json.load(f)
+payload["pre_requisite_definitions"][0]["later_job_id"] = "JOB-FANTOME"
+code, output = run_validator(payload)
+check("pre_requisite_definition avec job inexistant détecté (exit 1)", code == 1, output)
+
+# --- job_resource.commit_date_time_stamp sans fixed_resource_id doit être détecté ---
+with open(EXAMPLES_DIR / "06_ressource_engagee.json") as f:
+    payload = json.load(f)
+del payload["job_resources"][0]["fixed_resource_id"]
+code, output = run_validator(payload)
+check("commit_date_time_stamp sans fixed_resource_id détecté (exit 1)", code == 1, output)
+
+# --- resource_unavailability avec resource_id inexistant doit être détecté ---
+with open(EXAMPLES_DIR / "08_indisponibilite_ressource.json") as f:
+    payload = json.load(f)
+payload["resource_unavailabilities"][0]["resource_id"] = "RES-FANTOME"
+code, output = run_validator(payload)
+check("resource_unavailability avec resource_id inexistant détecté (exit 1)", code == 1, output)
+
+# --- les 10 exemples doivent rester valides avec le validateur étendu ---
+# (déjà couvert par la boucle "exemple ... valide" ci-dessus sur tout examples/*.json)
+
 print()
 if failures:
     print(f"ÉCHEC — {len(failures)} test(s) en erreur :")

@@ -1,0 +1,41 @@
+{
+  "_comment": "Démontre JobResource.resource_index : JOB-BINOME nécessite 2 ressources simultanément (ex. levage à deux) via deux lignes JobResource (resource_index 1 et 2) sur le même job_id.",
+  "locations": [
+    { "id": "DEPOT", "latitude": 48.8566, "longitude": 2.3522 },
+    { "id": "LOC-1", "latitude": 48.8738, "longitude": 2.2950 }
+  ],
+  "job_types": [
+    { "id": "DEFAULT", "custom_duration": "PT1H" }
+  ],
+  "jobs": [
+    {
+      "id": "JOB-BINOME",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-1",
+      "sla": { "earliest_start_date_time": "2026-11-02T08:00:00", "latest_start_date_time": "2026-11-02T18:00:00" }
+    }
+  ],
+  "job_resources": [
+    { "job_id": "JOB-BINOME", "resource_index": 1 },
+    { "job_id": "JOB-BINOME", "resource_index": 2 }
+  ],
+  "resource_types": [
+    { "id": "TECH", "start_location_id": "DEPOT", "end_location_id": "DEPOT" }
+  ],
+  "resources": [
+    {
+      "id": "RES-1",
+      "resource_type_id": "TECH",
+      "shifts": [
+        { "id": "SHIFT-RES-1-1", "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T18:00:00" }
+      ]
+    },
+    {
+      "id": "RES-2",
+      "resource_type_id": "TECH",
+      "shifts": [
+        { "id": "SHIFT-RES-2-1", "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T18:00:00" }
+      ]
+    }
+  ]
+}

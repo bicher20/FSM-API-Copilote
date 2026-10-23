@@ -1,7 +1,7 @@
 ---
 name: nomadia-scheduler-api
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.8
+version: 1.9
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -104,8 +104,10 @@ présenter le résultat.
 t'arrête pas au premier jet — boucle jusqu'à un résultat vérifié :
 
 1. Si un pattern proche existe dans `examples/` (compétence requise, stock de pièces,
-   ordre entre jobs, disponibilité récurrente…), pars de ce fichier plutôt que d'une
-   page blanche — ce sont des payloads déjà vérifiés.
+   ordre entre jobs, disponibilité récurrente, ressource déjà engagée, pause
+   obligatoire, indisponibilité ressource, rendez-vous client prioritaire, job
+   multi-ressources…), pars de ce fichier plutôt que d'une page blanche — ce sont des
+   payloads déjà vérifiés (voir `examples/README.md` pour la liste complète).
 2. Pour tout champ dont tu n'es pas sûr à 100% du nom exact, du type ou de la valeur par
    défaut, ouvre `reference/entities.md` plutôt que de répondre de mémoire — ce fichier
    est la transcription complète et fiable du schéma, §3-11 ci-dessous n'en est qu'un

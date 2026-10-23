@@ -121,14 +121,26 @@ def recommend_from_payload(payload: dict) -> list[dict]:
                       "reference/kpis-metier.md §4",
         })
 
-    # 6. Aucune fenêtre de planification (ScheduleDefinition) définie
-    if "schedule_definitions" not in payload and "schedule_definition" not in payload:
+    # 6. Aucune fenêtre de planification (ScheduleDefinition) détectée
+    # NOTE DE FIABILITÉ : reference/entities.md documente les champs de l'entité
+    # ScheduleDefinition mais ne confirme pas le nom de la clé JSON racine qui la
+    # contient dans le payload (par analogie avec locations/jobs/resources, on
+    # suppose "schedule_definitions" au pluriel, mais ce n'est PAS vérifié contre un
+    # exemple réel ni contre un appel API). Priorité volontairement basse et message
+    # explicite tant que ce n'est pas confirmé par un vrai test (voir FEEDBACK.md) —
+    # ne jamais remonter ça en HIGH/MEDIUM sans l'avoir vérifié.
+    has_schedule_definition_key = any(
+        k in payload for k in ("schedule_definitions", "schedule_definition")
+    )
+    if not has_schedule_definition_key:
         recs.append({
             "priority": "LOW",
-            "finding": "aucun ScheduleDefinition fourni (schedule_window_end_date_time absent)",
+            "finding": "aucune clé \"schedule_definitions\" détectée dans le payload "
+                       "(vérification non confirmée — voir note dans le code de ce script)",
             "action": "si l'horizon de planification doit être borné (ex: ne pas planifier au-delà de "
                       "cette semaine), ajouter un ScheduleDefinition — sinon l'API prend tous les "
-                      "shifts/SLA fournis sans limite",
+                      "shifts/SLA fournis sans limite. Vérifier le nom exact de la clé lors du premier "
+                      "vrai appel API plutôt que de faire confiance à cette suggestion les yeux fermés",
             "impact": "évite un plan qui s'étale au-delà de l'horizon réellement pertinent pour le client",
         })
 

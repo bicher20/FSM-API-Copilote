@@ -41,6 +41,15 @@ def validate(payload: dict) -> tuple[list[str], list[str]]:
     sla_ids = {s.get("id") for s in payload.get("slas", [])}
     requirement_ids = {r.get("id") for r in payload.get("requirements", [])}
     part_ids = {p.get("id") for p in payload.get("parts", [])}
+    resource_ids = {r.get("id") for r in payload.get("resources", [])}
+    job_ids = {j.get("id") for j in payload.get("jobs", [])}
+    # Les shifts sont nested sous resources[].shifts[] dans la convention de ce skill
+    # (voir examples/) ; on collecte leurs id pour les FK de Break.
+    shift_ids = {
+        s.get("id")
+        for r in payload.get("resources", [])
+        for s in r.get("shifts", [])
+    }
 
     # Jobs
     for job in payload.get("jobs", []):
@@ -73,12 +82,56 @@ def validate(payload: dict) -> tuple[list[str], list[str]]:
         if not shifts:
             warnings.append(f"resource {rid}: aucun shift défini -> ne pourra jamais être affectée")
         for shift in shifts:
+            if not shift.get("id"):
+                # AVERTISSEMENT seulement, pas une erreur bloquante : reference/entities.md
+                # marque Shift.id comme obligatoire, mais l'exemple quick start officiel
+                # de Nomadia (reproduit dans SKILL.md §2) omet ce champ et fonctionne —
+                # soit l'API l'accepte en pratique, soit la doc source simplifie. Tant
+                # que ce n'est pas confirmé par un vrai test (FEEDBACK.md), ne pas bloquer
+                # sur ce point précis.
+                warnings.append(f"resource {rid}: un shift n'a pas de champ 'id' — "
+                                 f"reference/entities.md le marque obligatoire, mais le quick start "
+                                 f"officiel de Nomadia l'omet aussi ; à vérifier lors d'un vrai appel")
             s, e = shift.get("start_date_time"), shift.get("end_date_time")
             try:
                 if s and e and datetime.fromisoformat(s) >= datetime.fromisoformat(e):
                     errors.append(f"resource {rid}: shift start_date_time >= end_date_time ({s} >= {e})")
             except ValueError:
                 errors.append(f"resource {rid}: date de shift invalide (format attendu 2026-11-02T08:00:00): {s!r} / {e!r}")
+            for brk in shift.get("breaks", []):
+                bs, be = brk.get("earliest_start_date_time"), brk.get("latest_start_date_time")
+                try:
+                    if bs and be and datetime.fromisoformat(bs) > datetime.fromisoformat(be):
+                        errors.append(f"resource {rid}: break avec earliest_start_date_time > latest_start_date_time")
+                except ValueError:
+                    errors.append(f"resource {rid}: dates de break invalides : {bs!r} / {be!r}")
+
+    # Breaks au format top-level (shift_id FK) plutôt que nested sous shift
+    for brk in payload.get("breaks", []):
+        if brk.get("shift_id") and shift_ids and brk.get("shift_id") not in shift_ids:
+            errors.append(f"break {brk.get('id')}: shift_id \"{brk.get('shift_id')}\" absent des shifts[] déclarés")
+
+    # Indisponibilités de ressource
+    for ru in payload.get("resource_unavailabilities", []):
+        if ru.get("resource_id") not in resource_ids:
+            errors.append(f"resource_unavailability {ru.get('id')}: resource_id \"{ru.get('resource_id')}\" absent de resources[]")
+        if ru.get("location_id") and ru.get("location_id") not in loc_ids:
+            errors.append(f"resource_unavailability {ru.get('id')}: location_id \"{ru.get('location_id')}\" absent de locations[]")
+
+    # JobResource (multi-ressources, ressource fixée)
+    for jrsc in payload.get("job_resources", []):
+        if jrsc.get("job_id") not in job_ids:
+            errors.append(f"job_resource: job_id \"{jrsc.get('job_id')}\" absent de jobs[]")
+        if jrsc.get("fixed_resource_id") and jrsc.get("fixed_resource_id") not in resource_ids:
+            errors.append(f"job_resource (job {jrsc.get('job_id')}): fixed_resource_id \"{jrsc.get('fixed_resource_id')}\" absent de resources[]")
+        if jrsc.get("commit_date_time_stamp") and not jrsc.get("fixed_resource_id"):
+            errors.append(f"job_resource (job {jrsc.get('job_id')}): commit_date_time_stamp nécessite fixed_resource_id (voir reference/entities.md)")
+
+    # Pré-requis entre jobs
+    for prereq in payload.get("pre_requisite_definitions", []):
+        for key in ("earlier_job_id", "later_job_id"):
+            if prereq.get(key) not in job_ids:
+                errors.append(f"pre_requisite_definition: {key} \"{prereq.get(key)}\" absent de jobs[]")
 
     # Resource types / job types location refs
     for rt in payload.get("resource_types", []):
@@ -93,6 +146,12 @@ def validate(payload: dict) -> tuple[list[str], list[str]]:
     for jp in payload.get("job_parts", []):
         if jp.get("part_id") not in part_ids:
             errors.append(f"job_part (job {jp.get('job_id')}): part_id \"{jp.get('part_id')}\" absent de parts[]")
+    for rr in payload.get("resource_requirements", []):
+        if rr.get("requirement_id") not in requirement_ids:
+            errors.append(f"resource_requirement (resource {rr.get('resource_id')}): requirement_id \"{rr.get('requirement_id')}\" absent de requirements[]")
+    for rp in payload.get("resource_parts", []):
+        if rp.get("part_id") not in part_ids:
+            errors.append(f"resource_part (resource {rp.get('resource_id')}): part_id \"{rp.get('part_id')}\" absent de parts[]")
 
     # Coordonnées plausibles (détecte lat/lng inversées — erreur classique)
     for loc in payload.get("locations", []):

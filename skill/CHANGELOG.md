@@ -1,5 +1,31 @@
 # Changelog du skill
 
+## 1.9 — 2026-10-23
+- **Correction de fiabilité** : la détection de `ScheduleDefinition` dans
+  `recommend_improvements.py` reposait sur un nom de clé racine (`schedule_definitions`)
+  jamais vérifié contre la doc — message et priorité (LOW) explicitement reformulés
+  pour ne pas faire croire à une certitude qu'on n'a pas. Même traitement pour le champ
+  `Shift.id` : marqué obligatoire par `reference/entities.md` mais absent du quick
+  start officiel de Nomadia reproduit dans `SKILL.md` — downgradé de [ERROR] à [WARN]
+  dans `validate_payload.py` plutôt que de bloquer sur une base non confirmée.
+- **Couverture FSM étendue** dans `validate_payload.py` : cross-ref désormais vérifiés
+  pour `resource_requirements`, `resource_parts`, `resource_unavailabilities`,
+  `job_resources` (`fixed_resource_id`, règle `commit_date_time_stamp` nécessite
+  `fixed_resource_id`), `pre_requisite_definitions`, et les `breaks` (nested sous
+  shift ou top-level avec `shift_id`).
+- **5 nouveaux exemples** (`examples/06` à `10`) couvrant les cas FSM restants :
+  ressource déjà engagée (`fixed_resource_id`+`commit_date_time_stamp`), pause
+  obligatoire (`Break`), indisponibilité ressource (`ResourceUnavailability`),
+  rendez-vous client prioritaire (`appointment_sla_id`+`appointment_priority`), job
+  multi-ressources/binôme (`JobResource.resource_index`). Tous les 10 exemples
+  existants corrigés pour inclure `Shift.id` (manquant depuis la 1.0).
+  `examples/README.md` documente aussi 2 conventions de structure non confirmées
+  (nesting des `breaks`, nom de clé `job_resources`) — transparence plutôt que fausse
+  certitude.
+- `scripts/test_validate_payload.py` : 5 nouveaux tests de régression sur les
+  vérifications croisées ajoutées.
+- `scripts/doctor.py` : verdict final en une ligne (✅/❌) pour une lecture plus rapide.
+
 ## 1.8 — 2026-10-23
 - Ajout `scripts/doctor.py` : point d'entrée unique (valide puis recommande en une
   seule commande) — une seule chose à retenir au lieu de trois scripts séparés.

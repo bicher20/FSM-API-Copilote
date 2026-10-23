@@ -1,0 +1,49 @@
+{
+  "_comment": "Démontre Break : une pause déjeuner obligatoire dans le shift de RES-1, entre 12h et 13h30, durée 45 min.",
+  "locations": [
+    { "id": "DEPOT", "latitude": 48.8566, "longitude": 2.3522 },
+    { "id": "LOC-1", "latitude": 48.8738, "longitude": 2.2950 },
+    { "id": "LOC-2", "latitude": 48.8462, "longitude": 2.3372 }
+  ],
+  "job_types": [
+    { "id": "DEFAULT", "custom_duration": "PT1H" }
+  ],
+  "jobs": [
+    {
+      "id": "JOB-1",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-1",
+      "sla": { "earliest_start_date_time": "2026-11-02T08:00:00", "latest_start_date_time": "2026-11-02T18:00:00" }
+    },
+    {
+      "id": "JOB-2",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-2",
+      "sla": { "earliest_start_date_time": "2026-11-02T08:00:00", "latest_start_date_time": "2026-11-02T18:00:00" }
+    }
+  ],
+  "resource_types": [
+    { "id": "TECH", "start_location_id": "DEPOT", "end_location_id": "DEPOT" }
+  ],
+  "resources": [
+    {
+      "id": "RES-1",
+      "resource_type_id": "TECH",
+      "shifts": [
+        {
+          "id": "SHIFT-RES-1-1",
+          "start_date_time": "2026-11-02T08:00:00",
+          "end_date_time": "2026-11-02T18:00:00",
+          "breaks": [
+            {
+              "id": "BREAK-1",
+              "earliest_start_date_time": "2026-11-02T12:00:00",
+              "latest_start_date_time": "2026-11-02T13:30:00",
+              "duration": "PT45M"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

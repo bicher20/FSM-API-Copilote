@@ -66,6 +66,7 @@ def main():
         print(f"\n{len(errors)} erreur(s) bloquante(s). Corrige le payload avant de "
               f"continuer — pas la peine de chercher des optimisations sur une base "
               f"structurellement cassée.")
+        print("\n❌ VERDICT : à corriger avant tout appel réel.")
         sys.exit(1)
 
     print("\nPas d'erreur bloquante" + (f" — {len(warnings)} avertissement(s) ci-dessus à vérifier." if warnings else "."))
@@ -76,6 +77,16 @@ def main():
         response = load_json(response_path)
         recs += recommend_from_response(response, payload)
     print_recs(recs)
+
+    nb_high = sum(1 for r in recs if r["priority"] == "HIGH")
+    if nb_high:
+        print(f"✅ VERDICT : payload valide, mais {nb_high} recommandation(s) [HIGH] "
+              f"ci-dessus méritent d'être traitées avant de considérer le résultat fiable.")
+    elif recs:
+        print("✅ VERDICT : payload valide et prêt pour un appel réel — quelques "
+              "améliorations [MEDIUM]/[LOW] facultatives ci-dessus.")
+    else:
+        print("✅ VERDICT : payload valide, aucune recommandation — prêt pour un appel réel.")
 
     sys.exit(0)
 
