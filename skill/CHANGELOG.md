@@ -1,5 +1,13 @@
 # Changelog du skill
 
+## 1.6 — 2026-10-23
+- Ajout `reference/battlecard-timefold.md` : argumentaire commercial factuel vs
+  Timefold (barrière technique Java/Kotlin-only de leur Solver open source, pricing
+  100% "contact sales" de leur offre Platform, géocodage inclus chez Nomadia) +
+  reconnaissance honnête de ce que Timefold fait mieux (échelle 500k jobs,
+  explicabilité native payante, what-if avancé) + réponses aux objections courantes.
+  Sourcé sur docs.timefold.ai et timefold.ai/pricing au 23/10/2026.
+
 ## 1.5 — 2026-10-23
 - Ajout `scripts/compare_scenarios.py` : comparateur de scénarios, zéro dépendance.
   Mode statique (diff de config, gratuit) ou mode réel (`--api-key`, vrai avant/après
