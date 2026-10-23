@@ -1,7 +1,7 @@
 ---
 name: nomadia-scheduler-api
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.3
+version: 1.4
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -50,6 +50,24 @@ l'inspection n'a pas révélé :
 Si l'objectif est déjà clair depuis le message de l'utilisateur ou le contexte du repo,
 **saute directement à l'étape 3** sans poser de question pour la forme.
 
+**Étape 2bis — Mapper l'objectif client à la configuration à activer.** Dès que
+l'objectif métier est connu, traduis-le immédiatement en mécanismes Nomadia concrets à
+activer — ne laisse jamais l'utilisateur deviner quelle case cocher :
+
+| Objectif client | Mécanismes à activer | Pourquoi (ROI) |
+|---|---|---|
+| Respecter des rendez-vous/fenêtres client stricts | `SLA` avec `penalty_per_hour`/`base_jeopardy_penalty` > 0 | évite le risque réputationnel d'un rdv raté — kpis-metier.md §3 |
+| Technicien avec habilitation/compétence obligatoire | `Requirement` + `JobRequirement`/`ResourceRequirement` | évite d'envoyer la mauvaise ressource — kpis-metier.md §1 |
+| Stock embarqué limité (pièces, matériel) | `Part` + `JobPart.consumption` + `ResourcePart.available_quantity` | évite une tournée bloquée par manque de stock |
+| Réduire les km/le temps de trajet | `locality` sur les `Location` + revoir `start_location_id`/`end_location_id` | argument ROI le plus direct — kpis-metier.md §2 |
+| Limiter le nombre de véhicules/techniciens mobilisés | `shift_penalty` > 0 | baisse du coût fixe journalier — kpis-metier.md §4 |
+| Ordre obligatoire entre deux interventions | `PreRequisiteDefinition` | évite un plan métier incohérent (ex: poser avant de câbler) |
+| Disponibilité récurrente (horaires fixes chaque semaine) | `JobAvailabilityPattern` + `DayPattern` | évite de ressaisir la dispo à chaque appel |
+
+Une fois la configuration posée, lance **`scripts/recommend_improvements.py`** (voir
+étape 3.4bis) pour vérifier qu'aucun levier ROI évident n'a été oublié avant de
+présenter le résultat.
+
 **Étape 3 — Attaquer le chantier, avec auto-correction.** Une fois le besoin cadré, ne
 t'arrête pas au premier jet — boucle jusqu'à un résultat vérifié :
 
@@ -69,13 +87,24 @@ t'arrête pas au premier jet — boucle jusqu'à un résultat vérifié :
    l'utilisateur de le lancer à ta place). S'il remonte des `[ERROR]`, corrige le payload
    et relance la validation — répète jusqu'à 0 erreur avant de continuer. Les `[WARN]`
    sont à examiner mais ne bloquent pas.
+4bis. Lance aussi **`python3 <chemin-du-skill>/scripts/recommend_improvements.py payload.json`**
+   — contrairement au validateur, il ne bloque jamais (exit 0 systématique) mais
+   propose proactivement des améliorations ROI (compétences manquantes, pas de
+   `shift_penalty`, pas de `locality`, SLA sans pénalité...). Présente les
+   recommandations `[HIGH]` à l'utilisateur même s'il n'a rien demandé de plus — c'est
+   le cœur de la valeur "copilote" : il ne doit jamais avoir à demander "et sinon, on
+   pourrait améliorer quoi ?".
 5. Si une clé API est disponible, fais l'appel réel (`curl` ou le client) plutôt que de
    rester théorique. Si l'API renvoie une erreur HTTP ou des `unallocated_job_reasons`
    inattendues : ouvre `troubleshooting.md`, identifie la cause précise par le symptôme
    (jamais une supposition), corrige, et **réessaie une fois automatiquement** sans
    redemander à l'utilisateur. Si ça échoue encore après cette deuxième tentative,
    arrête-toi et explique précisément ce qui bloque plutôt que de boucler indéfiniment
-   ou de deviner — chaque appel consomme des crédits.
+   ou de deviner — chaque appel consomme des crédits. Une fois la réponse obtenue,
+   relance `recommend_improvements.py payload.json --response reponse.json` : il ajoute
+   alors le taux d'allocation réel, la répartition des `unallocated_job_reasons`, et le
+   ratio trajet/temps utile — ce sont les trois chiffres à mettre en avant pour montrer
+   l'intérêt concret du résultat à l'utilisateur.
 6. Si le besoin touche une contrainte dure (compétence, stock, ordre entre jobs),
    vérifie le §8/§11 — ces mécanismes sont souvent oubliés alors qu'ils sont la vraie
    raison d'un plan qui ne correspond pas à l'attente métier.
@@ -323,6 +352,7 @@ Ce SKILL.md est un résumé de navigation. Trois fichiers complètent le skill e
 | `troubleshooting.md` | un appel échoue, un job n'est pas planifié, ou le plan ne correspond pas à l'attendu — diagnostic par symptôme, à suivre avant de modifier du code au hasard |
 | `snippets/client.js` et `snippets/client.py` | tu démarres une intégration dans un projet JS/Node ou Python — client HTTP minimal + validation locale du payload (détecte les `id` qui ne se référencent pas entre eux, les dates de shift incohérentes, etc. avant de consommer des crédits) |
 | `reference/kpis-metier.md` | tu dois argumenter en rendez-vous commercial ou traduire un résultat technique (taux d'allocation, trajet, SLA) en impact business |
+| `scripts/recommend_improvements.py` | systématiquement après avoir posé une config (et de nouveau après un vrai appel API) — propose des améliorations ROI sans attendre qu'on te les demande |
 | `scripts/test_validate_payload.py` | tu modifies `validate_payload.py` — lance ces tests pour vérifier que tu n'as rien cassé avant de committer |
 
 **Portabilité.** Rien ici ne suppose un agent ou un éditeur précis : `scripts/` sont des

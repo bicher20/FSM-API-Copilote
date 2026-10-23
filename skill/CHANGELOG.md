@@ -1,5 +1,22 @@
 # Changelog du skill
 
+## 1.4 — 2026-10-23
+- Ajout `scripts/recommend_improvements.py` : moteur de recommandations proactives,
+  orienté ROI, exécutable en CLI. Analyse un payload (config seule) et optionnellement
+  une vraie réponse API (`--response`) pour sortir des recommandations priorisées
+  (HIGH/MEDIUM/LOW), chacune reliée à `reference/kpis-metier.md`. Testé sur les 5
+  exemples et sur une réponse API simulée.
+- `SKILL.md` §0 : nouvelle étape 2bis — table "objectif client → mécanismes Nomadia à
+  activer → pourquoi (ROI)" pour cadrer la configuration dès que le besoin métier est
+  connu, sans laisser l'utilisateur deviner quel champ cocher.
+- `SKILL.md` §0 étape 3 : le copilote lance désormais systématiquement
+  `recommend_improvements.py` après avoir posé un payload, et de nouveau après un vrai
+  appel API — il doit présenter les recommandations `[HIGH]` sans attendre qu'on les
+  lui demande.
+- Préparation explicite à un test API réel (clé fournie précédemment par
+  l'utilisateur) : rappel que la clé ne doit jamais être écrite en dur dans un fichier
+  commité, uniquement utilisée en mémoire au moment du test.
+
 ## 1.3 — 2026-10-23
 - Ajout `reference/kpis-metier.md` : traduction des paramètres/résultats techniques en
   arguments business (taux d'allocation, ratio trajet/temps utile, respect SLA,
