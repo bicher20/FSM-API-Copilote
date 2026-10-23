@@ -1,5 +1,19 @@
 # Changelog du skill
 
+## 1.13 — 2026-10-23
+- **Convention `breaks` confirmée par un vrai appel API** : `07_pause_obligatoire.json`
+  (pause de 45 min, 12:00-12:45) → HTTP 200, `break_allocations` rempli avec la pause
+  demandée. La structure imbriquée `shifts[].breaks[]` est désormais la référence
+  (`validate_payload.py` continue d'accepter aussi la forme top-level par tolérance).
+  Reste à confirmer : le nom de clé `job_resources` (test prévu sur
+  `10_job_multi_ressources.json`).
+- **Nouveau contrôle dans `recommend_improvements.py`** (signalé par un testeur) :
+  le script ne vérifiait pas que les pauses obligatoires demandées dans le payload
+  apparaissent bien dans `break_allocations` de la réponse. Ajout d'un contrôle HIGH
+  qui compare le nombre de pauses demandées vs présentes et alerte en cas d'écart —
+  une pause non respectée est un risque de conformité, pas un simple détail
+  d'optimisation.
+
 ## 1.12 — 2026-10-23
 - **Annonce explicite de l'environnement visé à l'exécution**, pas seulement dans la
   doc : chaque appel réel (`snippets/client.py` et `client.js` — `schedule_request`/

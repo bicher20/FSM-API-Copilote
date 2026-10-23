@@ -184,6 +184,33 @@ def recommend_from_response(response: dict, payload: dict | None) -> list[dict]:
             "impact": "souvent la cause la plus visible en démo/POC auprès d'un prospect — à anticiper",
         })
 
+    # Respect des pauses obligatoires (Break) : signalé pour la première fois le
+    # 23/10/2026 par un testeur qui a remarqué que ce script ne vérifiait pas que les
+    # pauses demandées dans le payload apparaissent bien dans break_allocations.
+    # NOTE DE FIABILITÉ : on ne connaît pas précisément le schéma d'un item de
+    # break_allocations (champs internes non confirmés) — ce contrôle compte
+    # seulement le nombre de pauses demandées vs présentes, sans vérifier l'horaire
+    # exact. Confirmé sur 07_pause_obligatoire.json (1 pause demandée -> 1 présente).
+    if payload:
+        requested_breaks = len(payload.get("breaks", []))
+        for r in payload.get("resources", []):
+            for shift in r.get("shifts", []):
+                requested_breaks += len(shift.get("breaks", []))
+        if requested_breaks:
+            allocated_breaks = response.get("break_allocations", [])
+            if len(allocated_breaks) < requested_breaks:
+                recs.append({
+                    "priority": "HIGH",
+                    "finding": f"{requested_breaks} pause(s) obligatoire(s) demandée(s) dans le payload, "
+                               f"mais seulement {len(allocated_breaks)} présente(s) dans break_allocations",
+                    "action": "identifier quelle(s) pause(s) n'ont pas été honorées (resource/shift) — "
+                              "souvent parce que la charge de jobs du shift ne laisse pas de créneau "
+                              "compatible avec la fenêtre de pause demandée. Voir troubleshooting.md",
+                    "impact": "une pause réglementaire (ex: pause déjeuner légale) non respectée dans le "
+                              "plan proposé est un risque de conformité à ne jamais laisser passer en "
+                              "silence — contrôle absent avant le 23/10/2026",
+                })
+
     if travels:
         total_travel_s = 0
         for t in travels:
