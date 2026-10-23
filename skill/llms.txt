@@ -24,11 +24,12 @@ parcourir le repo au hasard.
   résultat incohérent). À consulter avant de modifier du code au hasard.
 
 ## Exécutable (lancer via le shell, ne jamais deviner leur sortie)
-- scripts/validate_payload.py payload.json — validation locale AVANT tout appel réel.
-  Bloquant (exit 1 si erreur) — corriger jusqu'à exit 0.
+- scripts/doctor.py payload.json [--response reponse.json] — **point d'entrée par
+  défaut**. Valide (bloquant) puis recommande (jamais bloquant) en une seule commande.
+- scripts/validate_payload.py payload.json — validation locale seule. À utiliser à la
+  place de doctor.py seulement si besoin d'automatiser juste la validation (ex: CI).
 - scripts/recommend_improvements.py payload.json [--response reponse.json] —
-  recommandations ROI proactives. Ne bloque jamais (exit 0) — à présenter même sans
-  qu'on les demande.
+  recommandations ROI seules, même logique.
 - scripts/compare_scenarios.py --scenario LABEL payload.json ... [--api-key KEY] —
   comparaison avant/après entre configs. Consomme de vrais crédits si --api-key fourni
   — accord explicite de l'utilisateur requis avant ce mode.

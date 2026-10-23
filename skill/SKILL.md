@@ -1,7 +1,7 @@
 ---
 name: nomadia-scheduler-api
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.7
+version: 1.8
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -16,6 +16,38 @@ homepage: https://scheduler-json-api.readme.io
 > d'exécution de commandes", comprends : utilise le mécanisme d'exécution shell dont tu
 > disposes, quel qu'il soit — jamais besoin de demander à l'utilisateur de le lancer à ta
 > place.
+
+## -1. Premier contact — si l'utilisateur ne sait pas par où commencer
+
+Si l'utilisateur invoque ce skill sans objectif clair ("c'est quoi ce truc", "comment
+ça marche", ou juste un message vague), ne lui demande pas de reformuler : présente en
+3-4 lignes ce que ce skill sait faire concrètement, puis propose directement une
+première action plutôt que d'attendre une réponse parfaite :
+
+> Je suis le copilote d'intégration du Scheduler API de Nomadia (planning de tournées
+> field service/livraison). Je peux : cadrer ton besoin et te dire quels mécanismes
+> activer, écrire le payload/code d'intégration, valider et diagnostiquer automatiquement
+> avant tout appel réel, et traduire les résultats en chiffres business (taux
+> d'allocation, trajet, ROI). As-tu déjà une intégration en cours, ou on démarre de zéro ?
+
+Ne jamais laisser l'utilisateur deviner quel fichier ouvrir ou quel script lancer —
+c'est le rôle du skill de le faire à sa place (voir §-1bis et §0).
+
+## -1bis. Une seule commande pour tout vérifier
+
+Pour tout payload déjà écrit, le réflexe par défaut est **une seule commande** plutôt
+que de se souvenir de trois scripts séparés :
+
+```bash
+python3 <chemin-du-skill>/scripts/doctor.py payload.json
+python3 <chemin-du-skill>/scripts/doctor.py payload.json --response reponse.json   # après un vrai appel
+```
+
+`doctor.py` valide (bloquant si erreur), puis recommande (ROI, jamais bloquant), dans
+le bon ordre, en un seul appel. Les sections 3.4/4bis de l'étape 0 ci-dessous détaillent
+ce qu'il fait exactement et quand utiliser les scripts séparés
+(`validate_payload.py`/`recommend_improvements.py`/`compare_scenarios.py`) plutôt que
+`doctor.py` — en général seulement si besoin d'automatiser juste l'un des deux.
 
 ## 0. Procédure à suivre quand ce skill est invoqué
 
@@ -81,19 +113,17 @@ t'arrête pas au premier jet — boucle jusqu'à un résultat vérifié :
 3. Écris le payload JSON (ou le code qui le génère). Si le projet a déjà un
    langage/stack identifié à l'étape 1, pars de `snippets/client.js` ou
    `snippets/client.py` plutôt que de réécrire un client HTTP from scratch.
-4. **Avant tout appel réel**, valide : `python3 <chemin-du-skill>/scripts/validate_payload.py payload.json`
+4. **Avant tout appel réel**, lance `python3 <chemin-du-skill>/scripts/doctor.py payload.json`
    (exécute-le toi-même via ton outil d'exécution de commandes — terminal, shell,
    sous-processus, peu importe comment ton environnement l'appelle — ne demande pas à
-   l'utilisateur de le lancer à ta place). S'il remonte des `[ERROR]`, corrige le payload
-   et relance la validation — répète jusqu'à 0 erreur avant de continuer. Les `[WARN]`
-   sont à examiner mais ne bloquent pas.
-4bis. Lance aussi **`python3 <chemin-du-skill>/scripts/recommend_improvements.py payload.json`**
-   — contrairement au validateur, il ne bloque jamais (exit 0 systématique) mais
-   propose proactivement des améliorations ROI (compétences manquantes, pas de
-   `shift_penalty`, pas de `locality`, SLA sans pénalité...). Présente les
-   recommandations `[HIGH]` à l'utilisateur même s'il n'a rien demandé de plus — c'est
-   le cœur de la valeur "copilote" : il ne doit jamais avoir à demander "et sinon, on
-   pourrait améliorer quoi ?".
+   l'utilisateur de le lancer à ta place). Il valide d'abord (bloquant : s'il remonte des
+   `[ERROR]`, corrige le payload et relance jusqu'à 0 erreur), puis recommande des
+   améliorations ROI (jamais bloquant — compétences manquantes, pas de `shift_penalty`,
+   pas de `locality`, SLA sans pénalité...). **Présente les recommandations `[HIGH]` à
+   l'utilisateur même s'il n'a rien demandé de plus** — c'est le cœur de la valeur
+   "copilote" : il ne doit jamais avoir à demander "et sinon, on pourrait améliorer
+   quoi ?". (`validate_payload.py` et `recommend_improvements.py` restent utilisables
+   séparément si tu n'as besoin que de l'un des deux — par exemple dans un script CI.)
 5. Si une clé API est disponible, fais l'appel réel (`curl` ou le client) plutôt que de
    rester théorique. Si l'API renvoie une erreur HTTP ou des `unallocated_job_reasons`
    inattendues : ouvre `troubleshooting.md`, identifie la cause précise par le symptôme
@@ -101,9 +131,9 @@ t'arrête pas au premier jet — boucle jusqu'à un résultat vérifié :
    redemander à l'utilisateur. Si ça échoue encore après cette deuxième tentative,
    arrête-toi et explique précisément ce qui bloque plutôt que de boucler indéfiniment
    ou de deviner — chaque appel consomme des crédits. Une fois la réponse obtenue,
-   relance `recommend_improvements.py payload.json --response reponse.json` : il ajoute
-   alors le taux d'allocation réel, la répartition des `unallocated_job_reasons`, et le
-   ratio trajet/temps utile — ce sont les trois chiffres à mettre en avant pour montrer
+   relance `doctor.py payload.json --response reponse.json` : il ajoute alors le taux
+   d'allocation réel, la répartition des `unallocated_job_reasons`, et le ratio
+   trajet/temps utile — ce sont les trois chiffres à mettre en avant pour montrer
    l'intérêt concret du résultat à l'utilisateur.
 6. Si le besoin touche une contrainte dure (compétence, stock, ordre entre jobs),
    vérifie le §8/§11 — ces mécanismes sont souvent oubliés alors qu'ils sont la vraie
@@ -352,7 +382,8 @@ Ce SKILL.md est un résumé de navigation. Trois fichiers complètent le skill e
 | `troubleshooting.md` | un appel échoue, un job n'est pas planifié, ou le plan ne correspond pas à l'attendu — diagnostic par symptôme, à suivre avant de modifier du code au hasard |
 | `snippets/client.js` et `snippets/client.py` | tu démarres une intégration dans un projet JS/Node ou Python — client HTTP minimal + validation locale du payload (détecte les `id` qui ne se référencent pas entre eux, les dates de shift incohérentes, etc. avant de consommer des crédits) |
 | `reference/kpis-metier.md` | tu dois argumenter en rendez-vous commercial ou traduire un résultat technique (taux d'allocation, trajet, SLA) en impact business |
-| `scripts/recommend_improvements.py` | systématiquement après avoir posé une config (et de nouveau après un vrai appel API) — propose des améliorations ROI sans attendre qu'on te les demande |
+| `scripts/doctor.py` | **le réflexe par défaut** avant tout appel réel — valide puis recommande en une seule commande (voir §-1bis) |
+| `scripts/recommend_improvements.py` | séparément de `doctor.py`, uniquement si besoin d'automatiser juste les recommandations (ex: script CI) |
 | `scripts/compare_scenarios.py` | pour prouver un gain avant/après entre deux configs (sans clé API : diff de config ; avec clé API : vrai avant/après chiffré — **consomme des crédits**, ne lancer qu'avec l'accord explicite de l'utilisateur) |
 | `reference/replanification-temps-reel.md` | dès qu'il est question de replanification en continu, de suivi temps réel, de figer une affectation déjà engagée, ou qu'on te compare à un solveur type Timefold/OptaPlanner |
 | `reference/battlecard-timefold.md` | dès qu'un prospect compare Nomadia à Timefold/OptaPlanner/un solveur généraliste en rendez-vous commercial — argumentaire factuel + objections courantes + ce que l'autre fait réellement mieux |

@@ -18,8 +18,9 @@ que de renvoyer un extrait de doc.
 - `reference/replanification-temps-reel.md` — patterns de replanification continue/temps réel
 - `troubleshooting.md` — playbook de dépannage par symptôme (erreurs HTTP, job non
   planifié, plan incohérent)
-- `scripts/validate_payload.py` — validation locale AVANT tout appel réel (bloquant)
-- `scripts/recommend_improvements.py` — recommandations ROI proactives (jamais bloquant)
+- `scripts/doctor.py` — point d'entrée unique : valide puis recommande en une commande
+- `scripts/validate_payload.py` / `recommend_improvements.py` — les deux étapes de
+  `doctor.py`, utilisables séparément (ex: intégration CI)
 - `scripts/compare_scenarios.py` — comparateur avant/après entre configs
 - `snippets/client.js` et `snippets/client.py` — client HTTP minimal + retry/backoff
 - `examples/` — 5 payloads déjà vérifiés, un par pattern courant

@@ -1,5 +1,19 @@
 # Changelog du skill
 
+## 1.8 — 2026-10-23
+- Ajout `scripts/doctor.py` : point d'entrée unique (valide puis recommande en une
+  seule commande) — une seule chose à retenir au lieu de trois scripts séparés.
+  `validate_payload.py` et `recommend_improvements.py` restent utilisables seuls
+  (ex: intégration CI) mais `doctor.py` devient le réflexe par défaut partout dans
+  `SKILL.md`.
+- `SKILL.md` : nouvelles sections -1 ("Premier contact" — que répondre si l'utilisateur
+  ne sait pas par où commencer) et -1bis (pointeur vers `doctor.py`).
+- `reference/kpis-metier.md` : reformulation de l'intro pour servir aussi un client
+  déjà équipé qui suit sa propre performance, pas uniquement un contexte de vente.
+- Ajout `FEEDBACK.md` (racine) : comment signaler un problème (version précise,
+  payload minimal reproductible, sortie de `doctor.py`), et ce qui n'est pas un bug.
+- `llms.txt` mis à jour (doctor.py en tête des scripts exécutables).
+
 ## 1.7 — 2026-10-23
 - Ajout `skill/llms.txt` : index priorisé des fichiers du skill pour un agent IA qui
   découvre le repo — inspiré du `llms.txt` de la doc Nomadia et du pattern

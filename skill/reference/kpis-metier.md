@@ -1,8 +1,14 @@
 # KPIs métier — traduire le technique en argument business
 
-Un prospect ne raisonne pas en champs JSON. Ce fichier traduit chaque paramètre ou
-résultat technique du Scheduler API en indicateur business, pour argumenter en rendez-vous
-ou en diagnostic sans paraître purement technique.
+Ni un prospect en rendez-vous commercial, ni une équipe opérationnelle qui suit sa
+propre performance, ne raisonnent en champs JSON. Ce fichier traduit chaque paramètre
+ou résultat technique du Scheduler API en indicateur business — à double usage :
+
+- **Côté vente/avant-vente** : argumenter face à un prospect sans paraître purement
+  technique (c'est le sens d'origine des formulations ci-dessous).
+- **Côté client déjà équipé** : suivre sa propre performance de planification dans le
+  temps — chaque section se relit aussi comme "comment surveiller ce chiffre chez moi"
+  plutôt que "comment l'utiliser pour convaincre quelqu'un d'autre".
 
 ## 1. Taux d'allocation
 
