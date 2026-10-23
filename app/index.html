@@ -1,0 +1,315 @@
+<title>Copilote Découverte Tournées</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+  /* Layout: chat thread, bot asks one question at a time, user types freely, bottom input bar */
+  :root{
+    --bg:#f5f6fa; --panel:#ffffff; --bubble-bot:#eef0f7; --bubble-user:#3b63d6;
+    --border:#e2e5ee; --text:#161a22; --muted:#5c6577; --accent:#3b63d6; --accent2:#0b8f9e;
+    --good:#0f9d6a; color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0b0d12; --panel:#12151c; --bubble-bot:#1b2029; --bubble-user:#3b63d6;
+      --border:#262b36; --text:#e8eaf0; --muted:#8991a3; --accent:#6f93ff; --accent2:#5fd0e6;
+      --good:#3ddc97; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0b0d12; --panel:#12151c; --bubble-bot:#1b2029; --bubble-user:#3b63d6;
+    --border:#262b36; --text:#e8eaf0; --muted:#8991a3; --accent:#6f93ff; --accent2:#5fd0e6;
+    --good:#3ddc97; color-scheme: dark;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;display:flex;flex-direction:column;
+    padding-left:max(16px, env(safe-area-inset-left,0px));
+    padding-right:max(16px, env(safe-area-inset-right,0px));}
+  .shell{max-width:640px;margin:0 auto;width:100%;display:flex;flex-direction:column;height:100%;min-height:0}
+  header{display:flex;align-items:center;gap:12px;padding-block:16px 10px;flex:none;
+    border-bottom:1px solid var(--border)}
+  .logo{width:32px;height:32px;border-radius:9px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex:none;font-size:12px}
+  h1{font-size:15px;margin:0;font-weight:650}
+  .sub{color:var(--muted);font-size:12px;margin-top:1px}
+  .thread{flex:1;min-height:0;overflow-y:auto;padding-block:16px;display:flex;flex-direction:column;gap:10px}
+  .row{display:flex;gap:8px;max-width:88%}
+  .row.bot{align-self:flex-start}
+  .row.user{align-self:flex-end;flex-direction:row-reverse}
+  .avatar{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;
+    justify-content:center;font-size:11px;font-weight:700;color:#fff;
+    background:linear-gradient(135deg,var(--accent),var(--accent2))}
+  .avatar.user{background:var(--muted)}
+  .bubble{padding:10px 14px;border-radius:16px;font-size:14.5px;line-height:1.5;white-space:pre-wrap}
+  .row.bot .bubble{background:var(--bubble-bot);border:1px solid var(--border);border-bottom-left-radius:4px}
+  .row.user .bubble{background:var(--bubble-user);color:#fff;border-bottom-right-radius:4px}
+  .why{font-size:12px;color:var(--muted);margin-top:4px;padding-left:2px}
+  .section-tag{align-self:center;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--accent2);font-weight:700;background:var(--panel);border:1px solid var(--border);
+    padding:4px 10px;border-radius:999px;margin:8px 0}
+  .typing{display:flex;gap:4px;padding:12px 14px}
+  .typing span{width:6px;height:6px;border-radius:50%;background:var(--muted);
+    animation:blink 1.1s infinite ease-in-out}
+  .typing span:nth-child(2){animation-delay:.15s}
+  .typing span:nth-child(3){animation-delay:.3s}
+  @keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+  form.inputbar{flex:none;display:flex;gap:8px;padding-block:12px;
+    padding-bottom:max(12px, env(safe-area-inset-bottom,0px));
+    border-top:1px solid var(--border);background:var(--bg)}
+  .inputbar textarea{flex:1;resize:none;min-height:44px;max-height:120px;
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;
+    color:var(--text);padding:11px 14px;font:inherit;font-size:14.5px;line-height:1.4}
+  .inputbar textarea:focus{outline:none;border-color:var(--accent)}
+  .inputbar button{font:inherit;cursor:pointer;border:none;border-radius:12px;
+    background:var(--accent);color:#fff;font-weight:650;font-size:14px;padding:0 18px;
+    flex:none}
+  .inputbar button:hover{filter:brightness(1.08)}
+  .inputbar button:disabled{opacity:.4;cursor:default}
+  .inputbar button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;padding-left:34px;margin-top:2px}
+  .chip{font:inherit;font-size:12.5px;cursor:pointer;border:1px solid var(--border);
+    background:var(--panel);color:var(--text);border-radius:999px;padding:6px 12px}
+  .chip:hover{border-color:var(--accent);color:var(--accent)}
+  .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);
+    background:var(--good);color:#06201a;font-weight:700;font-size:13px;
+    padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+  .toast.show{opacity:1}
+  @media (prefers-reduced-motion:reduce){ .typing span{animation:none} }
+</style>
+
+<div class="shell">
+  <header>
+    <div class="logo">SA</div>
+    <div>
+      <h1>Copilote Découverte — Field Service &amp; Tournées</h1>
+      <div class="sub">Discute, réponds, et obtiens un brief prêt pour ton prospect.</div>
+    </div>
+  </header>
+  <div class="thread" id="thread"></div>
+  <form class="inputbar" id="inputbar">
+    <textarea id="input" placeholder="Tape la réponse du prospect…" rows="1"></textarea>
+    <button type="submit" id="sendBtn">Envoyer</button>
+  </form>
+</div>
+<div class="toast" id="toast">Copié</div>
+
+<script>
+const SECTIONS = [
+  { tag:"1 · Contexte", questions:[
+    { id:"secteur", bot:"Pour commencer : c'est quoi le secteur et l'activité exacte du prospect ?",
+      why:"Field service (SAV, installation), livraison, tournées commerciales… le modèle de contraintes change du tout au tout." },
+    { id:"douleur", bot:"Qu'est-ce qui ne va pas dans son planning actuel ?",
+      why:"Excel ? Tournées à l'instinct ? Retards clients ? C'est ce qui justifiera le ROI." },
+    { id:"volume", bot:"Combien de jobs/interventions et de ressources par jour, à peu près ?",
+      why:"Détermine la taille du problème (et le coût en crédits côté API : 5 + nb_ressources × nb_jobs planifiés par appel)." },
+    { id:"frequence", bot:"À quelle fréquence le planning doit être recalculé ?",
+      why:"Une fois par jour, ou en continu avec réajustement temps réel ? Ça conditionne l'archi." }
+  ]},
+  { tag:"2 · Les jobs", questions:[
+    { id:"types_job", bot:"Quels types d'interventions existent, et combien de temps chacune prend ?",
+      why:"→ JobType.custom_duration." },
+    { id:"fenetre", bot:"Y a-t-il une fenêtre horaire à respecter par job (rendez-vous, créneau client) ?",
+      why:"→ SLA.earliest_start_date_time / latest_start_date_time." },
+    { id:"criticite", bot:"Tous les jobs ont-ils la même importance, ou certains passent avant les autres ?",
+      why:"→ value_per_hour et appointment_priority." },
+    { id:"penalite", bot:"Que se passe-t-il si un rendez-vous est raté — pénalité, client perdu ?",
+      why:"→ SLA.base_jeopardy_penalty. Peut carrément interdire de planifier hors fenêtre." },
+    { id:"split", bot:"Une intervention peut-elle être découpée en plusieurs passages ?",
+      why:"→ split_allowed." }
+  ]},
+  { tag:"3 · Les ressources", questions:[
+    { id:"types_res", bot:"Quels types de ressources : techniciens, véhicules, équipes ?",
+      why:"→ ResourceType, avec ses propres coûts et limites." },
+    { id:"depot", bot:"D'où partent et où reviennent les ressources chaque jour ?",
+      why:"→ start_location_id / end_location_id. Dépôt central, ou départ du domicile ?" },
+    { id:"horaires", bot:"Quels horaires de travail, et des pauses obligatoires ?",
+      why:"→ Shift, Break." },
+    { id:"limites", bot:"Un nombre min/max d'interventions par jour, ou un temps de trajet max ?",
+      why:"→ maximum_jobs_per_shift, maximum_travel_time_per_shift." },
+    { id:"cout", bot:"Quel est le coût réel d'une ressource (heure, km, heures sup) ?",
+      why:"→ cost_per_hour, cost_per_kilometre, overtime_cost_multiplier." }
+  ]},
+  { tag:"4 · Contraintes", questions:[
+    { id:"competences", bot:"Certaines interventions demandent une habilitation ou compétence précise ?",
+      why:"→ Requirement + JobRequirement / ResourceRequirement." },
+    { id:"pieces", bot:"Les techniciens embarquent un stock limité de pièces consommées par intervention ?",
+      why:"→ Part + JobPart.consumption / ResourcePart.available_quantity." },
+    { id:"zones", bot:"Des zones géographiques réservées à certaines équipes ?",
+      why:"Souvent via des Requirement par secteur, ou maximum_travel_time." }
+  ]},
+  { tag:"5 · Règles avancées", questions:[
+    { id:"ordre", bot:"Certains jobs doivent obligatoirement se faire avant/après d'autres ?",
+      why:"→ PreRequisiteDefinition (earlier_job_id / later_job_id)." },
+    { id:"meme_tech", bot:"Un même client doit toujours voir le même technicien ?",
+      why:"→ PreRequisiteDefinition.same_resource, ou JobResourcePriority." },
+    { id:"tech_dedies", bot:"Des techniciens à bannir ou privilégier pour certains clients ?",
+      why:"→ JobResourcePriority : MANDATORY / FAVOURED / UNFAVOURED / FORBIDDEN." }
+  ]},
+  { tag:"6 · Temps réel", questions:[
+    { id:"suivi", bot:"Le client veut suivre en direct l'avancement — parti, arrivé, terminé ?",
+      why:"→ JobResourceStatus." },
+    { id:"gps", bot:"Les véhicules/techniciens sont géolocalisés en continu ?",
+      why:"→ ResourceKnownLocation." },
+    { id:"replanif", bot:"Qui déclenche une replanification en cas d'imprévu ?",
+      why:"Synchrone en continu, ou recalcul manuel par un planificateur ?" }
+  ]}
+];
+const FLOW = SECTIONS.flatMap(s => s.questions.map(q => ({...q, tag:s.tag})));
+
+let answers = {};
+let idx = 0;
+try{ const saved = JSON.parse(localStorage.getItem('copilote_state')||'null');
+  if(saved){ answers = saved.answers||{}; idx = saved.idx||0; } }catch(e){}
+
+const thread = document.getElementById('thread');
+const inputbar = document.getElementById('inputbar');
+const input = document.getElementById('input');
+const sendBtn = document.getElementById('sendBtn');
+let lastTag = null;
+
+function persist(){ try{ localStorage.setItem('copilote_state', JSON.stringify({answers, idx})); }catch(e){} }
+
+function scrollDown(){ thread.scrollTop = thread.scrollHeight; }
+
+function addSectionTag(tag){
+  if(tag === lastTag) return;
+  lastTag = tag;
+  const el = document.createElement('div');
+  el.className = 'section-tag';
+  el.textContent = tag;
+  thread.appendChild(el);
+}
+
+function addBotMessage(text, why){
+  const row = document.createElement('div'); row.className='row bot';
+  const av = document.createElement('div'); av.className='avatar'; av.textContent='SA';
+  const col = document.createElement('div');
+  const bubble = document.createElement('div'); bubble.className='bubble'; bubble.textContent = text;
+  col.appendChild(bubble);
+  if(why){ const w = document.createElement('div'); w.className='why'; w.textContent = why; col.appendChild(w); }
+  row.append(av, col);
+  thread.appendChild(row);
+  scrollDown();
+}
+
+function addUserMessage(text){
+  const row = document.createElement('div'); row.className='row user';
+  const av = document.createElement('div'); av.className='avatar user'; av.textContent='Toi';
+  const bubble = document.createElement('div'); bubble.className='bubble'; bubble.textContent = text;
+  row.append(av, bubble);
+  thread.appendChild(row);
+  scrollDown();
+}
+
+function showTyping(cb, delay){
+  const row = document.createElement('div'); row.className='row bot';
+  const av = document.createElement('div'); av.className='avatar'; av.textContent='SA';
+  const bubble = document.createElement('div'); bubble.className='bubble typing';
+  bubble.innerHTML = '<span></span><span></span><span></span>';
+  row.append(av, bubble);
+  thread.appendChild(row);
+  scrollDown();
+  setTimeout(()=>{ row.remove(); cb(); }, delay || 450);
+}
+
+function askCurrent(){
+  if(idx >= FLOW.length){ finish(); return; }
+  const q = FLOW[idx];
+  addSectionTag(q.tag);
+  showTyping(()=>{
+    addBotMessage(q.bot, q.why);
+    input.focus();
+  });
+}
+
+function buildBrief(){
+  let out = `BRIEF DE DÉCOUVERTE — PLANIFICATION & TOURNÉES\n`;
+  out += `Généré le ${new Date().toLocaleDateString('fr-FR')}\n${'='.repeat(50)}\n\n`;
+  SECTIONS.forEach(s=>{
+    const lines = s.questions.filter(q=>(answers[q.id]||'').trim());
+    if(!lines.length) return;
+    out += `## ${s.tag.replace(/^\d+\s·\s/,'')}\n`;
+    lines.forEach(q=>{ out += `- ${q.bot}\n  → ${answers[q.id].trim()}\n`; });
+    out += `\n`;
+  });
+  return out;
+}
+
+function finish(){
+  addSectionTag('Récapitulatif');
+  showTyping(()=>{
+    addBotMessage("Parfait, j'ai de quoi construire ton brief. Le voici — copie-le dans ton CRM ou ton email de suivi :");
+    const row = document.createElement('div'); row.className='row bot';
+    const av = document.createElement('div'); av.className='avatar'; av.textContent='SA';
+    const col = document.createElement('div');
+    const pre = document.createElement('div'); pre.className='bubble';
+    pre.style.whiteSpace='pre-wrap'; pre.style.fontFamily='ui-monospace,Menlo,Consolas,monospace';
+    pre.style.fontSize='12.5px'; pre.textContent = buildBrief();
+    col.appendChild(pre);
+    const actions = document.createElement('div'); actions.className='actions';
+    const copyChip = document.createElement('button'); copyChip.type='button'; copyChip.className='chip';
+    copyChip.textContent='Copier le brief';
+    copyChip.onclick = ()=>{
+      const text = pre.textContent;
+      const done = ()=>{ const t=document.getElementById('toast'); t.classList.add('show');
+        setTimeout(()=>t.classList.remove('show'),1500); };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(done).catch(()=>{
+          const r=document.createRange(); r.selectNodeContents(pre);
+          const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+        });
+      } else {
+        const r=document.createRange(); r.selectNodeContents(pre);
+        const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      }
+    };
+    const restartChip = document.createElement('button'); restartChip.type='button'; restartChip.className='chip';
+    restartChip.textContent='Nouveau prospect';
+    restartChip.onclick = ()=>{
+      if(confirm('Repartir de zéro avec un nouveau prospect ?')){
+        answers = {}; idx = 0; lastTag = null; thread.innerHTML=''; persist(); askCurrent();
+      }
+    };
+    actions.append(copyChip, restartChip);
+    col.appendChild(actions);
+    row.append(av, col);
+    thread.appendChild(row);
+    scrollDown();
+    inputbar.style.display = 'none';
+  });
+}
+
+inputbar.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const val = input.value.trim();
+  if(!val || idx >= FLOW.length) return;
+  addUserMessage(val);
+  answers[FLOW[idx].id] = val;
+  idx++;
+  persist();
+  input.value='';
+  input.style.height='auto';
+  askCurrent();
+});
+
+input.addEventListener('keydown', (e)=>{
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); inputbar.requestSubmit(); }
+});
+input.addEventListener('input', ()=>{
+  input.style.height='auto';
+  input.style.height = Math.min(input.scrollHeight,120)+'px';
+});
+
+// boot: replay what's already answered, then ask the current question
+if(idx > 0){
+  for(let i=0;i<idx;i++){
+    const q = FLOW[i];
+    addSectionTag(q.tag);
+    addBotMessage(q.bot, q.why);
+    addUserMessage(answers[q.id] || '');
+  }
+}
+askCurrent();
+</script>
