@@ -42,12 +42,20 @@ Si l'objectif est déjà clair depuis le message de l'utilisateur ou le contexte
 
 **Étape 3 — Attaquer le chantier.** Une fois le besoin cadré, passe à l'action
 directement, pas de plan qui traîne :
-- écris le payload JSON (ou le code qui le génère) en respectant strictement les entités
-  du §3-11 ci-dessous — jamais de champ inventé
+- pour tout champ dont tu n'es pas sûr à 100% du nom exact, du type ou de la valeur par
+  défaut, ouvre `reference/entities.md` plutôt que de répondre de mémoire — ce fichier
+  est la transcription complète et fiable du schéma, §3-11 ci-dessous n'en est qu'un
+  résumé de confort
+- écris le payload JSON (ou le code qui le génère) en respectant strictement ces entités
+  — jamais de champ inventé, jamais un nom approché
+- si le projet a déjà un langage/stack identifié à l'étape 1, pars de
+  `snippets/client.js` ou `snippets/client.py` (appel + validation locale avant envoi)
+  plutôt que de réécrire un client HTTP from scratch
 - si une clé API est disponible, propose/fais l'appel réel (`curl` ou code) pour valider
   plutôt que de rester théorique
-- si la réponse contient des `unallocated_job_reasons`, diagnostique avec le §9 avant de
-  conclure
+- si quelque chose ne marche pas (erreur HTTP, job non planifié, résultat incohérent),
+  ouvre `troubleshooting.md` et suis le diagnostic par symptôme avant de modifier du code
+  au hasard — ne jamais deviner une cause sans l'avoir confirmée
 - si le besoin touche une contrainte dure (compétence, stock, ordre entre jobs), vérifie
   le §8/§11 — ces mécanismes sont souvent oubliés alors qu'ils sont la vraie raison d'un
   plan qui ne correspond pas à l'attente métier
@@ -56,7 +64,9 @@ directement, pas de plan qui traîne :
   débogage
 
 Objectif : l'utilisateur ne doit jamais avoir à répéter une info déjà visible dans son
-projet, et ne doit jamais recevoir un cours sur l'API quand il attend un livrable.
+projet, ne doit jamais recevoir un cours sur l'API quand il attend un livrable, et ne
+doit jamais recevoir un champ ou une valeur par défaut incorrecte — en cas de doute,
+toujours vérifier dans `reference/entities.md` plutôt que supposer.
 
 ## 1. C'est quoi
 
@@ -282,7 +292,18 @@ planifié, l'autre non plus).
   `JobResourceStatus` (avancement) en entrée, `DeletedEntity` en sortie pour signaler ce
   qui a changé.
 
-## 13. Sources
+## 13. Fichiers du skill — quand ouvrir quoi
+
+Ce SKILL.md est un résumé de navigation. Trois fichiers complètent le skill et doivent
+être ouverts selon le besoin — ne pas essayer de tout retenir de mémoire :
+
+| Fichier | Ouvrir quand… |
+|---|---|
+| `reference/entities.md` | tu écris un payload/code et as besoin du nom exact d'un champ, son type, ou sa valeur par défaut — transcription complète et fiable du schéma, y compris l'énumération entière des `unallocated_reason` |
+| `troubleshooting.md` | un appel échoue, un job n'est pas planifié, ou le plan ne correspond pas à l'attendu — diagnostic par symptôme, à suivre avant de modifier du code au hasard |
+| `snippets/client.js` et `snippets/client.py` | tu démarres une intégration dans un projet JS/Node ou Python — client HTTP minimal + validation locale du payload (détecte les `id` qui ne se référencent pas entre eux, les dates de shift incohérentes, etc. avant de consommer des crédits) |
+
+## 14. Sources
 
 - Doc schéma complète : PDF "Scheduler Schema Documentation" v1.1.9/1.1.10 (fourni par
   Nomadia)

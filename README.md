@@ -3,14 +3,23 @@
 Deux livrables autour du **Scheduler API de Nomadia** (optimisation de tournées / field
 service) :
 
-## `/skill/SKILL.md`
-Skill Claude (format `SKILL.md`) qui référence tout le modèle de données du Scheduler API
-(Job, Resource, Shift, SLA, Requirement, Part, Events, Advanced…), le quick start, les
-codes d'erreur et le système de crédits. Objectif : qu'une IA réponde à n'importe quelle
-question sur comment modéliser un besoin de planification avec cette API.
+## `/skill/`
+Skill Claude (format `SKILL.md`) qui transforme Claude en copilote d'intégration pour le
+Scheduler API : il cadre le besoin, inspecte le projet existant (clé API déjà en `.env`,
+appels déjà en place, stack utilisé) avant de poser une seule question, puis écrit
+directement le code/payload — et diagnostique une erreur ou un job non planifié plutôt
+que de renvoyer un extrait de doc.
 
-À installer comme skill (ex. dans Claude Code : copier dans
-`~/.claude/skills/nomadia-scheduler-api/SKILL.md`).
+- `SKILL.md` — procédure à suivre + résumé de navigation du modèle de données
+- `reference/entities.md` — transcription exhaustive de toutes les entités (champs,
+  types, valeurs par défaut) + l'énumération complète des raisons de non-allocation
+- `troubleshooting.md` — playbook de dépannage par symptôme (erreurs HTTP, job non
+  planifié, plan incohérent)
+- `snippets/client.js` et `snippets/client.py` — client HTTP minimal + validation locale
+  du payload avant envoi (évite de consommer des crédits sur une requête mal formée)
+
+À installer comme skill (ex. dans Claude Code : copier le dossier `skill/` dans
+`~/.claude/skills/nomadia-scheduler-api/`).
 
 ## `/app/index.html`
 Un copilote de découverte commerciale, en **chat** (une seule page HTML, aucune
