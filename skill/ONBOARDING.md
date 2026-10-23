@@ -1,5 +1,25 @@
 # Démarrage rapide — pour un client qui reçoit ce skill
 
+## 0. Environnements disponibles
+
+**⚠️ Confirmé directement par Nomadia le 23/10/2026 — versions explicitement
+annoncées comme non définitives à cette date, à revérifier avant toute mise en
+production.**
+
+| Environnement | Portail (obtenir/gérer sa clé API) | API |
+|---|---|---|
+| **Test** (actif) | https://scheduler-api-test.nomadia-app.com/dashboard | https://scheduler-api-test.nomadia-app.com/api |
+| **Prod** (**pas encore actif**) | https://scheduler-api.nomadia-app.com/dashboard | https://scheduler-api.nomadia-app.com/api |
+
+**Utiliser l'environnement de test pour tout développement/démo tant que la prod
+n'est pas confirmée active** — cibler le domaine prod aujourd'hui échoue avec une
+erreur DNS (`Name or service not known`), pas une erreur d'authentification : ce
+n'était pas un problème de clé ni de payload, le domaine prod n'a simplement pas
+encore de service actif derrière.
+
+`snippets/client.py` et `client.js` ciblent le test par défaut, surchargeable via la
+variable d'environnement `NOMADIA_BASE_URL` (utile le jour où la prod devient active).
+
 Ce document couvre tout le trajet entre "je viens de recevoir ce dossier" et "j'ai une
 vraie réponse de l'API entre les mains". Si tu es un agent IA qui découvre ce skill
 pour la première fois dans une conversation, suis ces étapes toi-même avec
@@ -56,7 +76,7 @@ with open('skill/examples/01_minimal.json') as f:
 payload.pop('_comment', None)
 
 req = urllib.request.Request(
-    'https://scheduler-api.nomadia-app.com/api/schedule',
+    'https://scheduler-api-test.nomadia-app.com/api/schedule',
     data=json.dumps(payload).encode('utf-8'),
     headers={'Content-Type': 'application/json', 'x-api-key': key},
     method='POST',
@@ -100,16 +120,19 @@ réel depuis un poste/environnement qui a un accès réseau normal.
 
 ## Erreur DNS ("Name or service not known" / "could not resolve host")
 
-Si l'étape 4 échoue avec une erreur de résolution DNS plutôt qu'une erreur HTTP, le
-domaine `scheduler-api.nomadia-app.com` n'est **pas** en cause — il est confirmé exact
-et inchangé dans la doc officielle (https://scheduler-json-api.readme.io/reference/quick-start).
-C'est presque toujours le résolveur DNS local (VPN, proxy d'entreprise, filtrage
-réseau, `/etc/hosts`) qui ne connaît pas ce domaine. Vérifier avec un résolveur public :
+**Cause la plus probable : tu cibles encore le domaine prod
+(`scheduler-api.nomadia-app.com`) alors qu'il n'est pas encore actif** — vérifie
+d'abord que tu utilises bien `scheduler-api-test.nomadia-app.com` (voir §0
+ci-dessus). C'est ce qui s'est produit lors des premiers tests de ce skill : la
+même erreur DNS a été reproduite, et Nomadia a confirmé par email que la prod n'était
+simplement pas encore activée.
+
+Si l'erreur persiste malgré le bon domaine (test), vérifier avec un résolveur public :
 ```bash
-dig @1.1.1.1 scheduler-api.nomadia-app.com
+dig @1.1.1.1 scheduler-api-test.nomadia-app.com
 # ou si dig n'est pas installé :
-nslookup scheduler-api.nomadia-app.com 1.1.1.1
+nslookup scheduler-api-test.nomadia-app.com 1.1.1.1
 ```
-Si ça résout une adresse IP, le problème est confirmé local (réseau/VPN/DNS de la
-machine) — pas un problème du skill ni de l'API Nomadia. Essayer depuis un autre
-réseau (partage de connexion mobile, par exemple) pour confirmer définitivement.
+Si ça ne résout toujours rien, le problème est local (VPN, proxy d'entreprise,
+filtrage réseau, `/etc/hosts`) — essayer depuis un autre réseau (partage de connexion
+mobile, par exemple) pour confirmer.

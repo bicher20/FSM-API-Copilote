@@ -3,7 +3,15 @@
  * Point de départ à adapter — pas une lib officielle.
  */
 
-const BASE_URL = "https://scheduler-api.nomadia-app.com";
+// Deux environnements distincts (confirmés par Nomadia le 23/10/2026, versions non
+// définitives à cette date — revérifier avant mise en prod) :
+//   - TEST : https://scheduler-api-test.nomadia-app.com  (portail : .../dashboard)
+//   - PROD : https://scheduler-api.nomadia-app.com        (PAS ENCORE ACTIF à cette date)
+// Test par défaut tant que la prod n'est pas confirmée active — surchargeable via la
+// variable d'env NOMADIA_BASE_URL (Node) ou en modifiant cette constante.
+const BASE_URL =
+  (typeof process !== "undefined" && process.env && process.env.NOMADIA_BASE_URL) ||
+  "https://scheduler-api-test.nomadia-app.com";
 
 class NomadiaApiError extends Error {
   constructor(status, body) {

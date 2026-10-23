@@ -35,7 +35,11 @@ import urllib.error
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from recommend_improvements import recommend_from_payload  # noqa: E402
 
-BASE_URL = "https://scheduler-api.nomadia-app.com"
+# Deux environnements distincts (confirmés par Nomadia le 23/10/2026, versions non
+# définitives à cette date) : TEST = scheduler-api-test.nomadia-app.com (actif),
+# PROD = scheduler-api.nomadia-app.com (PAS ENCORE ACTIF à cette date). Test par
+# défaut — surchargeable via NOMADIA_BASE_URL.
+BASE_URL = os.environ.get("NOMADIA_BASE_URL", "https://scheduler-api-test.nomadia-app.com")
 
 _ERROR_HINTS = {
     400: "requête invalide — vérifie les id référencés et le format des dates/durées",

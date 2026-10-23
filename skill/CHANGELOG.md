@@ -1,5 +1,23 @@
 # Changelog du skill
 
+## 1.11 — 2026-10-23
+- **Correction majeure, confirmée par Nomadia (email de Maxime, 23/10/2026)** : il
+  existe deux environnements distincts avec des hostnames différents —
+  `scheduler-api-test.nomadia-app.com` (test, **actif**) et
+  `scheduler-api.nomadia-app.com` (prod, **pas encore actif**, DNS `NXDOMAIN`
+  confirmé en testant). Jusqu'ici, tout le skill (SKILL.md, ONBOARDING.md,
+  snippets/client.py, client.js, scripts/compare_scenarios.py) ne connaissait que le
+  hostname prod — ce qui aurait fait échouer tout premier test réel d'un client avec
+  une erreur DNS impossible à diagnostiquer sans cette info.
+- `snippets/client.py`, `client.js`, `scripts/compare_scenarios.py` : hostname par
+  défaut changé pour le test, désormais surchargeable via `NOMADIA_BASE_URL` (pour le
+  jour où la prod devient active).
+- `SKILL.md` §1/§2 et `ONBOARDING.md` §0 : tableau des deux environnements + portails,
+  avec l'avertissement explicite de Nomadia que ces URLs sont "non définitives" à
+  cette date.
+- Versions explicitement annoncées par Nomadia comme non définitives — à revérifier
+  avant toute mise en production réelle chez un client.
+
 ## 1.10 — 2026-10-23
 - Ajout `ONBOARDING.md` : démarrage rapide pour un client qui reçoit ce skill —
   installation (Claude Code et autres agents), configuration sécurisée de la clé API,

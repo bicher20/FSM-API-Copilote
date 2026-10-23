@@ -1,7 +1,7 @@
 ---
 name: nomadia-scheduler-api
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.10
+version: 1.11
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -63,8 +63,10 @@ renvoyer un extrait de la doc (§1-13) sans d'abord savoir ce que l'utilisateur 
 **Étape 1 — Regarder avant de demander.** Si le skill tourne dans un contexte de code
 (repo ouvert, fichiers accessibles), inspecte d'abord ce qui existe déjà avant de poser
 la moindre question :
-- cherche un appel existant vers `scheduler-api.nomadia-app.com` ou `nomadia` dans le
-  code (grep large : `nomadia`, `x-api-key`, `/api/schedule`, `/api/geocode`)
+- cherche un appel existant vers `scheduler-api-test.nomadia-app.com` /
+  `scheduler-api.nomadia-app.com` ou `nomadia` dans le code (grep large : `nomadia`,
+  `x-api-key`, `/api/schedule`, `/api/geocode`) — voir ONBOARDING.md §0 sur les deux
+  environnements avant de supposer lequel le projet cible
 - cherche une clé API déjà configurée (`.env`, `.env.example`, variables `NOMADIA_*`,
   secrets du projet) — ne jamais redemander une info déjà visible dans le repo
 - identifie le stack (package.json / requirements.txt / composer.json / etc.) pour écrire
@@ -161,8 +163,20 @@ on envoie des jobs (interventions/livraisons), des locations (adresses géocodé
 resources (techniciens/véhicules + leurs shifts), l'API renvoie le **meilleur plan** :
 qui fait quoi, quand, dans quel ordre, avec les trajets associés.
 
-- Endpoint principal : `POST https://scheduler-api.nomadia-app.com/api/schedule`
-- Endpoint géocodage : `POST https://scheduler-api.nomadia-app.com/api/geocode`
+**⚠️ Deux environnements distincts, confirmés par Nomadia le 23/10/2026 (versions non
+définitives à cette date) :**
+
+| Environnement | API | Portail |
+|---|---|---|
+| **Test** (actif — à utiliser par défaut) | `scheduler-api-test.nomadia-app.com` | `.../dashboard` |
+| **Prod** (**pas encore actif**) | `scheduler-api.nomadia-app.com` | `.../dashboard` |
+
+Cibler le domaine prod aujourd'hui échoue en erreur DNS (`NXDOMAIN`), pas en erreur
+d'authentification — ce n'est pas un problème de clé ni de payload. Voir
+`ONBOARDING.md` §0 pour le détail et le dépannage.
+
+- Endpoint principal (test) : `POST https://scheduler-api-test.nomadia-app.com/api/schedule`
+- Endpoint géocodage (test) : `POST https://scheduler-api-test.nomadia-app.com/api/geocode`
 - Auth : header `x-api-key: YOUR_API_KEY` (clé créée dans le Portail Nomadia Scheduler)
 - Appel **synchrone** : le plan optimisé revient directement dans la réponse
 - Dates en ISO 8601 (`2026-11-02T08:00:00`), durées en ISO 8601 (`PT30M` = 30 min)
@@ -171,7 +185,7 @@ qui fait quoi, quand, dans quel ordre, avec les trajets associés.
 ## 2. Quick start (exemple minimal)
 
 ```bash
-curl -X POST https://scheduler-api.nomadia-app.com/api/schedule \
+curl -X POST https://scheduler-api-test.nomadia-app.com/api/schedule \
   -H "Content-Type: application/json" \
   -H "x-api-key: YOUR_API_KEY" \
   -d '{

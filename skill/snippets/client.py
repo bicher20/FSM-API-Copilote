@@ -7,11 +7,19 @@ Pour valider un payload avant appel, préférer le script dédié, plus complet 
 La fonction validate_payload() ci-dessous est une version allégée, utile en code mais
 moins exhaustive que le script CLI.
 """
+import os
 import time
 from datetime import datetime
 import requests
 
-BASE_URL = "https://scheduler-api.nomadia-app.com"
+# Deux environnements distincts (confirmés par Nomadia le 23/10/2026, versions non
+# définitives à cette date — revérifier avant mise en prod) :
+#   - TEST : https://scheduler-api-test.nomadia-app.com  (portail : .../dashboard)
+#   - PROD : https://scheduler-api.nomadia-app.com        (PAS ENCORE ACTIF à cette date)
+# Utiliser le test par défaut tant que la prod n'est pas confirmée active — on
+# évite ainsi l'erreur DNS "Name or service not known" qu'on obtient en ciblant un
+# domaine prod pas encore résolu. Surchargeable via la variable d'env NOMADIA_BASE_URL.
+BASE_URL = os.environ.get("NOMADIA_BASE_URL", "https://scheduler-api-test.nomadia-app.com")
 
 _ERROR_HINTS = {
     400: "requête invalide — vérifie les id référencés et le format des dates/durées (voir skill/troubleshooting.md)",
