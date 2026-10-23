@@ -44,14 +44,19 @@ def load_json(path: str) -> dict:
 
 
 def main():
-    if len(sys.argv) < 2:
+    args = sys.argv[1:]
+    if not args or args[0] in ("-h", "--help"):
         print(__doc__)
-        sys.exit(2)
+        sys.exit(0 if args and args[0] in ("-h", "--help") else 2)
 
-    payload_path = sys.argv[1]
+    payload_path = args[0]
     response_path = None
-    if "--response" in sys.argv:
-        response_path = sys.argv[sys.argv.index("--response") + 1]
+    if "--response" in args:
+        idx = args.index("--response")
+        if idx + 1 >= len(args):
+            print("[ERROR] --response nécessite un chemin de fichier après lui")
+            sys.exit(2)
+        response_path = args[idx + 1]
 
     payload = load_json(payload_path)
 

@@ -1,5 +1,12 @@
 # Changelog du skill
 
+## 1.9.1 — 2026-10-23
+- Correctif : `scripts/doctor.py --help` (ou `-h`, ou aucun argument) plantait en
+  essayant d'ouvrir "--help" comme chemin de fichier. Repéré lors d'un premier test en
+  local par un utilisateur. Gère maintenant `-h`/`--help` proprement (affiche l'usage,
+  exit 0) et `--response` sans valeur suivante (message d'erreur clair, exit 2) au
+  lieu d'un crash Python.
+
 ## 1.9 — 2026-10-23
 - **Correction de fiabilité** : la détection de `ScheduleDefinition` dans
   `recommend_improvements.py` reposait sur un nom de clé racine (`schedule_definitions`)
