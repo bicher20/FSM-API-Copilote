@@ -1,5 +1,19 @@
 # Changelog du skill
 
+## 1.5 — 2026-10-23
+- Ajout `scripts/compare_scenarios.py` : comparateur de scénarios, zéro dépendance.
+  Mode statique (diff de config, gratuit) ou mode réel (`--api-key`, vrai avant/après
+  chiffré sur taux d'allocation/distance/crédits — consomme de vrais crédits, à
+  n'utiliser qu'avec l'accord explicite de l'utilisateur). Réponse directe au fait que
+  les solveurs scientifiques (Timefold, OptaPlanner) vendent souvent le benchmarking
+  comme fonctionnalité Enterprise.
+- Ajout `reference/replanification-temps-reel.md` : documente les patterns Nomadia
+  équivalents aux fonctionnalités "continuous/real-time planning" et "pinned planning
+  variables" des solveurs généralistes (fixed_resource_id + commit_date_time_stamp,
+  DeletedEntity + output_type, ResourceKnownLocation + JobResourceStatus), et nomme
+  honnêtement ce que Nomadia ne fait pas nativement (explication de score détaillée,
+  mode daemon, benchmarking natif) avec le pattern qui compense chaque manque.
+
 ## 1.4 — 2026-10-23
 - Ajout `scripts/recommend_improvements.py` : moteur de recommandations proactives,
   orienté ROI, exécutable en CLI. Analyse un payload (config seule) et optionnellement

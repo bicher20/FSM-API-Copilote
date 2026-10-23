@@ -1,7 +1,7 @@
 ---
 name: nomadia-scheduler-api
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.4
+version: 1.5
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -353,6 +353,8 @@ Ce SKILL.md est un résumé de navigation. Trois fichiers complètent le skill e
 | `snippets/client.js` et `snippets/client.py` | tu démarres une intégration dans un projet JS/Node ou Python — client HTTP minimal + validation locale du payload (détecte les `id` qui ne se référencent pas entre eux, les dates de shift incohérentes, etc. avant de consommer des crédits) |
 | `reference/kpis-metier.md` | tu dois argumenter en rendez-vous commercial ou traduire un résultat technique (taux d'allocation, trajet, SLA) en impact business |
 | `scripts/recommend_improvements.py` | systématiquement après avoir posé une config (et de nouveau après un vrai appel API) — propose des améliorations ROI sans attendre qu'on te les demande |
+| `scripts/compare_scenarios.py` | pour prouver un gain avant/après entre deux configs (sans clé API : diff de config ; avec clé API : vrai avant/après chiffré — **consomme des crédits**, ne lancer qu'avec l'accord explicite de l'utilisateur) |
+| `reference/replanification-temps-reel.md` | dès qu'il est question de replanification en continu, de suivi temps réel, de figer une affectation déjà engagée, ou qu'on te compare à un solveur type Timefold/OptaPlanner |
 | `scripts/test_validate_payload.py` | tu modifies `validate_payload.py` — lance ces tests pour vérifier que tu n'as rien cassé avant de committer |
 
 **Portabilité.** Rien ici ne suppose un agent ou un éditeur précis : `scripts/` sont des
