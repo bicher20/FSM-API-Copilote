@@ -50,6 +50,17 @@ Scheduler API de Nomadia chacun de leur côté. Points à respecter à chaque re
 4. **Le client utilise son propre agent IA** (Claude Code, Cursor, Copilot agent...) —
    rien dans ce skill ne suppose que c'est toi qui l'exécutes pour lui.
 
+Les points 1-3 sont automatisés par :
+
+```bash
+python3 scripts/package_for_client.py --client "Nom du client"
+```
+
+Ça produit `dist/<client>-v<version>/` et `dist/<client>-v<version>.zip` — une copie de
+`skill/` sans `reference/battlecard-timefold.md` ni les caches Python, nommée avec la
+version exacte envoyée. Le dossier `dist/` n'est jamais commité (voir `.gitignore`) —
+c'est un livrable, pas du code du repo.
+
 ## `/app/index.html`
 Un copilote de découverte commerciale, en **chat** (une seule page HTML, aucune
 dépendance, aucun backend) : il pose les bonnes questions à poser à un prospect
