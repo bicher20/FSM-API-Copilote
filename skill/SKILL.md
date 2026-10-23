@@ -1,7 +1,7 @@
 ---
 name: nomadia-scheduler-api
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.6
+version: 1.7
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -363,6 +363,12 @@ scripts Python autonomes exécutables en CLI (`python3 chemin/script.py`), `exam
 `reference/` sont du JSON/Markdown lisibles par n'importe quel outil de lecture de
 fichiers. Si ton environnement n'a pas Python 3 disponible, dis-le explicitement plutôt
 que de deviner le résultat de la validation.
+
+## 13bis. Pour un agent qui découvre ce skill en premier
+
+Lire `skill/llms.txt` — index priorisé de tous les fichiers du skill, inspiré du
+`llms.txt` de la doc Nomadia elle-même et du pattern `context7.json` du repo GitHub de
+Timefold (manifestes pensés pour être lus par un agent IA avant tout le reste).
 
 ## 14. Sources
 

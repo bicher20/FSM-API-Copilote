@@ -1,5 +1,18 @@
 # Changelog du skill
 
+## 1.7 — 2026-10-23
+- Ajout `skill/llms.txt` : index priorisé des fichiers du skill pour un agent IA qui
+  découvre le repo — inspiré du `llms.txt` de la doc Nomadia et du pattern
+  `context7.json` du repo GitHub `TimefoldAI/timefold-solver` (manifestes
+  machine-lisibles pensés pour un agent, pas pour un humain qui parcourt au hasard).
+- Ajout `CONTRIBUTING.md` (racine du repo) : principes de contribution inspirés du
+  `CONTRIBUTING.md`/`CONSTITUTION.md` du repo Timefold — jamais de champ deviné,
+  jamais de clé API en dur, tout exemple doit passer le validateur, toute modif du
+  validateur doit relancer ses tests, versionner SKILL.md + CHANGELOG + llms.txt à
+  chaque évolution.
+- `SKILL.md` §13bis : pointeur explicite vers `llms.txt` pour tout agent qui découvre
+  le skill en premier.
+
 ## 1.6 — 2026-10-23
 - Ajout `reference/battlecard-timefold.md` : argumentaire commercial factuel vs
   Timefold (barrière technique Java/Kotlin-only de leur Solver open source, pricing

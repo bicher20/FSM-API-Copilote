@@ -1,0 +1,51 @@
+# nomadia-scheduler-api — index pour agents IA
+
+Skill copilote pour le Scheduler API de Nomadia (optimisation de tournées / field
+service). Ce fichier liste, par ordre de priorité de lecture, ce qu'un agent IA
+(Claude, Cursor, Copilot agent, ou autre) doit ouvrir selon la tâche — à lire avant de
+parcourir le repo au hasard.
+
+## Toujours lire en premier
+- SKILL.md — procédure complète (cadrage besoin -> construction -> auto-correction),
+  résumé du schéma, FAQ. Point d'entrée unique.
+
+## Référence (ouvrir selon le besoin précis)
+- reference/entities.md — nom exact, type, valeur par défaut de CHAQUE champ du
+  schéma. Source de vérité — ne jamais répondre de mémoire si ce fichier existe.
+- reference/kpis-metier.md — traduction des paramètres/résultats techniques en
+  arguments business (taux d'allocation, trajet, SLA, ROI).
+- reference/replanification-temps-reel.md — patterns pour replanification continue,
+  suivi temps réel, figer une affectation déjà engagée.
+- reference/battlecard-timefold.md — argumentaire commercial factuel face à un
+  solveur généraliste type Timefold/OptaPlanner.
+
+## Diagnostic
+- troubleshooting.md — diagnostic par symptôme (erreur HTTP, job non planifié,
+  résultat incohérent). À consulter avant de modifier du code au hasard.
+
+## Exécutable (lancer via le shell, ne jamais deviner leur sortie)
+- scripts/validate_payload.py payload.json — validation locale AVANT tout appel réel.
+  Bloquant (exit 1 si erreur) — corriger jusqu'à exit 0.
+- scripts/recommend_improvements.py payload.json [--response reponse.json] —
+  recommandations ROI proactives. Ne bloque jamais (exit 0) — à présenter même sans
+  qu'on les demande.
+- scripts/compare_scenarios.py --scenario LABEL payload.json ... [--api-key KEY] —
+  comparaison avant/après entre configs. Consomme de vrais crédits si --api-key fourni
+  — accord explicite de l'utilisateur requis avant ce mode.
+- scripts/test_validate_payload.py — tests de régression du validateur. Lancer avant
+  tout commit qui touche validate_payload.py.
+
+## Point de départ pour écrire du code
+- snippets/client.js / client.py — client HTTP minimal + retry/backoff, à adapter
+  plutôt qu'à réécrire from scratch.
+- examples/*.json — payloads déjà vérifiés par le validateur, un par pattern courant
+  (minimal, compétence requise, stock de pièces, ordre entre jobs, disponibilité
+  récurrente). Partir d'un de ces fichiers plutôt que d'une page blanche.
+
+## Métadonnées
+- CHANGELOG.md — historique des versions du skill lui-même.
+
+## Portée explicite
+Ce skill couvre UNIQUEMENT le Scheduler API de Nomadia (scheduler-api.nomadia-app.com)
+— décision volontaire, pas de couche multi-fournisseur. Il est agent-agnostique : rien
+ci-dessus ne suppose un agent IA précis, seulement un accès fichiers + shell.
