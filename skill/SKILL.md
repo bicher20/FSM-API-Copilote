@@ -1,11 +1,62 @@
 ---
 name: nomadia-scheduler-api
-description: Référence complète du Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison) — schéma de données, quick start, codes d'erreur, crédits. À utiliser pour répondre à toute question sur comment modéliser des jobs, ressources, contraintes, ou interpréter une réponse de l'API.
-version: 1.0
+description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
+version: 1.1
 homepage: https://scheduler-json-api.readme.io
 ---
 
-# Nomadia Scheduler API — Skill de référence
+# Nomadia Scheduler API — Copilote d'intégration
+
+## 0. Procédure à suivre quand ce skill est invoqué
+
+Ce skill ne sert pas qu'à répondre à une question ponctuelle : quand il est déclenché,
+comporte-toi comme un copilote qui cadre le besoin puis exécute. Ne te contente jamais de
+renvoyer un extrait de la doc (§1-13) sans d'abord savoir ce que l'utilisateur construit.
+
+**Étape 1 — Regarder avant de demander.** Si le skill tourne dans un contexte de code
+(repo ouvert, fichiers accessibles), inspecte d'abord ce qui existe déjà avant de poser
+la moindre question :
+- cherche un appel existant vers `scheduler-api.nomadia-app.com` ou `nomadia` dans le
+  code (grep large : `nomadia`, `x-api-key`, `/api/schedule`, `/api/geocode`)
+- cherche une clé API déjà configurée (`.env`, `.env.example`, variables `NOMADIA_*`,
+  secrets du projet) — ne jamais redemander une info déjà visible dans le repo
+- identifie le stack (package.json / requirements.txt / composer.json / etc.) pour écrire
+  du code dans le bon langage/framework dès le départ
+- repère le modèle de données déjà en place côté utilisateur (sa table "interventions",
+  ses "techniciens", etc.) pour savoir comment ça va se mapper sur Job/Resource/Shift
+
+**Étape 2 — Ne poser QUE les questions dont la réponse n'est pas déductible.** Une seule
+série groupée de questions (pas un interrogatoire pas à pas), et seulement sur ce que
+l'inspection n'a pas révélé :
+1. Quel est l'objectif concret ? (brancher le scheduler sur une appli existante, débugger
+   un appel qui échoue/planifie mal, modéliser un cas métier spécifique pour un client,
+   comparer un plan produit vs un plan attendu…)
+2. As-tu déjà une clé API Nomadia active (essai ou abonnement) ?
+3. C'est quoi le métier modélisé : quels types d'interventions, quelles ressources
+   (techniciens/véhicules), et y a-t-il des contraintes dures (compétences obligatoires,
+   stock de pièces embarqué, ordre entre jobs) ? — ne demande que ce qui manque encore
+   après l'étape 1.
+
+Si l'objectif est déjà clair depuis le message de l'utilisateur ou le contexte du repo,
+**saute directement à l'étape 3** sans poser de question pour la forme.
+
+**Étape 3 — Attaquer le chantier.** Une fois le besoin cadré, passe à l'action
+directement, pas de plan qui traîne :
+- écris le payload JSON (ou le code qui le génère) en respectant strictement les entités
+  du §3-11 ci-dessous — jamais de champ inventé
+- si une clé API est disponible, propose/fais l'appel réel (`curl` ou code) pour valider
+  plutôt que de rester théorique
+- si la réponse contient des `unallocated_job_reasons`, diagnostique avec le §9 avant de
+  conclure
+- si le besoin touche une contrainte dure (compétence, stock, ordre entre jobs), vérifie
+  le §8/§11 — ces mécanismes sont souvent oubliés alors qu'ils sont la vraie raison d'un
+  plan qui ne correspond pas à l'attente métier
+- garde le format de sortie adapté au contexte : du code si on est dans un projet, un
+  payload JSON commenté si c'est de la modélisation, une explication ciblée si c'est du
+  débogage
+
+Objectif : l'utilisateur ne doit jamais avoir à répéter une info déjà visible dans son
+projet, et ne doit jamais recevoir un cours sur l'API quand il attend un livrable.
 
 ## 1. C'est quoi
 
