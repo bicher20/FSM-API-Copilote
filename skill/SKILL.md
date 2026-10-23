@@ -1,7 +1,7 @@
 ---
 name: nomadia-scheduler-api
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.1
+version: 1.2
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -40,33 +40,41 @@ l'inspection n'a pas révélé :
 Si l'objectif est déjà clair depuis le message de l'utilisateur ou le contexte du repo,
 **saute directement à l'étape 3** sans poser de question pour la forme.
 
-**Étape 3 — Attaquer le chantier.** Une fois le besoin cadré, passe à l'action
-directement, pas de plan qui traîne :
-- pour tout champ dont tu n'es pas sûr à 100% du nom exact, du type ou de la valeur par
-  défaut, ouvre `reference/entities.md` plutôt que de répondre de mémoire — ce fichier
-  est la transcription complète et fiable du schéma, §3-11 ci-dessous n'en est qu'un
-  résumé de confort
-- écris le payload JSON (ou le code qui le génère) en respectant strictement ces entités
-  — jamais de champ inventé, jamais un nom approché
-- si le projet a déjà un langage/stack identifié à l'étape 1, pars de
-  `snippets/client.js` ou `snippets/client.py` (appel + validation locale avant envoi)
-  plutôt que de réécrire un client HTTP from scratch
-- si une clé API est disponible, propose/fais l'appel réel (`curl` ou code) pour valider
-  plutôt que de rester théorique
-- si quelque chose ne marche pas (erreur HTTP, job non planifié, résultat incohérent),
-  ouvre `troubleshooting.md` et suis le diagnostic par symptôme avant de modifier du code
-  au hasard — ne jamais deviner une cause sans l'avoir confirmée
-- si le besoin touche une contrainte dure (compétence, stock, ordre entre jobs), vérifie
-  le §8/§11 — ces mécanismes sont souvent oubliés alors qu'ils sont la vraie raison d'un
-  plan qui ne correspond pas à l'attente métier
-- garde le format de sortie adapté au contexte : du code si on est dans un projet, un
-  payload JSON commenté si c'est de la modélisation, une explication ciblée si c'est du
-  débogage
+**Étape 3 — Attaquer le chantier, avec auto-correction.** Une fois le besoin cadré, ne
+t'arrête pas au premier jet — boucle jusqu'à un résultat vérifié :
+
+1. Si un pattern proche existe dans `examples/` (compétence requise, stock de pièces,
+   ordre entre jobs, disponibilité récurrente…), pars de ce fichier plutôt que d'une
+   page blanche — ce sont des payloads déjà vérifiés.
+2. Pour tout champ dont tu n'es pas sûr à 100% du nom exact, du type ou de la valeur par
+   défaut, ouvre `reference/entities.md` plutôt que de répondre de mémoire — ce fichier
+   est la transcription complète et fiable du schéma, §3-11 ci-dessous n'en est qu'un
+   résumé de confort. Jamais de champ inventé.
+3. Écris le payload JSON (ou le code qui le génère). Si le projet a déjà un
+   langage/stack identifié à l'étape 1, pars de `snippets/client.js` ou
+   `snippets/client.py` plutôt que de réécrire un client HTTP from scratch.
+4. **Avant tout appel réel**, valide : `python3 <chemin-du-skill>/scripts/validate_payload.py payload.json`
+   (exécute-le toi-même via Bash, ne demande pas à l'utilisateur de le faire). S'il
+   remonte des `[ERROR]`, corrige le payload et relance la validation — répète jusqu'à
+   0 erreur avant de continuer. Les `[WARN]` sont à examiner mais ne bloquent pas.
+5. Si une clé API est disponible, fais l'appel réel (`curl` ou le client) plutôt que de
+   rester théorique. Si l'API renvoie une erreur HTTP ou des `unallocated_job_reasons`
+   inattendues : ouvre `troubleshooting.md`, identifie la cause précise par le symptôme
+   (jamais une supposition), corrige, et **réessaie une fois automatiquement** sans
+   redemander à l'utilisateur. Si ça échoue encore après cette deuxième tentative,
+   arrête-toi et explique précisément ce qui bloque plutôt que de boucler indéfiniment
+   ou de deviner — chaque appel consomme des crédits.
+6. Si le besoin touche une contrainte dure (compétence, stock, ordre entre jobs),
+   vérifie le §8/§11 — ces mécanismes sont souvent oubliés alors qu'ils sont la vraie
+   raison d'un plan qui ne correspond pas à l'attente métier.
+7. Garde le format de sortie adapté au contexte : du code si on est dans un projet, un
+   payload JSON commenté si c'est de la modélisation, une explication ciblée si c'est du
+   débogage.
 
 Objectif : l'utilisateur ne doit jamais avoir à répéter une info déjà visible dans son
-projet, ne doit jamais recevoir un cours sur l'API quand il attend un livrable, et ne
-doit jamais recevoir un champ ou une valeur par défaut incorrecte — en cas de doute,
-toujours vérifier dans `reference/entities.md` plutôt que supposer.
+projet, ne doit jamais recevoir un cours sur l'API quand il attend un livrable, ne doit
+jamais recevoir un champ ou une valeur par défaut incorrecte, et ne doit jamais avoir à
+repérer lui-même une erreur de payload que le validateur aurait attrapée en un appel.
 
 ## 1. C'est quoi
 

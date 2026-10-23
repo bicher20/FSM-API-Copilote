@@ -1,0 +1,32 @@
+{
+  "_comment": "Dépendance d'ordre : JOB-INSTALL doit être fait avant JOB-CONTROLE, par le même technicien, avec au moins 2h d'écart.",
+  "locations": [
+    { "id": "DEPOT", "latitude": 48.8566, "longitude": 2.3522 },
+    { "id": "LOC-1", "latitude": 48.8738, "longitude": 2.2950 }
+  ],
+  "job_types": [
+    { "id": "DEFAULT", "custom_duration": "PT1H" }
+  ],
+  "jobs": [
+    { "id": "JOB-INSTALL", "job_type_id": "DEFAULT", "location_id": "LOC-1",
+      "sla": { "earliest_start_date_time": "2026-11-02T08:00:00", "latest_start_date_time": "2026-11-02T18:00:00" } },
+    { "id": "JOB-CONTROLE", "job_type_id": "DEFAULT", "location_id": "LOC-1",
+      "sla": { "earliest_start_date_time": "2026-11-02T08:00:00", "latest_start_date_time": "2026-11-02T18:00:00" } }
+  ],
+  "pre_requisite_definitions": [
+    {
+      "earlier_job_id": "JOB-INSTALL",
+      "later_job_id": "JOB-CONTROLE",
+      "minimum_time_difference": "PT2H",
+      "same_resource": true,
+      "all_or_nothing": true
+    }
+  ],
+  "resource_types": [
+    { "id": "TECH", "start_location_id": "DEPOT", "end_location_id": "DEPOT" }
+  ],
+  "resources": [
+    { "id": "RES-1", "resource_type_id": "TECH",
+      "shifts": [ { "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T18:00:00" } ] }
+  ]
+}

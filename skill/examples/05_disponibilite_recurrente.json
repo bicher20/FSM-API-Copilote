@@ -1,0 +1,33 @@
+{
+  "_comment": "Job qui ne peut être fait que du lundi au vendredi, entre 9h et 12h, sur une période de 2 mois — via JobAvailabilityPattern + DayPattern prédéfini.",
+  "locations": [
+    { "id": "DEPOT", "latitude": 48.8566, "longitude": 2.3522 },
+    { "id": "LOC-1", "latitude": 48.8738, "longitude": 2.2950 }
+  ],
+  "job_types": [
+    { "id": "DEFAULT", "custom_duration": "PT1H" }
+  ],
+  "jobs": [
+    { "id": "JOB-1", "job_type_id": "DEFAULT", "location_id": "LOC-1",
+      "sla": { "earliest_start_date_time": "2026-11-02T00:00:00", "latest_start_date_time": "2026-12-31T23:59:59" } }
+  ],
+  "job_availability_patterns": [
+    {
+      "id": "PATTERN-JOB-1",
+      "job_id": "JOB-1",
+      "start_time": "09:00:00",
+      "end_time": "12:00:00",
+      "day_pattern_id": "MONDAY_TO_FRIDAY",
+      "pattern_start_date": "2026-11-02",
+      "pattern_end_date": "2026-12-31",
+      "time_zone_id": "Europe/Paris"
+    }
+  ],
+  "resource_types": [
+    { "id": "TECH", "start_location_id": "DEPOT", "end_location_id": "DEPOT" }
+  ],
+  "resources": [
+    { "id": "RES-1", "resource_type_id": "TECH",
+      "shifts": [ { "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T18:00:00" } ] }
+  ]
+}
