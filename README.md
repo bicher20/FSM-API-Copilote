@@ -11,15 +11,44 @@ directement le code/payload — et diagnostique une erreur ou un job non planifi
 que de renvoyer un extrait de doc.
 
 - `SKILL.md` — procédure à suivre + résumé de navigation du modèle de données
+- `llms.txt` — index priorisé des fichiers pour un agent IA qui découvre le skill
 - `reference/entities.md` — transcription exhaustive de toutes les entités (champs,
   types, valeurs par défaut) + l'énumération complète des raisons de non-allocation
+- `reference/kpis-metier.md` — traduction des paramètres techniques en arguments business
+- `reference/replanification-temps-reel.md` — patterns de replanification continue/temps réel
 - `troubleshooting.md` — playbook de dépannage par symptôme (erreurs HTTP, job non
   planifié, plan incohérent)
-- `snippets/client.js` et `snippets/client.py` — client HTTP minimal + validation locale
-  du payload avant envoi (évite de consommer des crédits sur une requête mal formée)
+- `scripts/validate_payload.py` — validation locale AVANT tout appel réel (bloquant)
+- `scripts/recommend_improvements.py` — recommandations ROI proactives (jamais bloquant)
+- `scripts/compare_scenarios.py` — comparateur avant/après entre configs
+- `snippets/client.js` et `snippets/client.py` — client HTTP minimal + retry/backoff
+- `examples/` — 5 payloads déjà vérifiés, un par pattern courant
+- `CHANGELOG.md` — historique des versions du skill
 
 À installer comme skill (ex. dans Claude Code : copier le dossier `skill/` dans
-`~/.claude/skills/nomadia-scheduler-api/`).
+`~/.claude/skills/nomadia-scheduler-api/`). Agent-agnostique : fonctionne avec tout
+agent IA ayant accès à des fichiers + un shell, pas seulement Claude.
+
+> **Non livré aux clients** : `reference/battlecard-timefold.md` est un argumentaire
+> commercial interne (positionnement Nomadia vs Timefold/OptaPlanner). Utile pour
+> préparer un rendez-vous, mais à retirer du dossier avant de donner le skill à un
+> client — ce n'est pas un livrable d'intégration.
+
+### Distribuer ce skill à un client
+
+Ce skill est conçu pour être donné tel quel à différents clients qui intègrent le
+Scheduler API de Nomadia chacun de leur côté. Points à respecter à chaque remise :
+
+1. **Une clé API par client, jamais partagée.** Le skill ne contient et ne doit
+   jamais contenir de clé API en dur (voir `CONTRIBUTING.md` §2) — chaque client
+   fournit la sienne au moment de l'intégration, dans son propre `.env`.
+2. **Retirer `reference/battlecard-timefold.md`** avant l'envoi (voir ci-dessus) —
+   c'est pour toi, pas pour le client.
+3. **Donner la version précise** (voir `version:` dans `SKILL.md` + l'entrée
+   correspondante dans `CHANGELOG.md`) — utile si le client te signale un comportement
+   et que tu dois savoir ce qu'il a réellement entre les mains.
+4. **Le client utilise son propre agent IA** (Claude Code, Cursor, Copilot agent...) —
+   rien dans ce skill ne suppose que c'est toi qui l'exécutes pour lui.
 
 ## `/app/index.html`
 Un copilote de découverte commerciale, en **chat** (une seule page HTML, aucune
