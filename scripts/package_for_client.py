@@ -3,10 +3,15 @@
 Package le skill pour remise à un client — exécutable en CLI, sans dépendance.
 
 Automatise la checklist de distribution du README (section "Distribuer ce skill à un
-client") : copie `skill/` dans `dist/`, retire ce qui est strictement interne
-(battlecard commercial, caches Python), et produit un .zip prêt à envoyer, nommé avec
-la version exacte du skill — pour toujours savoir ce qu'un client donné a réellement
-reçu si un problème remonte.
+client") : copie `skill/` dans `dist/`, retire les caches Python, et produit un .zip
+prêt à envoyer, nommé avec la version exacte du skill — pour toujours savoir ce qu'un
+client donné a réellement reçu si un problème remonte.
+
+Le matériel strictement interne (ex: argumentaire commercial vs Timefold) vit dans
+`internal/` à la racine du repo, PAS dans `skill/` — donc il n'est jamais copié ici
+par construction, même si ce script n'est pas utilisé (ex: un agent qui clone le repo
+et copie `skill/` directement). EXCLUDE_RELATIVE_PATHS ci-dessous reste un filet de
+sécurité si un fichier interne finissait un jour par erreur dans `skill/`.
 
 Usage :
     python3 scripts/package_for_client.py
@@ -25,10 +30,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SKILL_DIR = REPO_ROOT / "skill"
 DIST_DIR = REPO_ROOT / "dist"
 
-# Fichiers/dossiers internes à ne JAMAIS envoyer à un client.
-EXCLUDE_RELATIVE_PATHS = {
-    "reference/battlecard-timefold.md",  # argumentaire commercial interne
-}
+# Filet de sécurité : si un fichier interne finissait un jour par erreur dans skill/
+# (au lieu de internal/, où il devrait être), il serait quand même exclu ici.
+EXCLUDE_RELATIVE_PATHS: set[str] = set()
 EXCLUDE_DIR_NAMES = {"__pycache__"}
 EXCLUDE_SUFFIXES = {".pyc"}
 

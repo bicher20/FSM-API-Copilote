@@ -1,5 +1,21 @@
 # Changelog du skill
 
+## 1.14 — 2026-10-26
+- **Correction d'un angle mort réel de distribution, trouvé en testant le parcours
+  client de bout en bout** : un test a montré qu'un agent à qui on demande "installe
+  ce skill" à partir de l'URL du repo clone le repo entier puis copie correctement le
+  sous-dossier `skill/` dans `~/.claude/skills/` — mais comme `reference/
+  battlecard-timefold.md` (argumentaire commercial interne) vivait *dans* `skill/`,
+  il était embarqué dans cette copie. `package_for_client.py` l'excluait bien, mais ce
+  filtrage ne protège que ceux qui pensent à l'utiliser — pas un client qui reçoit le
+  repo brut et l'installe lui-même.
+- **`reference/battlecard-timefold.md` déplacé vers `internal/battlecard-timefold.md`**
+  (hors de `skill/`, à la racine du repo). Un fichier qui n'est jamais dans `skill/` ne
+  peut pas être copié avec `skill/`, quelle que soit la méthode d'installation —
+  protection structurelle plutôt qu'une liste d'exclusion à maintenir.
+- `README.md`, `package_for_client.py`, `SKILL.md` §13, `llms.txt` : références mises
+  à jour en conséquence.
+
 ## 1.13 — 2026-10-23
 - **Convention `breaks` confirmée par un vrai appel API** : `07_pause_obligatoire.json`
   (pause de 45 min, 12:00-12:45) → HTTP 200, `break_allocations` rempli avec la pause

@@ -19,8 +19,6 @@ parcourir le repo au hasard.
   arguments business (taux d'allocation, trajet, SLA, ROI).
 - reference/replanification-temps-reel.md — patterns pour replanification continue,
   suivi temps réel, figer une affectation déjà engagée.
-- reference/battlecard-timefold.md — argumentaire commercial factuel face à un
-  solveur généraliste type Timefold/OptaPlanner.
 
 ## Diagnostic
 - troubleshooting.md — diagnostic par symptôme (erreur HTTP, job non planifié,
