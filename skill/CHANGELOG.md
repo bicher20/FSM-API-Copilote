@@ -1,6 +1,15 @@
 # Changelog du skill
 
-## 1.15 — 2026-10-26
+## 1.16 — 2026-10-26
+- **Comportement suspect documenté honnêtement, pas encore résolu** : deux appels
+  réels identiques sur `10_job_multi_ressources.json` (job déclaré avec 2 entrées
+  `job_resources`, `resource_index` 1 et 2) n'ont chacun alloué qu'**une seule**
+  ressource (RES-1 puis RES-2, au hasard d'un appel à l'autre), sans erreur ni
+  `unallocated_job_reasons` — comme si la contrainte multi-ressources était ignorée.
+  Nouvelle section `troubleshooting.md` §4bis détaillant les 3 hypothèses non
+  tranchées (clé `job_resources` mal nommée, limite de l'environnement de test, champ
+  manquant) et `examples/README.md` mis à jour avec un avertissement explicite sur cet
+  exemple. Question posée à Nomadia en parallèle — à corriger dès réponse.
 - **Correction d'un angle mort repéré pendant le test en conditions réelles** : le
   skill utilisait silencieusement une `NOMADIA_API_KEY` déjà présente dans
   l'environnement, sans jamais demander explicitement au client s'il avait déjà un

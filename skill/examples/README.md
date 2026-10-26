@@ -15,7 +15,7 @@ payload réel plutôt que d'écrire à vide — moins de risque d'erreur de stru
 | `07_pause_obligatoire.json` | `Break` : pause déjeuner obligatoire dans un shift |
 | `08_indisponibilite_ressource.json` | `ResourceUnavailability` : ressource indisponible en milieu de shift |
 | `09_rendez_vous_client.json` | `appointment_sla_id` + `appointment_priority` : rendez-vous client prioritaire vs job normal |
-| `10_job_multi_ressources.json` | `JobResource.resource_index` : job nécessitant 2 ressources simultanément (binôme) |
+| `10_job_multi_ressources.json` | `JobResource.resource_index` : job nécessitant 2 ressources simultanément (binôme) — **⚠️ comportement non confirmé par l'API en test, voir `troubleshooting.md` §4bis** |
 
 Ces fichiers contiennent une clé `_comment` (ignorée par l'API, à retirer avant un vrai
 appel) qui explique le pattern démontré.
@@ -30,8 +30,14 @@ appel) qui explique le pattern démontré.
   `breaks[]` top-level avec `shift_id` par tolérance, mais la convention imbriquée est
   désormais la référence.
 - Le nom de clé racine pour `JobResource` reste supposé `job_resources` (pluriel, par
-  analogie avec `job_requirements`/`job_parts`) — **non confirmé**. À tester avec
-  `10_job_multi_ressources.json`.
+  analogie avec `job_requirements`/`job_parts`) — **non confirmé**.
+- **Testé en conditions réelles le 26/10/2026, résultat suspect** : deux appels
+  identiques sur `10_job_multi_ressources.json` n'ont chacun alloué qu'**une seule**
+  ressource au job (jamais les deux ensemble), sans erreur ni `unallocated_job_reasons`
+  — comme si `job_resources` était ignoré. Pas encore de réponse Nomadia pour trancher
+  entre "clé mal nommée", "limite de l'environnement de test", ou "champ manquant".
+  Détail complet dans `troubleshooting.md` §4bis.
 
 À corriger dans ce fichier et dans `validate_payload.py`/`recommend_improvements.py` dès
-qu'un vrai appel API confirme (ou infirme) ce dernier point — voir `FEEDBACK.md`.
+qu'un vrai appel API confirme (ou infirme) ce dernier point, ou dès que Nomadia répond
+— voir `FEEDBACK.md`.

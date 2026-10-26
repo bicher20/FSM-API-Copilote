@@ -58,6 +58,39 @@ Dans l'ordre, vérifier :
 - Vérifier `shift_penalty` — une valeur trop haute pousse à tout concentrer sur une
   seule ressource/shift même si ce n'est pas souhaité métier.
 
+## 4bis. Un job multi-ressources (`job_resources`, `resource_index`) n'est planifié qu'avec une seule ressource
+
+**Statut au 26/10/2026 : comportement observé, non confirmé comme bug ou comme usage
+correct — en attente de réponse Nomadia (voir `FEEDBACK.md`).**
+
+Testé en conditions réelles sur `examples/10_job_multi_ressources.json` (payload avec
+deux entrées `job_resources` pour le même `job_id`, `resource_index: 1` puis `2`, deux
+ressources disponibles aux mêmes horaires) :
+- Deux appels identiques (même payload) ont chacun alloué **une seule** ressource au
+  job (RES-1 au premier appel, RES-2 au second) — pas les deux simultanément.
+- `unallocated_job_reasons` était vide dans les deux cas (donc pas d'échec signalé,
+  juste un plan qui ignore apparemment la contrainte multi-ressources).
+- Résultat identique à ce qu'on obtiendrait si `job_resources` n'était jamais envoyé
+  (job normal à 1 ressource, l'API choisit la moins coûteuse des deux disponibles).
+
+Hypothèses possibles, aucune confirmée :
+1. Le nom de clé top-level `job_resources` (supposé par analogie, voir
+   `examples/README.md`) est incorrect et l'API l'ignore silencieusement plutôt que de
+   renvoyer une erreur 400 — plausible pour une clé JSON inconnue selon la tolérance
+   du parseur côté API.
+2. L'environnement de test ne gère pas (encore) l'exigence multi-ressources, alors
+   que le payload est correct — cohérent avec l'avertissement de Nomadia que les
+   versions de test/prod ne sont "pas définitives" au 23/10/2026.
+3. Un champ obligatoire manque dans le payload pour activer réellement la contrainte
+   (ex: un paramètre sur `Job` ou `JobType` distinct de `JobResource`).
+
+**Si tu rencontres ce symptôme** : ne pas supposer que le binôme a été respecté juste
+parce que `unallocated_job_reasons` est vide — vérifier explicitement que chaque
+`resource_index` déclaré apparaît bien dans la réponse avec une ressource allouée
+(selon le nom réel des champs de sortie une fois confirmé). Avant de relancer un
+appel payant pour explorer une variante, vérifier `FEEDBACK.md`/l'historique auprès de
+Nomadia — ce point précis leur a déjà été signalé.
+
 ## 5. Un résultat change entre deux appels identiques
 
 Normal dans une certaine mesure (solveur heuristique) — mais si l'écart est important :
