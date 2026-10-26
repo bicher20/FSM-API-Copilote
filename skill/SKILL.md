@@ -1,7 +1,7 @@
 ---
 name: nomadia-scheduler-api
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.14
+version: 1.15
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -37,6 +37,14 @@ c'est le rôle du skill de le faire à sa place (voir §-1bis et §0).
 configuration de la clé API, premier test) : suis directement `ONBOARDING.md` plutôt
 que de réexpliquer chaque étape depuis zéro — il couvre installation → clé API →
 premier test sans crédits → premier vrai appel → où aller ensuite.
+
+**Garde-fou clé API, valable à tout moment, pas seulement au premier contact :**
+avant tout appel réel (pas la validation locale via `doctor.py` seul, qui ne consomme
+rien), confirme explicitement avec l'utilisateur que la clé API utilisée est bien la
+sienne (compte créé sur le portail test Nomadia) — voir `ONBOARDING.md` §2. Ne jamais
+réutiliser silencieusement une `NOMADIA_API_KEY` déjà présente dans l'environnement
+sans cette confirmation : elle peut appartenir à une session précédente, un autre
+client, ou l'intégrateur plutôt qu'au client final.
 
 ## -1bis. Une seule commande pour tout vérifier
 

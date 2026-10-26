@@ -44,14 +44,37 @@ la note "agent-agnostique" en tête de `SKILL.md`).
 
 ## 2. Configurer sa clé API Nomadia
 
-1. Obtenir une clé sur le portail Nomadia Scheduler (essai ou abonnement).
-2. **Ne jamais l'écrire en dur dans un fichier**, surtout pas dans un fichier qui
+**Note pour l'agent IA qui suit ce fichier : cette étape est une question à poser
+explicitement au client, jamais une supposition.** Avant le moindre appel réel
+(`doctor.py --response`, `compare_scenarios.py --api-key`, ou tout script qui envoie
+une requête), demande :
+
+> As-tu déjà un compte sur le portail Nomadia Scheduler (test) et ta propre clé API ?
+
+- **Si non** : dirige-le vers le portail de test —
+  https://scheduler-api-test.nomadia-app.com/dashboard — pour créer un compte d'essai
+  et générer sa clé. Ne jamais lui proposer d'utiliser une clé déjà présente ailleurs
+  (y compris la tienne si tu es l'intégrateur et pas le client final).
+- **Si une variable `NOMADIA_API_KEY` est déjà définie dans l'environnement de
+  travail** (shell, `.env`...), ne jamais supposer qu'elle appartient au client
+  courant — confirmer explicitement à qui elle appartient avant de l'utiliser pour un
+  appel réel. Une clé qui traîne d'une session précédente (test, démo, autre client)
+  n'est pas automatiquement la bonne.
+- Le jour où la prod Nomadia devient active, la clé de test ne sera **pas**
+  automatiquement valide en prod — un nouveau compte/une nouvelle clé sera
+  probablement nécessaire sur le portail prod (`scheduler-api.nomadia-app.com/dashboard`
+  une fois actif). Prévenir le client de cette étape à venir plutôt que de la découvrir
+  au moment de la bascule.
+
+Une fois la bonne clé confirmée :
+
+1. **Ne jamais l'écrire en dur dans un fichier**, surtout pas dans un fichier qui
    pourrait être commité ou partagé. La charger en variable d'environnement avant
    chaque session de travail :
    ```bash
    export NOMADIA_API_KEY="ta_clé_ici"
    ```
-3. Si la clé a été partagée une fois en clair (dans un chat, un email...), la
+2. Si la clé a été partagée une fois en clair (dans un chat, un email...), la
    considérer comme compromise et la régénérer sur le portail Nomadia après usage.
 
 ## 3. Premier test — sans consommer de crédits

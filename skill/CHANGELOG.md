@@ -1,5 +1,19 @@
 # Changelog du skill
 
+## 1.15 — 2026-10-26
+- **Correction d'un angle mort repéré pendant le test en conditions réelles** : le
+  skill utilisait silencieusement une `NOMADIA_API_KEY` déjà présente dans
+  l'environnement, sans jamais demander explicitement au client s'il avait déjà un
+  compte/une clé sur le portail de test Nomadia. Une clé qui traîne d'une session
+  précédente (démo, autre client, l'intégrateur lui-même) pouvait donc être utilisée
+  à la place de la sienne, sans qu'il le sache.
+- `ONBOARDING.md` §2 et `SKILL.md` §-1 : garde-fou explicite, à poser comme question
+  avant tout appel réel (pas juste documenté en passant) — confirmer à qui appartient
+  la clé utilisée, diriger vers le portail de test
+  (`scheduler-api-test.nomadia-app.com/dashboard`) si le client n'en a pas encore, et
+  prévenir qu'un nouveau compte/une nouvelle clé sera probablement nécessaire le jour
+  de la bascule en prod.
+
 ## 1.14 — 2026-10-26
 - **Correction d'un angle mort réel de distribution, trouvé en testant le parcours
   client de bout en bout** : un test a montré qu'un agent à qui on demande "installe
