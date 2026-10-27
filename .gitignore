@@ -7,3 +7,6 @@ __pycache__/
 skill/output/*
 !skill/output/.gitkeep
 .interview_state/
+
+# Secrets locaux (clé API Nomadia, etc.) — jamais à committer.
+.env
