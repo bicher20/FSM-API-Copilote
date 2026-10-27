@@ -1,0 +1,68 @@
+{
+  "_comment": "Payload de test contrôlé (pas un exemple de référence permanent) : isole la question laissée ouverte par 11_scenario_complexe.json — JOB-ELEC-2 avait raté sa fenêtre SLA (09:00-11:00) alors qu'une ressource habilitée (RES-3) était libre dans cette fenêtre. Hypothèse : sans value_per_hour explicite, le job a une valeur par défaut trop basse pour justifier le coût de respecter la fenêtre (voir reference/entities.md, section value_per_hour — aucun défaut déclaré côté self-service). Ici, JOB-ELEC-2 a value_per_hour=100000 et penalty_per_hour_jeopardy=200 explicites. Si le solveur respecte maintenant la fenêtre 09:00-11:00, la mécanique SLA est confirmée correcte et la cause du résultat précédent est bien l'absence de value_per_hour. Coût max : 5 + (2 ressources x 2 jobs) = 9 crédits.",
+  "locations": [
+    { "id": "DEPOT", "latitude": 48.8566, "longitude": 2.3522 },
+    { "id": "LOC-1", "latitude": 48.8738, "longitude": 2.2950 },
+    { "id": "LOC-4", "latitude": 48.8462, "longitude": 2.3372 }
+  ],
+  "job_types": [
+    { "id": "DEFAULT", "custom_duration": "PT30M" }
+  ],
+  "resource_types": [
+    {
+      "id": "TECH_ELEC",
+      "start_location_id": "DEPOT",
+      "end_location_id": "DEPOT",
+      "cost_per_kilometre": 0.5,
+      "cost_per_hour": 20,
+      "shift_penalty": 50
+    }
+  ],
+  "jobs": [
+    {
+      "id": "JOB-ELEC-2",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-4",
+      "requirements": ["HABILITATION_ELEC"],
+      "value_per_hour": 100000,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T09:00:00",
+        "latest_start_date_time": "2026-11-02T11:00:00",
+        "penalty_per_hour": 30,
+        "base_jeopardy_penalty": 500,
+        "penalty_per_hour_jeopardy": 200
+      }
+    },
+    {
+      "id": "JOB-FILLER",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-1",
+      "requirements": ["HABILITATION_ELEC"],
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00"
+      }
+    }
+  ],
+  "resources": [
+    {
+      "id": "RES-1",
+      "resource_type_id": "TECH_ELEC",
+      "requirements": ["HABILITATION_ELEC"],
+      "shifts": [
+        { "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T18:00:00" }
+      ]
+    },
+    {
+      "id": "RES-3",
+      "resource_type_id": "TECH_ELEC",
+      "requirements": ["HABILITATION_ELEC"],
+      "shifts": [
+        { "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T18:00:00" }
+      ],
+      "unavailabilities": [
+        { "id": "FORMATION-RES3", "start_date_time": "2026-11-02T10:00:00", "end_date_time": "2026-11-02T11:30:00" }
+      ]
+    }
+  ]
+}

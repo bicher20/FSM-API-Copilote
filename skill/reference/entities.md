@@ -61,7 +61,7 @@ réellement à ce qui était demandé.
 | `fixed_date_time` | date-time | O | Le job doit démarrer exactement à cette date/heure. |
 | `custom_duration` | duration | O | Sinon valeur du `job_type`, sinon défaut implicite de l'API. |
 | `duration_in_half_days` | integer | O | Alternative à `custom_duration`, en demi-journées. |
-| `value_per_hour` | double | O | Valeur/criticité du job pour l'arbitrage du solveur. |
+| `value_per_hour` | double | O | Valeur/criticité du job pour l'arbitrage du solveur. **⚠️ Aucune valeur par défaut déclarée dans le schéma OpenAPI réel** (`nullable`, pas de `default` — contrairement à l'ancienne doc du skill, issue du PDF offre complète, qui affirmait un défaut de `10000` : ce défaut n'est pas confirmé côté self-service). Un job sans `value_per_hour` explicite peut donc avoir une valeur basse par défaut (potentiellement proche de 0), ce qui le rend bon marché à sacrifier/déplacer pour le solveur — **toujours fixer `value_per_hour` explicitement si le respect strict d'un SLA ou d'une fenêtre de rendez-vous est important pour le client**, ne jamais compter sur un défaut implicite. |
 | `split_allowed` | boolean | O | Le job peut être découpé en **plusieurs visites dans le temps** (ex: sur deux shifts) si sa durée l'exige. **Ne concerne jamais plusieurs ressources simultanées** — voir l'avertissement multi-ressources ci-dessous. |
 | `availabilities` | liste de `JobAvailability` | O | Fenêtres où le job **peut** démarrer. |
 | `unavailabilities` | liste de `JobUnavailability` | O | Fenêtres où le job **ne peut pas** démarrer (prioritaire sur `availabilities` en cas de recouvrement). |
