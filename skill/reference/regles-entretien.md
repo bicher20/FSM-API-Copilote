@@ -4,13 +4,38 @@ Ce fichier détaille ce que `SKILL.md` §0ter résume. S'applique à tout entret
 via `reference/sections.json` + `scripts/interview_state.py`, quel que soit l'agent qui
 l'exécute (Claude Code, Cursor, Codex, ChatGPT, ou autre).
 
-## 1. Une question à la fois, dans les mots du client
+## 1. Une question à la fois, dans les mots du client, sur un ton naturel
 
 Jamais de jargon technique à ce stade ("job", "resource", "payload", `requirements`) —
 ces mots arrivent plus tard, quand on construit. Pendant l'entretien, on parle
 "intervention", "technicien", "rendez-vous", "secteur". Une seule question posée à la
 fois (`sections.json[].opening_question` pour ouvrir une section), jamais une liste de
 5 questions d'un coup — c'est ce qui distingue un entretien d'un formulaire.
+
+Le ton compte autant que le contenu : les `opening_question` de `sections.json` sont
+déjà écrites de façon conversationnelle (pas "Section 3 : objectifs — merci de
+répondre"), reprends-les telles quelles ou dans le même esprit si tu les reformules —
+jamais un ton de formulaire administratif, même pressé. `options <section>` affiche
+TOUJOURS un dernier numéro explicite "Autre chose à préciser" en plus des choix QCM —
+présente-le comme un vrai choix de la liste au client (pas une note en petit en bas),
+c'est littéralement une case à cocher pour "je veux ajouter du contexte".
+
+## 1bis. Les choix non pertinents se masquent seuls — ne les redemande pas, n'en invente pas
+
+`scripts/interview_state.py options <section>` filtre déjà automatiquement les options
+devenues sans objet d'après ce que le client a répondu plus tôt (`sections.json:
+options[].depends_on`) — ex. pas de question "plusieurs techniciens en même temps
+(binôme)" si aucun technicien/équipe n'a été identifié en section "entités", pas de
+"mobiliser moins de techniciens" en objectifs dans ce cas non plus. **Toujours appeler
+`options <section>` avec `--interview ID`** (ou laisser le défaut si un seul entretien
+est en cours) pour bénéficier de ce filtrage — jamais afficher une liste figée de
+mémoire ou décidée par ton propre jugement : c'est le script qui sait ce qui a déjà été
+répondu, pas toi. Si le client mentionne spontanément quelque chose qui a été masqué
+(ex. il a des équipes en réalité, sans l'avoir coché en "entités"), c'est le signal pour
+revenir corriger la section "entités" (`edit` ou un nouveau `record`) avant de continuer
+— jamais court-circuiter le filtrage en passant l'id masqué à la main sans corriger la
+cause. Ce mécanisme ne retire JAMAIS les options de "niveau_offre" liées à la clé
+API/au suivi de crédits : ces critères sont obligatoires quel que soit le contexte.
 
 ## 2. Reformuler avant de passer à la section suivante
 

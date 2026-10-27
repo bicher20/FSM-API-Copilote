@@ -1,7 +1,7 @@
 ---
 name: nomadia
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.25
+version: 1.26
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -102,10 +102,12 @@ définir le besoin") — une seule phrase du client suffit, jamais une suite de 
    première question d'ouverture **dans les mots du métier du client, jamais de jargon
    technique** (ne jamais dire "job" ou "resource" à ce stade — dire "intervention",
    "technicien").
-2. **Pose chaque question en QCM** (`scripts/interview_state.py options <section>`
-   affiche les choix numérotés) : le client répond en cochant un ou plusieurs numéros,
-   jamais en rédigeant une réponse ouverte — plus rapide pour lui, et il peut toujours
-   ajouter une précision libre en plus. Enregistre avec
+2. **Pose chaque question en QCM, avec un ton de conversation, jamais de formulaire**
+   (`scripts/interview_state.py options <section> --interview ID` affiche les choix
+   numérotés déjà filtrés pour ce client — voir point 5) : le client répond en cochant
+   un ou plusieurs numéros, jamais en rédigeant une réponse ouverte — plus rapide pour
+   lui. Le dernier numéro affiché est toujours "Autre chose à préciser" : un vrai choix
+   numéroté dédié au texte libre, pas une note en petit sous la liste. Enregistre avec
    `record <section> ["<précision>"] --options id1,id2,...` (virgules, pas d'espace
    entre les id) — ça marque automatiquement les critères liés, sans que tu aies à
    deviner. Une seule section à la fois.
@@ -121,7 +123,13 @@ définir le besoin") — une seule phrase du client suffit, jamais une suite de 
    libre. Le PRD distingue déjà automatiquement non-négociable / souple dans la section
    contraintes, ET se termine par un récapitulatif global qui agrège ces deux catégories
    sur **tous les thèmes** (contraintes + objectifs), pas juste localement.
-5. **Chaque `record` affiche un avancement global (%, sections complètes/total)** —
+5. **Les choix QCM non pertinents se masquent seuls** (`sections.json: options[].
+   depends_on`, ex. pas de "binôme technicien" si aucun technicien/équipe identifié en
+   entités) : `options <section> --interview ID` filtre déjà d'après ce que le client a
+   confirmé plus tôt — jamais balancer la liste complète par défaut ni décider toi-même
+   quoi masquer (voir `reference/regles-entretien.md` §1bis). Les options de conformité
+   clé API (niveau_offre) ne sont, elles, jamais masquées.
+6. **Chaque `record` affiche un avancement global (%, sections complètes/total)** —
    partage-le au client à chaque changement de section (pas après chaque phrase) pour
    qu'il voie une progression naturelle et mesurable, jamais qu'il se demande où il en
    est (voir `reference/regles-entretien.md` §2bis).
@@ -472,7 +480,7 @@ doivent être ouverts selon le besoin — ne pas essayer de tout retenir de mém
 | `reference/decouverte-besoin.md` | au tout début d'une mission, pour mener la découverte du besoin en 4 thèmes (entités, contraintes, objectifs, taille) et trancher explicitement self-service vs offre complète — surtout utile sur un besoin pas immédiatement évident |
 | `reference/sections.json` | structure machine-lisible de l'entretien (sections, questions d'ouverture, critères de couverture, seuil) — lu par `scripts/interview_state.py`, jamais à dupliquer de mémoire |
 | `reference/regles-entretien.md` | avant de mener un entretien structuré — reformulation, relance, réouverture de section, règle du jamais-inventé, seuil avant PRD |
-| `scripts/interview_state.py start\|options\|record\|progress\|prd\|edit` | entretien de découverte du besoin en QCM (options numérotées + précision libre), état persistant (fichier, pas la mémoire de la conversation), avancement affiché en couleur à chaque réponse, et génération du PRD final (résumé libre et/ou liste d'entités structurée, récapitulatif global non-négociable/nice-to-have tous thèmes confondus) — voir §0ter |
+| `scripts/interview_state.py start\|options\|record\|progress\|prd\|edit` | entretien de découverte du besoin en QCM ton conversationnel (options numérotées + un choix numéroté dédié "autre chose à préciser"), options non pertinentes masquées automatiquement d'après les réponses déjà données (`sections.json: options[].depends_on`), état persistant (fichier, pas la mémoire de la conversation), avancement affiché en couleur à chaque réponse, et génération du PRD final (résumé libre et/ou liste d'entités structurée, récapitulatif global non-négociable/nice-to-have tous thèmes confondus) — voir §0ter |
 | `troubleshooting.md` | un appel échoue, un job n'est pas planifié, ou le plan ne correspond pas à l'attendu — diagnostic par symptôme, à suivre avant de modifier du code au hasard |
 | `snippets/client.js` et `snippets/client.py` | tu démarres une intégration dans un projet JS/Node ou Python — client HTTP minimal + validation locale du payload (détecte les `id` qui ne se référencent pas entre eux, les dates de shift incohérentes, etc. avant de consommer des crédits) |
 | `reference/kpis-metier.md` | tu dois argumenter en rendez-vous commercial ou traduire un résultat technique (taux d'allocation, trajet, SLA) en impact business |

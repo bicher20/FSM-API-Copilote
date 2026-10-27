@@ -1,5 +1,22 @@
 # Changelog du skill
 
+## 1.26 — 2026-10-27
+- **Ton des questions plus conversationnel** : toutes les `opening_question` de
+  `reference/sections.json` reformulées (moins "formulaire", plus une vraie
+  conversation — "Pour commencer, aide-moi à visualiser ton quotidien...").
+- **"Autre chose à préciser" devient un vrai choix numéroté** dans `options <section>`,
+  pas juste une note en petit sous la liste QCM — le client coche ce numéro comme les
+  autres pour ajouter du contexte libre.
+- **Filtrage adaptatif des options non pertinentes** (`sections.json: options[].
+  depends_on`) : une option peut maintenant dépendre d'une réponse déjà donnée dans une
+  autre section (ex. "binôme technicien" et "mobiliser moins de techniciens" ne
+  s'affichent que si des techniciens/équipes ont été identifiés en section "entités").
+  `scripts/interview_state.py options <section> --interview ID` filtre automatiquement
+  d'après l'état réel de l'entretien — l'agent n'envoie plus la liste complète par
+  défaut, et n'a jamais à décider lui-même quoi masquer. Les options de conformité clé
+  API (section "niveau_offre") restent toujours visibles, elles.
+- `reference/regles-entretien.md` : nouvelle §1bis documentant ce mécanisme.
+
 ## 1.25 — 2026-10-27
 - **PRD : "Ce qui est planifié" accepte une liste structurée par entité**, via
   `scripts/interview_state.py prd --entity "Nom|Statut|Description"` (répétable), en

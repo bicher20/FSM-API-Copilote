@@ -1,11 +1,11 @@
 {
-  "_comment": "Sections de l'entretien guidé mené par scripts/interview_state.py : conversation par thèmes, couverture suivie explicitement, document de besoins généré seulement une fois la couverture suffisante. Chaque section est posée au client en QCM (options numérotées, plusieurs choix possibles) + un champ libre optionnel pour préciser — jamais une question ouverte à rédiger de zéro, pour que répondre prenne 10 secondes. 'options[].criteria' liste les index (0-based) des critères de la section que CE choix couvre automatiquement si sélectionné — scripts/interview_state.py s'en sert pour marquer la couverture sans que l'agent ait à deviner. 'options[].hard' (section 'contraintes' uniquement) marque si ce choix est une contrainte non négociable (true) ou une préférence arbitrable (false) — scripts/interview_state.py l'utilise pour afficher ces deux catégories séparément dans progress/le PRD, ET pour construire en fin de PRD un récapitulatif global 'Non négociable'/'Nice to have' qui agrège aussi les choix de la section 'objectifs' (toujours classés nice-to-have), au lieu de tout mélanger dans un seul paragraphe. Si ce fichier et decouverte-besoin.md se contredisent un jour, ce fichier est la source de vérité pour l'état/la couverture ; decouverte-besoin.md reste la source de vérité pour le ton et les exemples de formulation.",
+  "_comment": "Sections de l'entretien guidé mené par scripts/interview_state.py : conversation par thèmes, couverture suivie explicitement, document de besoins généré seulement une fois la couverture suffisante. Chaque section est posée au client en QCM (options numérotées, plusieurs choix possibles) + UN choix numéroté dédié 'autre chose à préciser' (texte libre) — jamais une question ouverte à rédiger de zéro, pour que répondre prenne 10 secondes, et jamais qu'ajouter du contexte soit juste une note en petit sous la liste. 'options[].criteria' liste les index (0-based) des critères de la section que CE choix couvre automatiquement si sélectionné. 'options[].hard' (section 'contraintes' uniquement) marque non négociable (true) / arbitrable (false) — utilisé aussi pour le récapitulatif global du PRD (avec 'objectifs', toujours classé nice-to-have). 'options[].depends_on': {'section': '<id>', 'any_of': ['optid', ...]} — rend CETTE option invisible dans le QCM affiché tant que le client n'a pas choisi au moins une des options listées dans la section référencée ; c'est le mécanisme qui évite d'envoyer systématiquement la liste complète de choix sans tenir compte de ce qui est déjà connu (ex. ne propose 'binôme technicien' que si des techniciens/équipes ont été identifiés en section entités). Absence de 'depends_on' = option toujours visible (cas par défaut, notamment tout ce qui touche à la conformité clé API en niveau_offre, jamais masqué). scripts/interview_state.py filtre, l'agent n'a jamais à deviner lui-même quoi cacher. Si ce fichier et decouverte-besoin.md se contredisent un jour, ce fichier est la source de vérité pour l'état/la couverture ; decouverte-besoin.md reste la source de vérité pour le ton et les exemples de formulation.",
   "threshold_percent": 85,
   "sections": [
     {
       "id": "entites",
       "label": "Entités — qui/quoi est planifié",
-      "opening_question": "Avant tout, dis-moi ce qui doit être planifié chez toi (plusieurs réponses possibles, et tu peux préciser en plus) :",
+      "opening_question": "Pour commencer, aide-moi à visualiser ton quotidien : qu'est-ce qu'on planifie chez toi ? Coche tout ce qui s'applique, tu peux en cocher plusieurs :",
       "allow_free_text": true,
       "options": [
         { "id": "e1", "label": "Des techniciens / employés terrain", "criteria": [0] },
@@ -28,7 +28,7 @@
     {
       "id": "contraintes",
       "label": "Contraintes — dures vs souples",
-      "opening_question": "Qu'est-ce qui s'applique chez toi (plusieurs réponses possibles) ?",
+      "opening_question": "Et côté contraintes, qu'est-ce qui te complique la vie aujourd'hui dans l'organisation des tournées ? Coche tout ce qui s'applique :",
       "allow_free_text": true,
       "options": [
         { "id": "c1", "label": "Compétence/habilitation obligatoire sur certaines interventions", "criteria": [0], "hard": true },
@@ -36,7 +36,7 @@
         { "id": "c3", "label": "Indisponibilités connues (congé, formation, panne)", "criteria": [0], "hard": true },
         { "id": "c4", "label": "Stock de pièces embarqué à suivre", "criteria": [0], "hard": true },
         { "id": "c5", "label": "Ordre obligatoire entre deux interventions (ex. installation avant contrôle)", "criteria": [0], "hard": true },
-        { "id": "c6", "label": "Plusieurs techniciens en même temps sur un même job (binôme)", "criteria": [0], "hard": true },
+        { "id": "c6", "label": "Plusieurs techniciens en même temps sur un même job (binôme)", "criteria": [0], "hard": true, "depends_on": { "section": "entites", "any_of": ["e1", "e3"] } },
         { "id": "c7", "label": "Aucune contrainte dure particulière", "criteria": [0], "hard": true },
         { "id": "c8", "label": "Je préfère regrouper les interventions par secteur géographique", "criteria": [1], "hard": false },
         { "id": "c9", "label": "Je préfère finir tôt dans la fenêtre horaire plutôt qu'au dernier moment", "criteria": [1], "hard": false },
@@ -53,13 +53,13 @@
     {
       "id": "objectifs",
       "label": "Objectifs — quels KPIs prioriser",
-      "opening_question": "Qu'est-ce qui compte le plus pour toi dans le résultat (choisis-en une ou plusieurs, par ordre d'importance si tu veux préciser) ?",
+      "opening_question": "Si ton planning était parfait demain matin, à quoi ça ressemblerait ? Dis-moi ce qui compte le plus pour toi (plusieurs choix possibles, dans l'ordre qui te semble juste si tu veux préciser) :",
       "allow_free_text": true,
       "options": [
         { "id": "o1", "label": "Ne perdre aucune intervention (taux d'allocation)", "criteria": [0] },
         { "id": "o2", "label": "Minimiser les trajets / coûts", "criteria": [0] },
         { "id": "o3", "label": "Respecter strictement les rendez-vous clients", "criteria": [0] },
-        { "id": "o4", "label": "Mobiliser le moins de techniciens possible", "criteria": [0] }
+        { "id": "o4", "label": "Mobiliser le moins de techniciens possible", "criteria": [0], "depends_on": { "section": "entites", "any_of": ["e1", "e3"] } }
       ],
       "criteria": [
         "Un objectif business prioritaire est identifié, dans les mots du client (pas juste un nom de champ technique)",
@@ -70,7 +70,7 @@
     {
       "id": "taille",
       "label": "Taille du problème — volume réel",
-      "opening_question": "Dans la réalité (pas juste pour un premier test), à peu près quel volume ?",
+      "opening_question": "Parlons volume réel maintenant, pas juste de quoi faire un premier essai — à peu près ça représente quoi chez toi ?",
       "allow_free_text": true,
       "options": [
         { "id": "t1", "label": "Moins de 10 interventions/jour", "criteria": [0] },
@@ -93,7 +93,7 @@
     {
       "id": "niveau_offre",
       "label": "Niveau d'offre — self-service ou complète",
-      "opening_question": "Une dernière chose avant qu'on avance, où en es-tu côté accès et compte Nomadia ?",
+      "opening_question": "Dernière chose avant qu'on passe à la suite : où en es-tu avec ton compte et ta clé API Nomadia ?",
       "allow_free_text": true,
       "options": [
         { "id": "n1", "label": "J'ai une clé API de test (self-service)", "criteria": [0] },

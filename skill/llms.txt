@@ -57,11 +57,14 @@ parcourir le repo au hasard.
 - scripts/test_validate_payload.py — tests de régression du validateur. Lancer avant
   tout commit qui touche validate_payload.py.
 - scripts/interview_state.py start|options|record|progress|prd|edit — entretien de
-  découverte du besoin en QCM (options numérotées, plusieurs choix possibles, + précision
-  libre) avec état persistant (fichier, pas la mémoire de la conversation) : crée un
-  entretien, affiche le questionnaire d'une section (`options`), enregistre les choix du
-  client section par section (`record --options id1,id2,...`, marque automatiquement les
-  critères liés), affiche la couverture en couleur dans le terminal (désactivable via
+  découverte du besoin en QCM ton conversationnel (options numérotées, plusieurs choix
+  possibles, + un choix numéroté dédié "autre chose à préciser") avec état persistant
+  (fichier, pas la mémoire de la conversation) : crée un entretien, affiche le
+  questionnaire d'une section (`options <section> --interview ID`, options déjà non
+  pertinentes masquées automatiquement d'après les réponses précédentes via
+  `sections.json: options[].depends_on`), enregistre les choix du client section par
+  section (`record --options id1,id2,...`, marque automatiquement les critères liés),
+  affiche la couverture en couleur dans le terminal (désactivable via
   NO_COLOR), corrige une réponse déjà enregistrée, génère le PRD final en Markdown une
   fois la couverture suffisante (ou sur demande explicite) — avec résumé libre
   (`--summary`) et/ou liste d'entités structurée (`--entity "Nom|Statut|Description"`,

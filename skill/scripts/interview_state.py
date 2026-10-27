@@ -16,9 +16,16 @@ Usage :
     python3 scripts/interview_state.py start
         -> crée un nouvel entretien, affiche son interview_id
 
-    python3 scripts/interview_state.py options <section_id>
+    python3 scripts/interview_state.py options <section_id> [--interview ID]
         -> affiche le QCM de cette section (options numérotées + leur id), à poser au
-           client tel quel : "plusieurs choix possibles, et tu peux préciser en plus"
+           client tel quel : "plusieurs choix possibles, et tu peux préciser en plus".
+           Un dernier numéro ("Autre chose à préciser") est TOUJOURS ajouté explicitement
+           pour le texte libre — jamais juste une note en petit sous la liste. Les
+           options marquées 'depends_on' dans sections.json et non encore pertinentes
+           d'après les réponses déjà enregistrées de cet entretien sont masquées
+           automatiquement (ex. pas de question "binôme technicien" si aucun technicien
+           n'a été identifié en section entités) — l'agent n'a jamais à décider lui-même
+           quoi cacher, le script le fait depuis l'état réel de l'entretien.
 
     python3 scripts/interview_state.py record <section_id> ["<précision libre>"] [--options id1,id2,...] [--interview ID]
         -> enregistre un tour sur une section. --options prend les id choisis par le
@@ -180,6 +187,34 @@ def cmd_start(args):
     print(f"  {first['opening_question']}")
 
 
+def _selected_option_ids(sec_state: dict) -> set[str]:
+    """Tous les id d'options choisies au fil des tours d'une section — sert de base au
+    filtrage 'depends_on' des autres sections."""
+    chosen: set[str] = set()
+    for turn in sec_state.get("turns", []):
+        chosen.update(turn.get("option_ids") or [])
+    return chosen
+
+
+def _option_visible(opt: dict, state: dict | None) -> bool:
+    """Le 'cerveau' qui évite d'envoyer systématiquement la liste complète de choix :
+    une option avec 'depends_on' reste invisible tant que la section référencée n'a pas
+    déjà reçu au moins une des réponses listées. Sans état d'entretien résolu (aucun
+    entretien démarré encore), ou sans 'depends_on', l'option reste visible par défaut —
+    on ne filtre jamais à l'aveugle, seulement à partir de ce que le client a confirmé."""
+    dep = opt.get("depends_on")
+    if not dep or state is None:
+        return True
+    dep_section_id = dep.get("section")
+    any_of = set(dep.get("any_of") or [])
+    if not dep_section_id or not any_of:
+        return True
+    sec_state = state["sections"].get(dep_section_id)
+    if sec_state is None:
+        return False
+    return bool(_selected_option_ids(sec_state) & any_of)
+
+
 def cmd_options(args):
     sections, _ = load_sections()
     sec_def = next((s for s in sections if s["id"] == args.section), None)
@@ -188,16 +223,32 @@ def cmd_options(args):
               f"{', '.join(sorted(s['id'] for s in sections))}", file=sys.stderr)
         sys.exit(1)
 
+    interview_id = getattr(args, "interview", None) or latest_interview_id()
+    state = load_state(interview_id) if interview_id and state_path(interview_id).exists() else None
+
+    all_options = sec_def.get("options", [])
+    visible = [opt for opt in all_options if _option_visible(opt, state)]
+    hidden_count = len(all_options) - len(visible)
+
     print(sec_def["opening_question"])
-    for i, opt in enumerate(sec_def.get("options", []), start=1):
+    for i, opt in enumerate(visible, start=1):
         id_tag = c(f"[id: {opt['id']}]", "dim")
         print(f"  {c(str(i), 'cyan', 'bold')}. {opt['label']}   {id_tag}")
+    free_text_num = len(visible) + 1
     if sec_def.get("allow_free_text", True):
-        print("  (+ tu peux ajouter une précision libre en plus de tes choix)")
+        print(f"  {c(str(free_text_num), 'cyan', 'bold')}. Autre chose à préciser, pas dans la liste ci-dessus")
     print("\n-> plusieurs choix possibles. Présente cette liste numérotée au client "
-          "tel quel (sans les [id: ...], c'est pour toi) ; il répond par les numéros, "
-          "et record --options reçoit les id correspondants séparés par des virgules "
-          "(ex. --options e1,e4,e6).")
+          "tel quel (sans les [id: ...], c'est pour toi) ; il répond par les numéros. "
+          "record --options reçoit les id correspondants aux numéros choisis, séparés "
+          "par des virgules (ex. --options e1,e4,e6) — jamais les numéros eux-mêmes, qui "
+          "ne sont qu'un affichage. Si le client choisit le numéro "
+          f"{free_text_num} ('Autre chose à préciser'), note ce qu'il dit comme texte "
+          "libre positionnel de 'record' (pas dans --options, ce n'est pas une vraie "
+          "option) — ex. record <section> \"ce que le client a précisé\" --options ...")
+    if hidden_count:
+        print(c(f"({hidden_count} choix non pertinent(s) à ce stade ont été masqués "
+                f"automatiquement d'après les réponses déjà données — rien à filtrer "
+                f"toi-même.)", "dim"))
 
 
 def _resolve_options(sec_def: dict, option_ids: list[str] | None) -> tuple[list[str], list[int]]:
@@ -602,6 +653,9 @@ def main():
 
     p_options = sub.add_parser("options", help="affiche le QCM d'une section (options numérotées à poser au client)")
     p_options.add_argument("section", help="id de section (voir reference/sections.json)")
+    p_options.add_argument("--interview", help="id de l'entretien (défaut : le plus récent) — sert à filtrer "
+                                                 "les options déjà non pertinentes d'après les réponses "
+                                                 "précédentes (voir options[].depends_on)")
     p_options.set_defaults(func=cmd_options)
 
     p_record = sub.add_parser("record", help="enregistre un tour sur une section")
