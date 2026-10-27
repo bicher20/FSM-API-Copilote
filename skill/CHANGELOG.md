@@ -1,5 +1,20 @@
 # Changelog du skill
 
+## 1.21 — 2026-10-27
+- **Nouveau `reference/decouverte-besoin.md`** : découverte structurée du besoin en 4
+  thèmes (entités, contraintes, objectifs, taille du problème), inspirée de l'analyse
+  du "PRD Assistant" de Timefold (https://prd.timefold.ai — conversation guidée +
+  notion de couverture avant génération), mais adaptée à ce que ce skill sait faire en
+  plus : lire le code existant du client (§0 Étape 1) et trancher explicitement entre
+  les deux offres Nomadia, ce que Timefold n'a pas à faire.
+- **Garde-fou explicite ajouté à `SKILL.md` §0 Étape 2** : dès qu'un besoin client
+  touche un mécanisme de l'offre complète (multi-ressources, stock, ordre entre jobs,
+  horizon borné, récurrence), l'agent doit **poser la question self-service vs offre
+  complète au client**, plutôt que de supposer silencieusement le self-service parce
+  que c'est ce que ce skill appelle directement.
+- `llms.txt` et la table §13 des fichiers mis à jour pour référencer ce nouveau
+  fichier en priorité sur un besoin pas immédiatement évident.
+
 ## 1.20 — 2026-10-27
 - **Validé par un test en conditions réelles** : un agent générique sans aucun
   contexte préalable, invoqué uniquement avec la demande client "~100 interventions,

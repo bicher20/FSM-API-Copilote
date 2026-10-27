@@ -13,6 +13,11 @@ parcourir le repo au hasard.
   appel) plutôt que de réexpliquer chaque étape depuis zéro.
 
 ## Référence (ouvrir selon le besoin précis)
+- reference/decouverte-besoin.md — **à ouvrir en premier sur un besoin pas
+  immédiatement évident**, avant d'écrire le moindre payload : découverte structurée
+  en 4 thèmes (entités, contraintes, objectifs, taille du problème — inspiré du PRD
+  Assistant de Timefold), et garde-fou pour trancher explicitement self-service vs
+  offre complète plutôt que de deviner.
 - reference/entities.md — nom exact, type, valeur par défaut de CHAQUE champ du
   schéma **self-service réel** (dérivé du schéma OpenAPI authentique de
   scheduler-json-api.readme.io, pas de la doc PDF de l'offre complète). Source de

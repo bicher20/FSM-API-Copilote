@@ -1,7 +1,7 @@
 ---
 name: nomadia-scheduler-api
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.20
+version: 1.21
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -80,6 +80,13 @@ Ce skill ne sert pas qu'à répondre à une question ponctuelle : quand il est d
 comporte-toi comme un copilote qui cadre le besoin puis exécute. Ne te contente jamais de
 renvoyer un extrait de la doc (§1-13) sans d'abord savoir ce que l'utilisateur construit.
 
+Les étapes 1-2bis ci-dessous suivent la méthode détaillée dans
+`reference/decouverte-besoin.md` (découverte structurée en 4 thèmes — entités,
+contraintes, objectifs, taille du problème — inspirée du PRD Assistant de Timefold,
+adaptée pour exploiter la lecture du code existant et trancher explicitement entre les
+deux offres Nomadia). Ouvre ce fichier pour un besoin qui n'est pas immédiatement
+évident ; les résumés ci-dessous suffisent pour un besoin simple et déjà clair.
+
 **Étape 1 — Regarder avant de demander.** Si le skill tourne dans un contexte de code
 (repo ouvert, fichiers accessibles), inspecte d'abord ce qui existe déjà avant de poser
 la moindre question :
@@ -105,6 +112,13 @@ l'inspection n'a pas révélé :
    (techniciens/véhicules), et y a-t-il des contraintes dures (compétences obligatoires,
    stock de pièces embarqué, ordre entre jobs) ? — ne demande que ce qui manque encore
    après l'étape 1.
+
+**Si la réponse au point 3 fait apparaître un besoin de stock de pièces, d'ordre entre
+jobs, de job multi-ressources, d'horizon borné ou de disponibilité récurrente** :
+**pose explicitement la question self-service vs offre complète** avant d'aller plus
+loin (voir `reference/decouverte-besoin.md`, section "Niveau d'offre") — ne suppose
+jamais que le client est en self-service juste parce que c'est ce que ce skill appelle
+directement.
 
 Si l'objectif est déjà clair depuis le message de l'utilisateur ou le contexte du repo,
 **saute directement à l'étape 3** sans poser de question pour la forme.
@@ -416,6 +430,7 @@ doivent être ouverts selon le besoin — ne pas essayer de tout retenir de mém
 |---|---|
 | `reference/entities.md` | tu écris un payload/code et as besoin du nom exact d'un champ, son type, ou sa valeur par défaut — transcription fiable du schéma OpenAPI self-service réel (pas la doc PDF de l'offre complète) |
 | `reference/offre-complete-nomadia.md` | le besoin correspond à un mécanisme absent du self-service (multi-ressources, stock, ordre entre jobs, horizon borné, récurrence, priorité de rdv dédiée) — exemple à montrer + comment orienter vers un contact Nomadia |
+| `reference/decouverte-besoin.md` | au tout début d'une mission, pour mener la découverte du besoin en 4 thèmes (entités, contraintes, objectifs, taille) et trancher explicitement self-service vs offre complète — surtout utile sur un besoin pas immédiatement évident |
 | `troubleshooting.md` | un appel échoue, un job n'est pas planifié, ou le plan ne correspond pas à l'attendu — diagnostic par symptôme, à suivre avant de modifier du code au hasard |
 | `snippets/client.js` et `snippets/client.py` | tu démarres une intégration dans un projet JS/Node ou Python — client HTTP minimal + validation locale du payload (détecte les `id` qui ne se référencent pas entre eux, les dates de shift incohérentes, etc. avant de consommer des crédits) |
 | `reference/kpis-metier.md` | tu dois argumenter en rendez-vous commercial ou traduire un résultat technique (taux d'allocation, trajet, SLA) en impact business |
