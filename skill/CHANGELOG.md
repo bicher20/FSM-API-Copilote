@@ -1,5 +1,20 @@
 # Changelog du skill
 
+## 1.20 — 2026-10-27
+- **Validé par un test en conditions réelles** : un agent générique sans aucun
+  contexte préalable, invoqué uniquement avec la demande client "~100 interventions,
+  une dizaine de techniciens, certains habilités électricité", a suivi `SKILL.md`,
+  découvert et utilisé lui-même `scripts/generate_load_test.py` (sans qu'on le lui
+  indique), validé avec `doctor.py`, et s'est arrêté avant l'appel réel en demandant
+  la confirmation de la clé + l'acceptation du coût — comportement conforme sur toute
+  la ligne.
+- **Amélioration remontée par ce test** : `generate_load_test.py` avait des ratios
+  élec/rendez-vous/engagement codés en dur (30%/20%/10%/4%), pas adaptés à un besoin
+  client réel différent de ces proportions. Le script accepte maintenant
+  `--elec-resource-ratio`, `--elec-job-ratio`, `--appointment-ratio`, `--fixed-ratio`
+  et `--date`, avec tirage aléatoire (plus de motif modulo figé) pour une répartition
+  plus réaliste. `examples/13_charge_100_jobs.json` régénéré en conséquence.
+
 ## 1.19 — 2026-10-27
 - **Nouveau `scripts/generate_load_test.py`** : génère un payload self-service à
   grande échelle (N jobs / M ressources configurables), combinant à l'échelle

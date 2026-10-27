@@ -1,5 +1,5 @@
 {
-  "_comment": "Payload de charge généré par scripts/generate_load_test.py (jobs=100, resources=10, seed=42) pour challenger l'API self-service sur le volume. Combine locality, requirements, SLA+value_per_hour, appointment_sla, fixed_resource_id, breaks, shift_penalty et maximum_jobs_per_shift à l'échelle. ⚠️ Toujours lancer scripts/doctor.py sur ce fichier (gratuit) avant d'envisager un appel réel, et estimer le coût avec --jobs/--resources avant d'accepter.",
+  "_comment": "Payload de charge généré par scripts/generate_load_test.py (jobs=100, resources=10, seed=42, elec_resource_ratio=0.3, elec_job_ratio=0.2, appointment_ratio=0.1, fixed_ratio=0.04, date=2026-11-02) pour challenger l'API self-service sur le volume. Combine locality, requirements, SLA+value_per_hour, appointment_sla, fixed_resource_id, breaks, shift_penalty et maximum_jobs_per_shift à l'échelle. ⚠️ Toujours lancer scripts/doctor.py sur ce fichier (gratuit) avant d'envisager un appel réel, et estimer le coût avec --jobs/--resources avant d'accepter.",
   "locations": [
     {
       "id": "DEPOT",
@@ -640,14 +640,17 @@
   "jobs": [
     {
       "id": "JOB-1",
-      "job_type_id": "DEFAULT",
+      "job_type_id": "INSTALLATION",
       "location_id": "LOC-1",
       "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      }
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
     },
     {
       "id": "JOB-2",
@@ -684,17 +687,14 @@
     },
     {
       "id": "JOB-5",
-      "job_type_id": "INSTALLATION",
+      "job_type_id": "DEFAULT",
       "location_id": "LOC-5",
       "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      },
-      "requirements": [
-        "HABILITATION_ELEC"
-      ]
+      }
     },
     {
       "id": "JOB-6",
@@ -711,22 +711,37 @@
       "id": "JOB-7",
       "job_type_id": "DEFAULT",
       "location_id": "LOC-7",
-      "value_per_hour": 50,
+      "value_per_hour": 200,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
+      },
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T11:00:00",
+        "latest_start_date_time": "2026-11-02T11:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
       }
     },
     {
       "id": "JOB-8",
-      "job_type_id": "DEFAULT",
+      "job_type_id": "INSTALLATION",
       "location_id": "LOC-8",
-      "value_per_hour": 50,
+      "value_per_hour": 200,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ],
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T09:00:00",
+        "latest_start_date_time": "2026-11-02T09:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
       }
     },
     {
@@ -742,22 +757,13 @@
     },
     {
       "id": "JOB-10",
-      "job_type_id": "INSTALLATION",
+      "job_type_id": "DEFAULT",
       "location_id": "LOC-10",
-      "value_per_hour": 200,
+      "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      },
-      "requirements": [
-        "HABILITATION_ELEC"
-      ],
-      "appointment_sla": {
-        "earliest_start_date_time": "2026-11-02T10:00:00",
-        "latest_start_date_time": "2026-11-02T10:30:00",
-        "penalty_per_hour": 50,
-        "base_jeopardy_penalty": 1000
       }
     },
     {
@@ -806,17 +812,14 @@
     },
     {
       "id": "JOB-15",
-      "job_type_id": "INSTALLATION",
+      "job_type_id": "DEFAULT",
       "location_id": "LOC-15",
       "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      },
-      "requirements": [
-        "HABILITATION_ELEC"
-      ]
+      }
     },
     {
       "id": "JOB-16",
@@ -866,7 +869,7 @@
       "id": "JOB-20",
       "job_type_id": "INSTALLATION",
       "location_id": "LOC-20",
-      "value_per_hour": 200,
+      "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
@@ -874,13 +877,7 @@
       },
       "requirements": [
         "HABILITATION_ELEC"
-      ],
-      "appointment_sla": {
-        "earliest_start_date_time": "2026-11-02T11:00:00",
-        "latest_start_date_time": "2026-11-02T11:30:00",
-        "penalty_per_hour": 50,
-        "base_jeopardy_penalty": 1000
-      }
+      ]
     },
     {
       "id": "JOB-21",
@@ -895,14 +892,17 @@
     },
     {
       "id": "JOB-22",
-      "job_type_id": "DEFAULT",
+      "job_type_id": "INSTALLATION",
       "location_id": "LOC-22",
       "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      }
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
     },
     {
       "id": "JOB-23",
@@ -928,18 +928,20 @@
     },
     {
       "id": "JOB-25",
-      "job_type_id": "INSTALLATION",
+      "job_type_id": "DEFAULT",
       "location_id": "LOC-25",
-      "value_per_hour": 50,
+      "value_per_hour": 200,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
       },
-      "requirements": [
-        "HABILITATION_ELEC"
-      ],
-      "fixed_resource_id": "RES-6"
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T10:00:00",
+        "latest_start_date_time": "2026-11-02T10:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
+      }
     },
     {
       "id": "JOB-26",
@@ -965,13 +967,22 @@
     },
     {
       "id": "JOB-28",
-      "job_type_id": "DEFAULT",
+      "job_type_id": "INSTALLATION",
       "location_id": "LOC-28",
-      "value_per_hour": 50,
+      "value_per_hour": 200,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ],
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T11:00:00",
+        "latest_start_date_time": "2026-11-02T11:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
       }
     },
     {
@@ -987,22 +998,13 @@
     },
     {
       "id": "JOB-30",
-      "job_type_id": "INSTALLATION",
+      "job_type_id": "DEFAULT",
       "location_id": "LOC-30",
-      "value_per_hour": 200,
+      "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      },
-      "requirements": [
-        "HABILITATION_ELEC"
-      ],
-      "appointment_sla": {
-        "earliest_start_date_time": "2026-11-02T12:00:00",
-        "latest_start_date_time": "2026-11-02T12:30:00",
-        "penalty_per_hour": 50,
-        "base_jeopardy_penalty": 1000
       }
     },
     {
@@ -1040,19 +1042,8 @@
     },
     {
       "id": "JOB-34",
-      "job_type_id": "DEFAULT",
-      "location_id": "LOC-34",
-      "value_per_hour": 50,
-      "sla": {
-        "earliest_start_date_time": "2026-11-02T08:00:00",
-        "latest_start_date_time": "2026-11-02T18:00:00",
-        "penalty_per_hour": 5
-      }
-    },
-    {
-      "id": "JOB-35",
       "job_type_id": "INSTALLATION",
-      "location_id": "LOC-35",
+      "location_id": "LOC-34",
       "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
@@ -1062,6 +1053,17 @@
       "requirements": [
         "HABILITATION_ELEC"
       ]
+    },
+    {
+      "id": "JOB-35",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-35",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
     },
     {
       "id": "JOB-36",
@@ -1076,24 +1078,33 @@
     },
     {
       "id": "JOB-37",
-      "job_type_id": "DEFAULT",
+      "job_type_id": "INSTALLATION",
       "location_id": "LOC-37",
       "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      }
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
     },
     {
       "id": "JOB-38",
       "job_type_id": "DEFAULT",
       "location_id": "LOC-38",
-      "value_per_hour": 50,
+      "value_per_hour": 200,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
+      },
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T10:00:00",
+        "latest_start_date_time": "2026-11-02T10:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
       }
     },
     {
@@ -1109,33 +1120,30 @@
     },
     {
       "id": "JOB-40",
-      "job_type_id": "INSTALLATION",
+      "job_type_id": "DEFAULT",
       "location_id": "LOC-40",
-      "value_per_hour": 200,
+      "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      },
-      "requirements": [
-        "HABILITATION_ELEC"
-      ],
-      "appointment_sla": {
-        "earliest_start_date_time": "2026-11-02T13:00:00",
-        "latest_start_date_time": "2026-11-02T13:30:00",
-        "penalty_per_hour": 50,
-        "base_jeopardy_penalty": 1000
       }
     },
     {
       "id": "JOB-41",
       "job_type_id": "DEFAULT",
       "location_id": "LOC-41",
-      "value_per_hour": 50,
+      "value_per_hour": 200,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
+      },
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T10:00:00",
+        "latest_start_date_time": "2026-11-02T10:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
       }
     },
     {
@@ -1173,17 +1181,14 @@
     },
     {
       "id": "JOB-45",
-      "job_type_id": "INSTALLATION",
+      "job_type_id": "DEFAULT",
       "location_id": "LOC-45",
       "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      },
-      "requirements": [
-        "HABILITATION_ELEC"
-      ]
+      }
     },
     {
       "id": "JOB-46",
@@ -1220,20 +1225,9 @@
     },
     {
       "id": "JOB-49",
-      "job_type_id": "DEFAULT",
+      "job_type_id": "INSTALLATION",
       "location_id": "LOC-49",
       "value_per_hour": 50,
-      "sla": {
-        "earliest_start_date_time": "2026-11-02T08:00:00",
-        "latest_start_date_time": "2026-11-02T18:00:00",
-        "penalty_per_hour": 5
-      }
-    },
-    {
-      "id": "JOB-50",
-      "job_type_id": "INSTALLATION",
-      "location_id": "LOC-50",
-      "value_per_hour": 200,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
@@ -1241,14 +1235,21 @@
       },
       "requirements": [
         "HABILITATION_ELEC"
-      ],
-      "appointment_sla": {
-        "earliest_start_date_time": "2026-11-02T14:00:00",
-        "latest_start_date_time": "2026-11-02T14:30:00",
-        "penalty_per_hour": 50,
-        "base_jeopardy_penalty": 1000
+      ]
+    },
+    {
+      "id": "JOB-50",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-50",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
       },
-      "fixed_resource_id": "RES-1"
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
     },
     {
       "id": "JOB-51",
@@ -1263,25 +1264,31 @@
     },
     {
       "id": "JOB-52",
-      "job_type_id": "DEFAULT",
+      "job_type_id": "INSTALLATION",
       "location_id": "LOC-52",
       "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      }
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
     },
     {
       "id": "JOB-53",
-      "job_type_id": "DEFAULT",
+      "job_type_id": "INSTALLATION",
       "location_id": "LOC-53",
       "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      }
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
     },
     {
       "id": "JOB-54",
@@ -1343,20 +1350,9 @@
     },
     {
       "id": "JOB-59",
-      "job_type_id": "DEFAULT",
+      "job_type_id": "INSTALLATION",
       "location_id": "LOC-59",
       "value_per_hour": 50,
-      "sla": {
-        "earliest_start_date_time": "2026-11-02T08:00:00",
-        "latest_start_date_time": "2026-11-02T18:00:00",
-        "penalty_per_hour": 5
-      }
-    },
-    {
-      "id": "JOB-60",
-      "job_type_id": "INSTALLATION",
-      "location_id": "LOC-60",
-      "value_per_hour": 200,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
@@ -1364,12 +1360,17 @@
       },
       "requirements": [
         "HABILITATION_ELEC"
-      ],
-      "appointment_sla": {
-        "earliest_start_date_time": "2026-11-02T15:00:00",
-        "latest_start_date_time": "2026-11-02T15:30:00",
-        "penalty_per_hour": 50,
-        "base_jeopardy_penalty": 1000
+      ]
+    },
+    {
+      "id": "JOB-60",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-60",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
       }
     },
     {
@@ -1385,25 +1386,32 @@
     },
     {
       "id": "JOB-62",
-      "job_type_id": "DEFAULT",
+      "job_type_id": "INSTALLATION",
       "location_id": "LOC-62",
       "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      }
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ],
+      "fixed_resource_id": "RES-4"
     },
     {
       "id": "JOB-63",
-      "job_type_id": "DEFAULT",
+      "job_type_id": "INSTALLATION",
       "location_id": "LOC-63",
       "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      }
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
     },
     {
       "id": "JOB-64",
@@ -1418,7 +1426,7 @@
     },
     {
       "id": "JOB-65",
-      "job_type_id": "INSTALLATION",
+      "job_type_id": "DEFAULT",
       "location_id": "LOC-65",
       "value_per_hour": 50,
       "sla": {
@@ -1426,9 +1434,7 @@
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
       },
-      "requirements": [
-        "HABILITATION_ELEC"
-      ]
+      "fixed_resource_id": "RES-7"
     },
     {
       "id": "JOB-66",
@@ -1461,7 +1467,8 @@
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      }
+      },
+      "fixed_resource_id": "RES-2"
     },
     {
       "id": "JOB-69",
@@ -1476,7 +1483,7 @@
     },
     {
       "id": "JOB-70",
-      "job_type_id": "INSTALLATION",
+      "job_type_id": "DEFAULT",
       "location_id": "LOC-70",
       "value_per_hour": 200,
       "sla": {
@@ -1484,12 +1491,9 @@
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
       },
-      "requirements": [
-        "HABILITATION_ELEC"
-      ],
       "appointment_sla": {
-        "earliest_start_date_time": "2026-11-02T16:00:00",
-        "latest_start_date_time": "2026-11-02T16:30:00",
+        "earliest_start_date_time": "2026-11-02T12:00:00",
+        "latest_start_date_time": "2026-11-02T12:30:00",
         "penalty_per_hour": 50,
         "base_jeopardy_penalty": 1000
       }
@@ -1507,14 +1511,17 @@
     },
     {
       "id": "JOB-72",
-      "job_type_id": "DEFAULT",
+      "job_type_id": "INSTALLATION",
       "location_id": "LOC-72",
       "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      }
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
     },
     {
       "id": "JOB-73",
@@ -1540,18 +1547,21 @@
     },
     {
       "id": "JOB-75",
-      "job_type_id": "INSTALLATION",
+      "job_type_id": "DEFAULT",
       "location_id": "LOC-75",
-      "value_per_hour": 50,
+      "value_per_hour": 200,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
       },
-      "requirements": [
-        "HABILITATION_ELEC"
-      ],
-      "fixed_resource_id": "RES-6"
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T09:00:00",
+        "latest_start_date_time": "2026-11-02T09:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
+      },
+      "fixed_resource_id": "RES-10"
     },
     {
       "id": "JOB-76",
@@ -1599,22 +1609,13 @@
     },
     {
       "id": "JOB-80",
-      "job_type_id": "INSTALLATION",
+      "job_type_id": "DEFAULT",
       "location_id": "LOC-80",
-      "value_per_hour": 200,
+      "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      },
-      "requirements": [
-        "HABILITATION_ELEC"
-      ],
-      "appointment_sla": {
-        "earliest_start_date_time": "2026-11-02T09:00:00",
-        "latest_start_date_time": "2026-11-02T09:30:00",
-        "penalty_per_hour": 50,
-        "base_jeopardy_penalty": 1000
       }
     },
     {
@@ -1723,7 +1724,7 @@
       "id": "JOB-90",
       "job_type_id": "INSTALLATION",
       "location_id": "LOC-90",
-      "value_per_hour": 200,
+      "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
@@ -1731,13 +1732,7 @@
       },
       "requirements": [
         "HABILITATION_ELEC"
-      ],
-      "appointment_sla": {
-        "earliest_start_date_time": "2026-11-02T10:00:00",
-        "latest_start_date_time": "2026-11-02T10:30:00",
-        "penalty_per_hour": 50,
-        "base_jeopardy_penalty": 1000
-      }
+      ]
     },
     {
       "id": "JOB-91",
@@ -1752,14 +1747,17 @@
     },
     {
       "id": "JOB-92",
-      "job_type_id": "DEFAULT",
+      "job_type_id": "INSTALLATION",
       "location_id": "LOC-92",
       "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      }
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
     },
     {
       "id": "JOB-93",
@@ -1774,19 +1772,8 @@
     },
     {
       "id": "JOB-94",
-      "job_type_id": "DEFAULT",
-      "location_id": "LOC-94",
-      "value_per_hour": 50,
-      "sla": {
-        "earliest_start_date_time": "2026-11-02T08:00:00",
-        "latest_start_date_time": "2026-11-02T18:00:00",
-        "penalty_per_hour": 5
-      }
-    },
-    {
-      "id": "JOB-95",
       "job_type_id": "INSTALLATION",
-      "location_id": "LOC-95",
+      "location_id": "LOC-94",
       "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
@@ -1798,14 +1785,37 @@
       ]
     },
     {
-      "id": "JOB-96",
+      "id": "JOB-95",
       "job_type_id": "DEFAULT",
-      "location_id": "LOC-96",
-      "value_per_hour": 50,
+      "location_id": "LOC-95",
+      "value_per_hour": 200,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
+      },
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T10:00:00",
+        "latest_start_date_time": "2026-11-02T10:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
+      }
+    },
+    {
+      "id": "JOB-96",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-96",
+      "value_per_hour": 200,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T15:00:00",
+        "latest_start_date_time": "2026-11-02T15:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
       }
     },
     {
@@ -1843,30 +1853,20 @@
     },
     {
       "id": "JOB-100",
-      "job_type_id": "INSTALLATION",
+      "job_type_id": "DEFAULT",
       "location_id": "LOC-100",
-      "value_per_hour": 200,
+      "value_per_hour": 50,
       "sla": {
         "earliest_start_date_time": "2026-11-02T08:00:00",
         "latest_start_date_time": "2026-11-02T18:00:00",
         "penalty_per_hour": 5
-      },
-      "requirements": [
-        "HABILITATION_ELEC"
-      ],
-      "appointment_sla": {
-        "earliest_start_date_time": "2026-11-02T11:00:00",
-        "latest_start_date_time": "2026-11-02T11:30:00",
-        "penalty_per_hour": 50,
-        "base_jeopardy_penalty": 1000
-      },
-      "fixed_resource_id": "RES-1"
+      }
     }
   ],
   "resources": [
     {
       "id": "RES-1",
-      "resource_type_id": "TECH_ELEC",
+      "resource_type_id": "TECH_STD",
       "shifts": [
         {
           "start_date_time": "2026-11-02T08:00:00",
@@ -1879,9 +1879,6 @@
             }
           ]
         }
-      ],
-      "requirements": [
-        "HABILITATION_ELEC"
       ]
     },
     {
@@ -1926,7 +1923,7 @@
     },
     {
       "id": "RES-4",
-      "resource_type_id": "TECH_STD",
+      "resource_type_id": "TECH_ELEC",
       "shifts": [
         {
           "start_date_time": "2026-11-02T08:00:00",
@@ -1939,6 +1936,9 @@
             }
           ]
         }
+      ],
+      "requirements": [
+        "HABILITATION_ELEC"
       ]
     },
     {

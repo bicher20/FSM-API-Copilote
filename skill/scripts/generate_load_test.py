@@ -19,13 +19,24 @@ ne jamais lancer l'appel sans avoir accepté explicitement le coût estimé.
 
 Usage :
     python3 scripts/generate_load_test.py --jobs 100 --resources 10 -o payload.json
-    python3 scripts/generate_load_test.py --jobs 100 --resources 10 --seed 42 -o payload.json
+    python3 scripts/generate_load_test.py --jobs 50 --resources 5 \
+        --elec-resource-ratio 0.6 --elec-job-ratio 0.5 --appointment-ratio 0.2 \
+        --fixed-ratio 0 --date 2026-12-01 -o payload.json
 
 Options :
-    --jobs N        nombre d'interventions à générer (défaut 100)
-    --resources M   nombre de ressources à générer (défaut 10)
-    --seed S        graine aléatoire, pour un résultat reproductible (défaut 42)
-    -o FICHIER      fichier de sortie (défaut stdout)
+    --jobs N                  nombre d'interventions à générer (défaut 100)
+    --resources M              nombre de ressources à générer (défaut 10)
+    --seed S                   graine aléatoire, pour un résultat reproductible (défaut 42)
+    --elec-resource-ratio R    proportion de ressources habilitées électricité, 0-1 (défaut 0.3)
+    --elec-job-ratio R         proportion de jobs exigeant l'habilitation électrique, 0-1 (défaut 0.2)
+    --appointment-ratio R      proportion de jobs avec un rendez-vous serré (appointment_sla), 0-1 (défaut 0.1)
+    --fixed-ratio R            proportion de jobs engagés d'office (fixed_resource_id), 0-1 (défaut 0.04)
+    --date AAAA-MM-JJ          date du planning (défaut 2026-11-02)
+    -o FICHIER                 fichier de sortie (défaut stdout)
+
+Les ratios n'ont rien de figé : adapte-les au vrai besoin du client plutôt que de
+garder les défauts si tu connais ses effectifs réels (ex. "certains" techniciens
+habilités électricité n'est pas forcément 30%).
 """
 import argparse
 import json
@@ -46,7 +57,16 @@ LOCALITY_CENTERS = {
 DEPOT = {"id": "DEPOT", "latitude": 48.8566, "longitude": 2.3522}
 
 
-def build_payload(n_jobs: int, n_resources: int, seed: int) -> dict:
+def build_payload(
+    n_jobs: int,
+    n_resources: int,
+    seed: int,
+    elec_resource_ratio: float = 0.3,
+    elec_job_ratio: float = 0.2,
+    appointment_ratio: float = 0.1,
+    fixed_ratio: float = 0.04,
+    date: str = "2026-11-02",
+) -> dict:
     rng = random.Random(seed)
 
     locations = [DEPOT]
@@ -86,18 +106,21 @@ def build_payload(n_jobs: int, n_resources: int, seed: int) -> dict:
         },
     ]
 
-    # ~30% des ressources sont habilitées électricité, le reste standard.
+    # Ratios paramétrables (voir --elec-resource-ratio etc.) plutôt que des
+    # pourcentages codés en dur — un vrai client n'a pas forcément 30%/20%.
+    n_elec_resources = max(1, round(n_resources * elec_resource_ratio))
+    elec_resource_indices = set(rng.sample(range(1, n_resources + 1), min(n_elec_resources, n_resources)))
+
     resources = []
-    n_elec_resources = max(1, round(n_resources * 0.3))
     for i in range(1, n_resources + 1):
-        is_elec = i <= n_elec_resources
+        is_elec = i in elec_resource_indices
         shift = {
-            "start_date_time": "2026-11-02T08:00:00",
-            "end_date_time": "2026-11-02T18:00:00",
+            "start_date_time": f"{date}T08:00:00",
+            "end_date_time": f"{date}T18:00:00",
             "breaks": [
                 {
-                    "earliest_start_date_time": "2026-11-02T12:00:00",
-                    "latest_start_date_time": "2026-11-02T13:30:00",
+                    "earliest_start_date_time": f"{date}T12:00:00",
+                    "latest_start_date_time": f"{date}T13:30:00",
                     "duration": "PT45M",
                 }
             ],
@@ -111,15 +134,24 @@ def build_payload(n_jobs: int, n_resources: int, seed: int) -> dict:
             resource["requirements"] = ["HABILITATION_ELEC"]
         resources.append(resource)
 
-    # ~20% des jobs exigent l'habilitation électrique (donc doivent être couverts par
-    # les ressources habilitées ci-dessus), ~10% ont un rendez-vous serré
-    # (appointment_sla), un job sur 25 est engagé d'office sur une ressource précise
-    # (fixed_resource_id), pour exercer plusieurs mécanismes en même temps à l'échelle.
+    # Jobs exigeant l'habilitation électrique, avec rendez-vous serré
+    # (appointment_sla), ou engagés d'office sur une ressource précise
+    # (fixed_resource_id) : tirés aléatoirement selon les ratios fournis, pour
+    # exercer plusieurs mécanismes self-service en même temps à l'échelle, sans
+    # imposer un motif figé (modulo) qui ne correspondrait pas au cas réel du client.
+    n_elec_jobs = max(0, round(n_jobs * elec_job_ratio))
+    n_appointment_jobs = max(0, round(n_jobs * appointment_ratio))
+    n_fixed_jobs = max(0, round(n_jobs * fixed_ratio)) if n_resources > 0 else 0
+    all_job_indices = list(range(1, n_jobs + 1))
+    elec_job_indices = set(rng.sample(all_job_indices, min(n_elec_jobs, n_jobs)))
+    appointment_job_indices = set(rng.sample(all_job_indices, min(n_appointment_jobs, n_jobs)))
+    fixed_job_indices = set(rng.sample(all_job_indices, min(n_fixed_jobs, n_jobs)))
+
     jobs = []
     for i in range(1, n_jobs + 1):
-        requires_elec = (i % 5 == 0)  # 20%
-        has_appointment = (i % 10 == 0)  # 10%
-        is_fixed = (i % 25 == 0) and n_resources > 0  # ~4%
+        requires_elec = i in elec_job_indices
+        has_appointment = i in appointment_job_indices
+        is_fixed = i in fixed_job_indices
         job_type_id = "INSTALLATION" if requires_elec else "DEFAULT"
 
         job = {
@@ -131,35 +163,37 @@ def build_payload(n_jobs: int, n_resources: int, seed: int) -> dict:
             # explicitement, surtout sur un job avec une pénalité SLA/rendez-vous.
             "value_per_hour": 200 if has_appointment else 50,
             "sla": {
-                "earliest_start_date_time": "2026-11-02T08:00:00",
-                "latest_start_date_time": "2026-11-02T18:00:00",
+                "earliest_start_date_time": f"{date}T08:00:00",
+                "latest_start_date_time": f"{date}T18:00:00",
                 "penalty_per_hour": 5,
             },
         }
         if requires_elec:
             job["requirements"] = ["HABILITATION_ELEC"]
         if has_appointment:
-            # Fenêtre de rendez-vous de 30 min, répartie entre 9h et 17h selon le job.
-            hour = 9 + (i // 10) % 8
+            # Fenêtre de rendez-vous de 30 min, répartie entre 9h et 17h.
+            hour = rng.randint(9, 16)
             job["appointment_sla"] = {
-                "earliest_start_date_time": f"2026-11-02T{hour:02d}:00:00",
-                "latest_start_date_time": f"2026-11-02T{hour:02d}:30:00",
+                "earliest_start_date_time": f"{date}T{hour:02d}:00:00",
+                "latest_start_date_time": f"{date}T{hour:02d}:30:00",
                 "penalty_per_hour": 50,
                 "base_jeopardy_penalty": 1000,
             }
         if is_fixed:
-            job["fixed_resource_id"] = f"RES-{(i % n_resources) + 1}"
+            job["fixed_resource_id"] = f"RES-{rng.randint(1, n_resources)}"
         jobs.append(job)
 
     return {
         "_comment": (
             f"Payload de charge généré par scripts/generate_load_test.py "
-            f"(jobs={n_jobs}, resources={n_resources}, seed={seed}) pour challenger "
-            f"l'API self-service sur le volume. Combine locality, requirements, "
-            f"SLA+value_per_hour, appointment_sla, fixed_resource_id, breaks, "
-            f"shift_penalty et maximum_jobs_per_shift à l'échelle. ⚠️ Toujours lancer "
-            f"scripts/doctor.py sur ce fichier (gratuit) avant d'envisager un appel "
-            f"réel, et estimer le coût avec --jobs/--resources avant d'accepter."
+            f"(jobs={n_jobs}, resources={n_resources}, seed={seed}, "
+            f"elec_resource_ratio={elec_resource_ratio}, elec_job_ratio={elec_job_ratio}, "
+            f"appointment_ratio={appointment_ratio}, fixed_ratio={fixed_ratio}, date={date}) "
+            f"pour challenger l'API self-service sur le volume. Combine locality, "
+            f"requirements, SLA+value_per_hour, appointment_sla, fixed_resource_id, "
+            f"breaks, shift_penalty et maximum_jobs_per_shift à l'échelle. ⚠️ Toujours "
+            f"lancer scripts/doctor.py sur ce fichier (gratuit) avant d'envisager un "
+            f"appel réel, et estimer le coût avec --jobs/--resources avant d'accepter."
         ),
         "locations": locations,
         "job_types": job_types,
@@ -174,10 +208,26 @@ def main():
     parser.add_argument("--jobs", type=int, default=100, help="nombre de jobs à générer (défaut 100)")
     parser.add_argument("--resources", type=int, default=10, help="nombre de ressources à générer (défaut 10)")
     parser.add_argument("--seed", type=int, default=42, help="graine aléatoire (défaut 42)")
+    parser.add_argument("--elec-resource-ratio", type=float, default=0.3,
+                         help="proportion de ressources habilitées électricité, 0-1 (défaut 0.3)")
+    parser.add_argument("--elec-job-ratio", type=float, default=0.2,
+                         help="proportion de jobs exigeant l'habilitation électrique, 0-1 (défaut 0.2)")
+    parser.add_argument("--appointment-ratio", type=float, default=0.1,
+                         help="proportion de jobs avec un rendez-vous serré (appointment_sla), 0-1 (défaut 0.1)")
+    parser.add_argument("--fixed-ratio", type=float, default=0.04,
+                         help="proportion de jobs engagés d'office sur une ressource (fixed_resource_id), 0-1 (défaut 0.04)")
+    parser.add_argument("--date", default="2026-11-02", help="date du planning, format AAAA-MM-JJ (défaut 2026-11-02)")
     parser.add_argument("-o", "--output", help="fichier de sortie (défaut stdout)")
     args = parser.parse_args()
 
-    payload = build_payload(args.jobs, args.resources, args.seed)
+    payload = build_payload(
+        args.jobs, args.resources, args.seed,
+        elec_resource_ratio=args.elec_resource_ratio,
+        elec_job_ratio=args.elec_job_ratio,
+        appointment_ratio=args.appointment_ratio,
+        fixed_ratio=args.fixed_ratio,
+        date=args.date,
+    )
     out = json.dumps(payload, indent=2, ensure_ascii=False)
 
     if args.output:
