@@ -14,7 +14,13 @@ parcourir le repo au hasard.
 
 ## Référence (ouvrir selon le besoin précis)
 - reference/entities.md — nom exact, type, valeur par défaut de CHAQUE champ du
-  schéma. Source de vérité — ne jamais répondre de mémoire si ce fichier existe.
+  schéma **self-service réel** (dérivé du schéma OpenAPI authentique de
+  scheduler-json-api.readme.io, pas de la doc PDF de l'offre complète). Source de
+  vérité primaire — ne jamais répondre de mémoire si ce fichier existe.
+- reference/offre-complete-nomadia.md — pour un besoin sans équivalent self-service
+  (multi-ressources, stock, ordre entre jobs, horizon borné, récurrence, priorité de
+  rdv dédiée) : exemple tiré de l'offre complète + comment orienter vers un contact
+  Nomadia, sans jamais bloquer le client ni essayer de simuler en self-service.
 - reference/kpis-metier.md — traduction des paramètres/résultats techniques en
   arguments business (taux d'allocation, trajet, SLA, ROI).
 - reference/replanification-temps-reel.md — patterns pour replanification continue,
@@ -40,12 +46,13 @@ parcourir le repo au hasard.
 ## Point de départ pour écrire du code
 - snippets/client.js / client.py — client HTTP minimal + retry/backoff, à adapter
   plutôt qu'à réécrire from scratch.
-- examples/*.json — 10 payloads déjà vérifiés par le validateur, un par pattern
-  courant (minimal, compétence requise, stock de pièces, ordre entre jobs,
-  disponibilité récurrente, ressource déjà engagée, pause obligatoire, indisponibilité
-  ressource, rendez-vous client prioritaire, job multi-ressources). Partir d'un de ces
-  fichiers plutôt que d'une page blanche — voir examples/README.md pour la liste et sa
-  note de fiabilité sur 2 conventions non confirmées.
+- examples/*.json — 7 payloads self-service déjà vérifiés par le validateur (minimal,
+  compétence requise, disponibilité limitée à des créneaux, ressource déjà engagée,
+  pause obligatoire, indisponibilité ressource, rendez-vous client) + 3 exemples
+  marqués "offre complète uniquement" (03, 04, 10 — stock de pièces, ordre entre jobs,
+  job multi-ressources) qui n'ont pas d'équivalent self-service et ne doivent jamais
+  être envoyés tels quels à l'API self-service. Partir d'un de ces fichiers plutôt que
+  d'une page blanche — voir examples/README.md pour la liste complète.
 
 ## Métadonnées
 - CHANGELOG.md — historique des versions du skill lui-même.

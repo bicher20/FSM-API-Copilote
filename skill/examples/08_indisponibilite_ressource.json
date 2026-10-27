@@ -1,5 +1,5 @@
 {
-  "_comment": "Démontre ResourceUnavailability : RES-1 indisponible en milieu de shift (ex. rendez-vous personnel, formation) — l'API doit planifier autour de cette fenêtre.",
+  "_comment": "Démontre ResourceUnavailability : dans le schéma self-service réel, les indisponibilités sont imbriquées directement sous resources[].unavailabilities[] (pas une entité top-level avec resource_id en clé étrangère — voir reference/entities.md). RES-1 indisponible en milieu de shift (ex. rendez-vous personnel, formation) — l'API doit planifier autour de cette fenêtre.",
   "locations": [
     { "id": "DEPOT", "latitude": 48.8566, "longitude": 2.3522 },
     { "id": "LOC-1", "latitude": 48.8738, "longitude": 2.2950 },
@@ -30,16 +30,15 @@
       "id": "RES-1",
       "resource_type_id": "TECH",
       "shifts": [
-        { "id": "SHIFT-RES-1-1", "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T18:00:00" }
+        { "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T18:00:00" }
+      ],
+      "unavailabilities": [
+        {
+          "id": "INDISPO-1",
+          "start_date_time": "2026-11-02T14:00:00",
+          "end_date_time": "2026-11-02T15:30:00"
+        }
       ]
-    }
-  ],
-  "resource_unavailabilities": [
-    {
-      "id": "INDISPO-1",
-      "resource_id": "RES-1",
-      "start_date_time": "2026-11-02T14:00:00",
-      "end_date_time": "2026-11-02T15:30:00"
     }
   ]
 }

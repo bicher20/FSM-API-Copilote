@@ -1,5 +1,5 @@
 {
-  "_comment": "Démontre appointment_sla_id + appointment_priority : un rendez-vous client avec créneau serré et priorité plus haute (valeur plus basse = prioritaire) qu'un job normal avec job_sla_id.",
+  "_comment": "Démontre appointment_sla : dans le schéma self-service réel, il n'existe PAS de champ appointment_sla_id/appointment_priority séparé — le mécanisme est un DEUXIÈME objet SLA complet, imbriqué directement sur le job sous la clé 'appointment_sla' (en plus de 'sla'), avec ses propres pénalités (voir reference/entities.md et reference/offre-complete-nomadia.md §6 pour le vrai champ appointment_priority, réservé à l'offre complète). JOB-RDV-CLIENT a une fenêtre serrée et une pénalité forte en cas de dépassement ; JOB-NORMAL n'a qu'une fenêtre large classique.",
   "locations": [
     { "id": "DEPOT", "latitude": 48.8566, "longitude": 2.3522 },
     { "id": "LOC-1", "latitude": 48.8738, "longitude": 2.2950 },
@@ -8,33 +8,30 @@
   "job_types": [
     { "id": "DEFAULT", "custom_duration": "PT30M" }
   ],
-  "slas": [
-    {
-      "id": "SLA-RDV-1",
-      "earliest_start_date_time": "2026-11-02T10:00:00",
-      "latest_start_date_time": "2026-11-02T10:30:00",
-      "penalty_per_hour": 50,
-      "base_jeopardy_penalty": 1000
-    },
-    {
-      "id": "SLA-NORMAL-1",
-      "earliest_start_date_time": "2026-11-02T08:00:00",
-      "latest_start_date_time": "2026-11-02T18:00:00"
-    }
-  ],
   "jobs": [
     {
       "id": "JOB-RDV-CLIENT",
       "job_type_id": "DEFAULT",
       "location_id": "LOC-1",
-      "appointment_sla_id": "SLA-RDV-1",
-      "appointment_priority": 1
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00"
+      },
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T10:00:00",
+        "latest_start_date_time": "2026-11-02T10:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
+      }
     },
     {
       "id": "JOB-NORMAL",
       "job_type_id": "DEFAULT",
       "location_id": "LOC-2",
-      "job_sla_id": "SLA-NORMAL-1"
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00"
+      }
     }
   ],
   "resource_types": [
@@ -45,7 +42,7 @@
       "id": "RES-1",
       "resource_type_id": "TECH",
       "shifts": [
-        { "id": "SHIFT-RES-1-1", "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T18:00:00" }
+        { "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T18:00:00" }
       ]
     }
   ]

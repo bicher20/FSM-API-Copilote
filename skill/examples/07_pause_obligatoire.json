@@ -1,5 +1,5 @@
 {
-  "_comment": "Démontre Break : une pause déjeuner obligatoire dans le shift de RES-1, entre 12h et 13h30, durée 45 min.",
+  "_comment": "Démontre Break : une pause déjeuner obligatoire dans le shift de RES-1, entre 12h et 13h30, durée 45 min. Confirmé par un appel réel HTTP 200 le 26/10/2026 (pause bien présente dans break_allocations[]). Pas d'id sur le shift ni sur le break : le schéma self-service réel ne les déclare pas (reference/entities.md) — la pause est définie uniquement par sa position dans shift.breaks[].",
   "locations": [
     { "id": "DEPOT", "latitude": 48.8566, "longitude": 2.3522 },
     { "id": "LOC-1", "latitude": 48.8738, "longitude": 2.2950 },
@@ -31,12 +31,10 @@
       "resource_type_id": "TECH",
       "shifts": [
         {
-          "id": "SHIFT-RES-1-1",
           "start_date_time": "2026-11-02T08:00:00",
           "end_date_time": "2026-11-02T18:00:00",
           "breaks": [
             {
-              "id": "BREAK-1",
               "earliest_start_date_time": "2026-11-02T12:00:00",
               "latest_start_date_time": "2026-11-02T13:30:00",
               "duration": "PT45M"

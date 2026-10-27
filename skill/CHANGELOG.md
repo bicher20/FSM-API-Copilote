@@ -1,5 +1,61 @@
 # Changelog du skill
 
+## 1.17 — 2026-10-27
+- **Correction majeure, honnête : le skill documentait la mauvaise API.** Nomadia a
+  deux offres : une offre complète (PDF interne "Scheduler Schema Documentation", 33
+  pages, nécessite une équipe projet Nomadia) et une offre self-service (documentée
+  sur https://scheduler-json-api.readme.io, ce que la clé API de test donne
+  réellement). Ce skill construisait ses exemples et sa référence de schéma à partir
+  du PDF de l'offre complète, en supposant qu'il décrivait le self-service — ce qui
+  n'était pas le cas. Déclenché par le comportement suspect documenté en 1.16
+  (job multi-ressources), confirmé définitivement en comparant le PDF au schéma
+  OpenAPI réel qui alimente les pages readme.io (récupéré directement via le réseau
+  de la page, pas la doc rendue — voir `vendor-docs/openapi-schedule.json` et
+  `vendor-docs/openapi-geocode.json`).
+- **`reference/entities.md` entièrement réécrit** sur le vrai schéma self-service :
+  5 entités racine (Job, JobType, Location, Resource, ResourceType), SLA/Shift/Break/
+  disponibilités imbriqués (jamais une entité top-level séparée), `requirements`
+  comme simple liste de chaînes, `fixed_resource_id` directement sur le job (pas de
+  `commit_date_time_stamp`), sortie `allocations[]` par job avec `visits[]` imbriqués.
+  Documente aussi la permissivité observée du désérialiseur (un champ inconnu est
+  silencieusement ignoré, pas rejeté, malgré `additionalProperties: false` déclaré).
+- **Nouveau fichier `reference/offre-complete-nomadia.md`** : pour chaque mécanisme
+  confirmé absent du self-service (job multi-ressources, stock/pièces, ordre entre
+  jobs, horizon de planification borné, disponibilité récurrente, priorité de
+  rendez-vous dédiée), un exemple tiré de la doc de l'offre complète + la consigne
+  explicite de ne jamais bloquer le client ni simuler le mécanisme en self-service,
+  mais de l'orienter vers un contact Nomadia.
+- **7 des 10 exemples corrigés** (`02`, `05`, `06`, `07`, `08`, `09` alignés sur le
+  vrai schéma self-service ; `03`, `04`, `10` réduits à des payloads minimaux
+  "offre complète uniquement", clairement avertis, non testables en self-service).
+  `examples/README.md` entièrement réécrit avec une colonne "Self-service ?" et
+  l'historique de cette correction.
+- **`scripts/validate_payload.py` réécrit** : `requirements` validé comme liste de
+  chaînes (plus d'entité séparée), `sla`/`appointment_sla` comme objets imbriqués sur
+  le job, indisponibilités validées comme imbriquées sous `resources[].unavailabilities[]`.
+  Ajout d'une détection explicite (en `[WARN]`, jamais `[ERROR]` puisque l'API
+  elle-même ne rejette pas ces clés) de tout champ de l'offre complète envoyé par
+  erreur (`job_resources`, `parts`, `pre_requisite_definitions`,
+  `schedule_definition(s)`, `*_pattern`…). `scripts/test_validate_payload.py` mis à
+  jour en conséquence (suppression des tests sur des mécanismes confirmés absents,
+  ajout de tests sur `requirements`/`fixed_resource_id`/indisponibilités imbriquées).
+- **`scripts/recommend_improvements.py` corrigé** : la vérification de compétences
+  regarde maintenant `requirements` sur jobs/resources directement (plus
+  `job_requirements`/`resource_requirements`, qui n'existent pas) ; la vérification
+  SLA ne regarde plus un `slas[]`/`job_sla_id` top-level inexistant mais les objets
+  `sla`/`appointment_sla` imbriqués ; **la vérification `schedule_definitions` (déjà
+  marquée "non confirmé" en 1.x) est supprimée** et remplacée par une détection
+  générique (HIGH) de tout champ de l'offre complète présent dans le payload.
+- **`SKILL.md` restructuré (§3-11 → §3-9)** : schéma self-service comme référence
+  primaire, avertissement en tête sur les deux offres, table §2bis des mécanismes
+  self-service uniquement, redirections explicites vers
+  `reference/offre-complete-nomadia.md` partout où un mécanisme de l'offre complète
+  était auparavant présenté comme disponible. `troubleshooting.md` §4bis mis à jour
+  avec la cause définitive (confirmée, plus "non résolu") ; §1-2-4-6 corrigés des
+  mécanismes de l'offre complète qui s'y étaient glissés (`job_sla_id`,
+  `PossibleResourcesInsufficientParts`, `travel_time_multiplier`…).
+- Version bumpée 1.16 → 1.17.
+
 ## 1.16 — 2026-10-26
 - **Comportement suspect documenté honnêtement, pas encore résolu** : deux appels
   réels identiques sur `10_job_multi_ressources.json` (job déclaré avec 2 entrées

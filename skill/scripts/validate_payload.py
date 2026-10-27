@@ -7,24 +7,75 @@ sans consommer de crédits. Claude doit exécuter ce script via Bash sur le payl
 qu'il vient d'écrire, lire sa sortie, et corriger le payload si des erreurs sont
 rapportées — avant de considérer le payload prêt.
 
+Ce validateur suit le schéma self-service réel (voir reference/entities.md, lui-même
+dérivé du schéma OpenAPI authentique de https://scheduler-json-api.readme.io) :
+- requirements sont des chaînes simples, directement sur job/job_type/resource/
+  resource_type (pas d'entité "Requirement" séparée).
+- fixed_resource_id et fixed_date_time sont des champs directs sur Job.
+- unavailabilities des ressources sont imbriquées sous resources[].unavailabilities[],
+  pas une entité top-level avec resource_id en clé étrangère.
+- sla et appointment_sla sont des objets imbriqués directement sur Job, jamais
+  référencés par un id externe (pas d'entité "SLA" top-level).
+- Il n'y a PAS de job_resources (multi-ressources), pre_requisite_definitions
+  (ordre entre jobs), parts/job_parts/resource_parts (stock), ni
+  schedule_definitions (horizon borné) en self-service — voir
+  reference/offre-complete-nomadia.md. Si l'un de ces champs apparaît dans un
+  payload, ce script l'alerte : il sera silencieusement ignoré par l'API, pas
+  rejeté (HTTP 200 trompeur, voir reference/entities.md).
+
 Usage:
     python3 scripts/validate_payload.py payload.json
     cat payload.json | python3 scripts/validate_payload.py -
 
 Sortie: exit code 0 si aucune erreur, 1 sinon. Imprime chaque problème sur sa propre
 ligne, préfixé par [ERROR] (bloquant, l'API refusera probablement) ou [WARN]
-(suspect, à vérifier manuellement).
+(suspect, à vérifier manuellement, ou silencieusement ignoré par l'API).
 """
 import sys
 import json
+import re
 from datetime import datetime
+
+# Champs confirmés absents de l'API self-service (voir reference/offre-complete-nomadia.md).
+# S'ils apparaissent au niveau racine du payload, l'API les ignore silencieusement
+# (HTTP 200) plutôt que de les rejeter — donc ce n'est jamais une [ERROR] ici, mais
+# un [WARN] fort pour éviter un faux sentiment que la contrainte a été prise en compte.
+OFFRE_COMPLETE_ONLY_KEYS = {
+    "job_resources": "job multi-ressources (reference/offre-complete-nomadia.md §1)",
+    "parts": "pièces/stock (reference/offre-complete-nomadia.md §2)",
+    "job_parts": "pièces/stock (reference/offre-complete-nomadia.md §2)",
+    "resource_parts": "pièces/stock (reference/offre-complete-nomadia.md §2)",
+    "pre_requisite_definitions": "ordre entre jobs (reference/offre-complete-nomadia.md §3)",
+    "schedule_definitions": "horizon de planification borné (reference/offre-complete-nomadia.md §4)",
+    "schedule_definition": "horizon de planification borné (reference/offre-complete-nomadia.md §4)",
+    "job_availability_patterns": "disponibilité récurrente (reference/offre-complete-nomadia.md §5)",
+    "resource_availability_patterns": "disponibilité récurrente (reference/offre-complete-nomadia.md §5)",
+    "day_patterns": "disponibilité récurrente (reference/offre-complete-nomadia.md §5)",
+    "requirements": "⚠️ ambigu : si c'est une liste de chaînes sur un job/resource, c'est normal "
+                     "et self-service ; si c'est une liste d'objets {id: ...} au niveau racine, "
+                     "c'est le mécanisme Requirement de l'offre complète, absent du self-service",
+}
+
+# Clés d'entité top-level confirmées absentes du self-service (pas de FK séparée) —
+# toujours un [WARN] fort, jamais [ERROR], car l'API ne les rejette pas non plus.
+OFFRE_COMPLETE_TOP_LEVEL_ENTITY_KEYS = {
+    "job_requirements": "offre complète uniquement — self-service: requirements est une liste de "
+                         "chaînes directement sur jobs[]/job_types[] (reference/entities.md)",
+    "resource_requirements": "offre complète uniquement — self-service: requirements est une liste "
+                              "de chaînes directement sur resources[]/resource_types[] (reference/entities.md)",
+    "resource_unavailabilities": "offre complète uniquement — self-service: les indisponibilités sont "
+                                  "imbriquées sous resources[].unavailabilities[] (reference/entities.md)",
+    "slas": "offre complète uniquement — self-service: sla/appointment_sla sont des objets imbriqués "
+            "directement sur jobs[], jamais référencés par un id (reference/entities.md)",
+    "breaks": "offre complète uniquement — self-service: les pauses sont imbriquées sous "
+              "resources[].shifts[].breaks[] (reference/entities.md)",
+}
 
 
 def iso_duration_to_seconds(s):
     """Parse grossier d'une durée ISO 8601 (PT1H30M...) pour détecter un format invalide."""
-    if not isinstance(s, str) or not s.startswith("PT") and not s.startswith("P"):
+    if not isinstance(s, str) or (not s.startswith("PT") and not s.startswith("P")):
         return None
-    import re
     m = re.fullmatch(r"P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?", s)
     if not m:
         return None
@@ -38,39 +89,99 @@ def validate(payload: dict) -> tuple[list[str], list[str]]:
     loc_ids = {l.get("id") for l in payload.get("locations", [])}
     job_type_ids = {t.get("id") for t in payload.get("job_types", [])} | {"DEFAULT"}
     res_type_ids = {t.get("id") for t in payload.get("resource_types", [])} | {"DEFAULT"}
-    sla_ids = {s.get("id") for s in payload.get("slas", [])}
-    requirement_ids = {r.get("id") for r in payload.get("requirements", [])}
-    part_ids = {p.get("id") for p in payload.get("parts", [])}
     resource_ids = {r.get("id") for r in payload.get("resources", [])}
     job_ids = {j.get("id") for j in payload.get("jobs", [])}
-    # Les shifts sont nested sous resources[].shifts[] dans la convention de ce skill
-    # (voir examples/) ; on collecte leurs id pour les FK de Break.
-    shift_ids = {
-        s.get("id")
-        for r in payload.get("resources", [])
-        for s in r.get("shifts", [])
-    }
+
+    # Mécanismes de l'offre complète envoyés par erreur à l'API self-service :
+    # jamais bloquant pour l'API (elle les ignore), mais un [WARN] fort ici pour
+    # éviter de croire qu'une contrainte a été prise en compte alors qu'elle a été
+    # silencieusement ignorée.
+    for key, note in OFFRE_COMPLETE_ONLY_KEYS.items():
+        if key == "requirements" and key not in payload:
+            continue
+        if key in payload and payload.get(key):
+            if key == "requirements":
+                # Au niveau racine, "requirements" n'existe dans aucun schéma connu
+                # (self-service ou complet) — toujours suspect.
+                warnings.append(
+                    f"payload: clé racine \"requirements\" inattendue — {note}"
+                )
+            else:
+                warnings.append(
+                    f"payload: clé \"{key}\" détectée — ce mécanisme n'existe PAS dans l'API "
+                    f"self-service, elle sera silencieusement ignorée (HTTP 200 trompeur), "
+                    f"pas rejetée. {note}"
+                )
+    for key, note in OFFRE_COMPLETE_TOP_LEVEL_ENTITY_KEYS.items():
+        if key in payload and payload.get(key):
+            warnings.append(f"payload: clé \"{key}\" détectée — {note}")
+
+    def check_requirements_list(owner_label, obj):
+        reqs = obj.get("requirements")
+        if reqs is None:
+            return
+        if not isinstance(reqs, list) or any(not isinstance(r, str) for r in reqs):
+            errors.append(
+                f"{owner_label}: requirements doit être une liste de chaînes simples "
+                f"(ex. [\"HABILITATION_ELEC\"]), pas une liste d'objets — voir reference/entities.md"
+            )
+
+    # Job types
+    for jt in payload.get("job_types", []):
+        check_requirements_list(f"job_type {jt.get('id')}", jt)
+
+    # Resource types
+    for rt in payload.get("resource_types", []):
+        check_requirements_list(f"resource_type {rt.get('id')}", rt)
+        for key in ("start_location_id", "end_location_id"):
+            if rt.get(key) and rt.get(key) not in loc_ids:
+                errors.append(f"resource_type {rt.get('id')}: {key} \"{rt.get(key)}\" absent de locations[]")
 
     # Jobs
     for job in payload.get("jobs", []):
         jid = job.get("id", "<sans id>")
         if not job.get("id"):
-            errors.append(f"job: 'id' manquant")
+            errors.append("job: 'id' manquant")
         if job.get("location_id") not in loc_ids:
             errors.append(f"job {jid}: location_id \"{job.get('location_id')}\" absent de locations[]")
         jt = job.get("job_type_id", "DEFAULT")
         if jt not in job_type_ids:
             errors.append(f"job {jid}: job_type_id \"{jt}\" absent de job_types[]")
-        sla_ref = job.get("job_sla_id") or job.get("appointment_sla_id")
-        if sla_ids and sla_ref and sla_ref not in sla_ids:
-            errors.append(f"job {jid}: sla \"{sla_ref}\" absent de slas[]")
-        if not job.get("job_sla_id") and not job.get("appointment_sla_id") and "sla" not in job:
-            warnings.append(f"job {jid}: aucune fenêtre SLA définie (job_sla_id / appointment_sla_id / sla inline)")
+        check_requirements_list(f"job {jid}", job)
+
+        sla = job.get("sla")
+        if sla is None:
+            warnings.append(f"job {jid}: aucune fenêtre 'sla' définie (objet imbriqué, voir reference/entities.md)")
+        else:
+            for key in ("earliest_start_date_time", "latest_start_date_time"):
+                if key not in sla:
+                    errors.append(f"job {jid}: sla.{key} manquant (obligatoire)")
+        for sla_key in ("sla", "appointment_sla"):
+            s = job.get(sla_key)
+            if isinstance(s, dict):
+                es, ls = s.get("earliest_start_date_time"), s.get("latest_start_date_time")
+                try:
+                    if es and ls and datetime.fromisoformat(es) > datetime.fromisoformat(ls):
+                        errors.append(f"job {jid}: {sla_key}.earliest_start_date_time > latest_start_date_time")
+                except ValueError:
+                    errors.append(f"job {jid}: dates de {sla_key} invalides : {es!r} / {ls!r}")
+
         if job.get("value_per_hour") == 0:
-            warnings.append(f"job {jid}: value_per_hour = 0 -> ce job ne sera jamais planifié (raison ZeroValue)")
+            warnings.append(f"job {jid}: value_per_hour = 0 -> ce job risque de ne jamais être planifié")
         cd = job.get("custom_duration")
         if cd is not None and iso_duration_to_seconds(cd) is None:
             errors.append(f"job {jid}: custom_duration \"{cd}\" n'est pas une durée ISO 8601 valide (ex. PT30M)")
+
+        if job.get("fixed_resource_id") and job.get("fixed_resource_id") not in resource_ids:
+            errors.append(f"job {jid}: fixed_resource_id \"{job.get('fixed_resource_id')}\" absent de resources[]")
+
+        for av in job.get("availabilities", []) + job.get("unavailabilities", []):
+            s, e = av.get("start_date_time"), av.get("end_date_time")
+            try:
+                if s and e and datetime.fromisoformat(s) >= datetime.fromisoformat(e):
+                    errors.append(f"job {jid}: fenêtre de (in)disponibilité start >= end ({s} >= {e})")
+            except ValueError:
+                errors.append(f"job {jid}: date de (in)disponibilité invalide : {s!r} / {e!r}")
 
     # Resources & shifts
     for resource in payload.get("resources", []):
@@ -78,20 +189,12 @@ def validate(payload: dict) -> tuple[list[str], list[str]]:
         rt = resource.get("resource_type_id", "DEFAULT")
         if rt not in res_type_ids:
             errors.append(f"resource {rid}: resource_type_id \"{rt}\" absent de resource_types[]")
+        check_requirements_list(f"resource {rid}", resource)
+
         shifts = resource.get("shifts", [])
         if not shifts:
             warnings.append(f"resource {rid}: aucun shift défini -> ne pourra jamais être affectée")
         for shift in shifts:
-            if not shift.get("id"):
-                # AVERTISSEMENT seulement, pas une erreur bloquante : reference/entities.md
-                # marque Shift.id comme obligatoire, mais l'exemple quick start officiel
-                # de Nomadia (reproduit dans SKILL.md §2) omet ce champ et fonctionne —
-                # soit l'API l'accepte en pratique, soit la doc source simplifie. Tant
-                # que ce n'est pas confirmé par un vrai test (FEEDBACK.md), ne pas bloquer
-                # sur ce point précis.
-                warnings.append(f"resource {rid}: un shift n'a pas de champ 'id' — "
-                                 f"reference/entities.md le marque obligatoire, mais le quick start "
-                                 f"officiel de Nomadia l'omet aussi ; à vérifier lors d'un vrai appel")
             s, e = shift.get("start_date_time"), shift.get("end_date_time")
             try:
                 if s and e and datetime.fromisoformat(s) >= datetime.fromisoformat(e):
@@ -105,53 +208,24 @@ def validate(payload: dict) -> tuple[list[str], list[str]]:
                         errors.append(f"resource {rid}: break avec earliest_start_date_time > latest_start_date_time")
                 except ValueError:
                     errors.append(f"resource {rid}: dates de break invalides : {bs!r} / {be!r}")
+                bd = brk.get("duration")
+                if bd is not None and iso_duration_to_seconds(bd) is None:
+                    errors.append(f"resource {rid}: break duration \"{bd}\" n'est pas une durée ISO 8601 valide")
 
-    # Breaks au format top-level (shift_id FK) plutôt que nested sous shift
-    for brk in payload.get("breaks", []):
-        if brk.get("shift_id") and shift_ids and brk.get("shift_id") not in shift_ids:
-            errors.append(f"break {brk.get('id')}: shift_id \"{brk.get('shift_id')}\" absent des shifts[] déclarés")
+        # Indisponibilités imbriquées (schéma self-service réel)
+        for ru in resource.get("unavailabilities", []):
+            s, e = ru.get("start_date_time"), ru.get("end_date_time")
+            try:
+                if s and e and datetime.fromisoformat(s) >= datetime.fromisoformat(e):
+                    errors.append(f"resource {rid}: unavailability start_date_time >= end_date_time ({s} >= {e})")
+            except ValueError:
+                errors.append(f"resource {rid}: date d'indisponibilité invalide : {s!r} / {e!r}")
+            if ru.get("location_id") and ru.get("location_id") not in loc_ids:
+                errors.append(f"resource {rid}: unavailability location_id \"{ru.get('location_id')}\" absent de locations[]")
 
-    # Indisponibilités de ressource
-    for ru in payload.get("resource_unavailabilities", []):
-        if ru.get("resource_id") not in resource_ids:
-            errors.append(f"resource_unavailability {ru.get('id')}: resource_id \"{ru.get('resource_id')}\" absent de resources[]")
-        if ru.get("location_id") and ru.get("location_id") not in loc_ids:
-            errors.append(f"resource_unavailability {ru.get('id')}: location_id \"{ru.get('location_id')}\" absent de locations[]")
-
-    # JobResource (multi-ressources, ressource fixée)
-    for jrsc in payload.get("job_resources", []):
-        if jrsc.get("job_id") not in job_ids:
-            errors.append(f"job_resource: job_id \"{jrsc.get('job_id')}\" absent de jobs[]")
-        if jrsc.get("fixed_resource_id") and jrsc.get("fixed_resource_id") not in resource_ids:
-            errors.append(f"job_resource (job {jrsc.get('job_id')}): fixed_resource_id \"{jrsc.get('fixed_resource_id')}\" absent de resources[]")
-        if jrsc.get("commit_date_time_stamp") and not jrsc.get("fixed_resource_id"):
-            errors.append(f"job_resource (job {jrsc.get('job_id')}): commit_date_time_stamp nécessite fixed_resource_id (voir reference/entities.md)")
-
-    # Pré-requis entre jobs
-    for prereq in payload.get("pre_requisite_definitions", []):
-        for key in ("earlier_job_id", "later_job_id"):
-            if prereq.get(key) not in job_ids:
-                errors.append(f"pre_requisite_definition: {key} \"{prereq.get(key)}\" absent de jobs[]")
-
-    # Resource types / job types location refs
-    for rt in payload.get("resource_types", []):
         for key in ("start_location_id", "end_location_id"):
-            if rt.get(key) and rt.get(key) not in loc_ids:
-                errors.append(f"resource_type {rt.get('id')}: {key} \"{rt.get(key)}\" absent de locations[]")
-
-    # Requirements / parts cross-refs (si présents dans le payload)
-    for jr in payload.get("job_requirements", []):
-        if jr.get("requirement_id") not in requirement_ids:
-            errors.append(f"job_requirement (job {jr.get('job_id')}): requirement_id \"{jr.get('requirement_id')}\" absent de requirements[]")
-    for jp in payload.get("job_parts", []):
-        if jp.get("part_id") not in part_ids:
-            errors.append(f"job_part (job {jp.get('job_id')}): part_id \"{jp.get('part_id')}\" absent de parts[]")
-    for rr in payload.get("resource_requirements", []):
-        if rr.get("requirement_id") not in requirement_ids:
-            errors.append(f"resource_requirement (resource {rr.get('resource_id')}): requirement_id \"{rr.get('requirement_id')}\" absent de requirements[]")
-    for rp in payload.get("resource_parts", []):
-        if rp.get("part_id") not in part_ids:
-            errors.append(f"resource_part (resource {rp.get('resource_id')}): part_id \"{rp.get('part_id')}\" absent de parts[]")
+            if resource.get(key) and resource.get(key) not in loc_ids:
+                errors.append(f"resource {rid}: {key} \"{resource.get(key)}\" absent de locations[]")
 
     # Coordonnées plausibles (détecte lat/lng inversées — erreur classique)
     for loc in payload.get("locations", []):

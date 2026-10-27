@@ -1,43 +1,48 @@
 # Exemples vérifiés
 
-Chaque fichier est un payload complet et valide (passe `scripts/validate_payload.py`
-sans erreur), un par pattern courant. Partir d'un de ces fichiers pour construire un
-payload réel plutôt que d'écrire à vide — moins de risque d'erreur de structure.
+Les exemples **01, 02, 05, 06, 07, 08, 09** sont des payloads self-service complets
+et valides (passent `scripts/validate_payload.py` sans erreur), un par pattern
+courant — partir d'un de ces fichiers pour construire un payload réel plutôt que
+d'écrire à vide.
 
-| Fichier | Démontre |
-|---|---|
-| `01_minimal.json` | le strict nécessaire (2 jobs, 1 ressource) — base de tout payload |
-| `02_competence_requise.json` | `Requirement` : un job qui exige une compétence précise |
-| `03_stock_pieces.json` | `Part` : un stock embarqué limité qui contraint l'affectation |
-| `04_ordre_entre_jobs.json` | `PreRequisiteDefinition` : ordre + même ressource obligatoire |
-| `05_disponibilite_recurrente.json` | `JobAvailabilityPattern` + `DayPattern` : dispo récurrente |
-| `06_ressource_engagee.json` | `JobResource.fixed_resource_id` + `commit_date_time_stamp` : technicien déjà en route (voir `reference/replanification-temps-reel.md` §1) |
-| `07_pause_obligatoire.json` | `Break` : pause déjeuner obligatoire dans un shift |
-| `08_indisponibilite_ressource.json` | `ResourceUnavailability` : ressource indisponible en milieu de shift |
-| `09_rendez_vous_client.json` | `appointment_sla_id` + `appointment_priority` : rendez-vous client prioritaire vs job normal |
-| `10_job_multi_ressources.json` | `JobResource.resource_index` : job nécessitant 2 ressources simultanément (binôme) — **⚠️ comportement non confirmé par l'API en test, voir `troubleshooting.md` §4bis** |
+Les exemples **03, 04, 10** sont marqués **"offre complète uniquement"** : le
+mécanisme qu'ils montrent n'a **aucun équivalent dans l'API self-service**
+(confirmé le 27/10/2026 par le schéma OpenAPI réel, voir `reference/entities.md`).
+Ils sont volontairement incomplets (pas de `locations`/`resources` etc.) puisqu'ils
+ne servent qu'à montrer la forme du payload côté offre complète — **ne jamais les
+envoyer à l'API self-service en espérant un vrai résultat**, le mécanisme serait
+silencieusement ignoré (HTTP 200 trompeur).
 
-Ces fichiers contiennent une clé `_comment` (ignorée par l'API, à retirer avant un vrai
-appel) qui explique le pattern démontré.
+| Fichier | Démontre | Self-service ? |
+|---|---|---|
+| `01_minimal.json` | le strict nécessaire (2 jobs, 1 ressource) — base de tout payload | ✅ oui |
+| `02_competence_requise.json` | `requirements` (liste de chaînes) : un job qui exige une compétence précise | ✅ oui |
+| `03_stock_pieces.json` | pièces/stock embarqué (`Part`/`ResourcePart`/`JobResourcePart`) | ❌ offre complète uniquement — voir `reference/offre-complete-nomadia.md` §2 |
+| `04_ordre_entre_jobs.json` | ordre entre jobs (`PreRequisiteDefinition`) | ❌ offre complète uniquement — voir `reference/offre-complete-nomadia.md` §3 |
+| `05_disponibilite_recurrente.json` | fenêtres de disponibilité **fixes et énumérées** (`job.availabilities[]`) — pas de récurrence possible en self-service | ✅ oui (sans récurrence) |
+| `06_ressource_engagee.json` | `fixed_resource_id` directement sur le job : technicien déjà engagé/en route (voir `reference/replanification-temps-reel.md` §1) | ✅ oui |
+| `07_pause_obligatoire.json` | `breaks` imbriqué sous `shifts[].breaks[]` : pause déjeuner obligatoire — confirmé par un vrai appel API (HTTP 200) | ✅ oui |
+| `08_indisponibilite_ressource.json` | `unavailabilities` imbriqué sous `resources[].unavailabilities[]` : ressource indisponible en milieu de shift | ✅ oui |
+| `09_rendez_vous_client.json` | `job.appointment_sla` : deuxième objet SLA imbriqué pour un rendez-vous avec sa propre tolérance | ✅ oui |
+| `10_job_multi_ressources.json` | job nécessitant 2 ressources simultanément (binôme) | ❌ offre complète uniquement, **confirmé par test réel** — voir `troubleshooting.md` §4bis et `reference/offre-complete-nomadia.md` §1 |
 
-## Note de fiabilité — conventions confirmées / restant à confirmer
+Les fichiers self-service contiennent une clé `_comment` (ignorée par l'API, à
+retirer avant un vrai appel) qui explique le pattern démontré. Les fichiers "offre
+complète uniquement" portent un avertissement explicite en `_comment` — toujours le
+lire avant de réutiliser ce payload.
 
-- Les `shifts` imbriqués sous `resources[].shifts[]` : **confirmé** (quick start
-  officiel + tests réels).
-- Les `breaks` imbriqués sous `shifts[].breaks[]` : **confirmé par un vrai appel API**
-  (23/10/2026, `07_pause_obligatoire.json` → HTTP 200, `break_allocations` rempli avec
-  la pause de 12:00-12:45 demandée). `validate_payload.py` continue d'accepter aussi un
-  `breaks[]` top-level avec `shift_id` par tolérance, mais la convention imbriquée est
-  désormais la référence.
-- Le nom de clé racine pour `JobResource` reste supposé `job_resources` (pluriel, par
-  analogie avec `job_requirements`/`job_parts`) — **non confirmé**.
-- **Testé en conditions réelles le 26/10/2026, résultat suspect** : deux appels
-  identiques sur `10_job_multi_ressources.json` n'ont chacun alloué qu'**une seule**
-  ressource au job (jamais les deux ensemble), sans erreur ni `unallocated_job_reasons`
-  — comme si `job_resources` était ignoré. Pas encore de réponse Nomadia pour trancher
-  entre "clé mal nommée", "limite de l'environnement de test", ou "champ manquant".
-  Détail complet dans `troubleshooting.md` §4bis.
+## Historique — comment cette distinction a été établie
 
-À corriger dans ce fichier et dans `validate_payload.py`/`recommend_improvements.py` dès
-qu'un vrai appel API confirme (ou infirme) ce dernier point, ou dès que Nomadia répond
-— voir `FEEDBACK.md`.
+Jusqu'au 26/10/2026, ces 10 exemples étaient tous construits à partir du PDF interne
+"Scheduler Schema Documentation" (33 pages), en supposant qu'il décrivait l'API
+self-service accessible avec la clé de test. Un test réel sur l'ancienne version de
+`10_job_multi_ressources.json` a donné un résultat suspect (voir
+`troubleshooting.md` §4bis) qui a déclenché une vérification croisée : comparaison du
+PDF avec le schéma OpenAPI réel qui alimente
+`https://scheduler-json-api.readme.io` (récupéré directement via le réseau de la
+page, pas la doc rendue — voir `vendor-docs/openapi-schedule.json` et
+`vendor-docs/openapi-geocode.json`). Résultat : le PDF décrit l'**offre complète**
+Nomadia (équipe projet requise), le schéma OpenAPI réel l'**offre self-service** — ce
+que la clé de test donne réellement. Les deux schémas divergent significativement
+sur 7 des 10 exemples (02, 03, 04, 05, 06, 08, 09), d'où leur réécriture le
+27/10/2026 — voir `CHANGELOG.md`.

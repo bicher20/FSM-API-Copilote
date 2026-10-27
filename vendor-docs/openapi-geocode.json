@@ -1,0 +1,78 @@
+{
+  "_source": "Récupéré le 2026-10-27 via le réseau interne de la page https://scheduler-json-api.readme.io/reference/post_geocode (endpoint https://scheduler-json-api.readme.io/scheduler-json-api/api-next/v2/branches/1.0/reference/post_geocode?reduce=true).",
+  "openapi": "3.0.4",
+  "info": { "title": "Scheduler API", "version": "1.0" },
+  "servers": [{ "url": "https://scheduler-api.nomadia-app.com/api" }],
+  "paths": {
+    "/geocode": {
+      "post": {
+        "summary": "Geocode",
+        "description": "Convert up to 100 addresses into geographic coordinates (latitude / longitude, WGS84) in a single call. Cost: 1 credit per batch of 10 addresses sent, complete or not (1 to 10 addresses = 1 credit, 100 addresses = 10 credits).",
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GeocodeRequest" } } } },
+        "responses": {
+          "200": { "description": "OK", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GeocodeResponse" } } } },
+          "400": { "description": "Bad Request" },
+          "401": { "description": "Unauthorized" },
+          "402": { "description": "Payment Required" },
+          "403": { "description": "Forbidden" },
+          "502": { "description": "Bad Gateway" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GeocodeRequest": {
+        "required": ["addresses"],
+        "type": "object",
+        "properties": {
+          "addresses": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/JSONGeocodeAddress" },
+            "description": "1 à 100 adresses. Chaque adresse a besoin d'au moins un parmi address_line, city ou post_code."
+          }
+        },
+        "additionalProperties": false
+      },
+      "JSONGeocodeAddress": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "nullable": true, "description": "Identifiant propre à l'appelant, renvoyé tel quel (optionnel)." },
+          "address_line": { "type": "string", "nullable": true, "description": "Numéro et nom de rue, ex: \"200 Quai Charles de Gaulle\"." },
+          "address_line_ext": { "type": "string", "nullable": true, "description": "Seconde ligne d'adresse, utilisée si la première donne un mauvais résultat." },
+          "city": { "type": "string", "nullable": true },
+          "district": { "type": "string", "nullable": true, "description": "Quartier (partie de la ville)." },
+          "post_code": { "type": "string", "nullable": true },
+          "region": { "type": "string", "nullable": true, "description": "Région/département." },
+          "country_code": { "type": "string", "nullable": true, "description": "ISO 3166-1 alpha-2 ou alpha-3, ex: \"FR\" ou \"FRA\"." }
+        },
+        "additionalProperties": false
+      },
+      "GeocodeResponse": {
+        "type": "object",
+        "properties": {
+          "results": { "type": "array", "items": { "$ref": "#/components/schemas/JSONGeocodeResult" }, "nullable": true, "description": "Un résultat par adresse envoyée, dans le même ordre." }
+        },
+        "additionalProperties": false
+      },
+      "JSONGeocodeResult": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "nullable": true },
+          "found": { "type": "boolean", "description": "True si l'adresse a été trouvée." },
+          "latitude": { "type": "number", "format": "double", "nullable": true },
+          "longitude": { "type": "number", "format": "double", "nullable": true },
+          "score": { "type": "number", "format": "double", "nullable": true, "description": "Score de 0 à 100 (100 = correspondance parfaite)." },
+          "quality": { "type": "string", "nullable": true, "description": "Précision du résultat : ADDRESS_POINT, STREET NUMBER INTERPOLATION, STREET, CITY+POSTCODE, CITY..." },
+          "address_line": { "type": "string", "nullable": true },
+          "post_code": { "type": "string", "nullable": true },
+          "city": { "type": "string", "nullable": true },
+          "region": { "type": "string", "nullable": true },
+          "country_code": { "type": "string", "nullable": true }
+        },
+        "additionalProperties": false,
+        "description": "Quand l'adresse n'est pas trouvée, found est false et les autres champs sont vides."
+      }
+    }
+  }
+}

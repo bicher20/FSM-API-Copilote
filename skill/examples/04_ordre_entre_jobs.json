@@ -1,42 +1,8 @@
 {
-  "_comment": "Dépendance d'ordre : JOB-INSTALL doit être fait avant JOB-CONTROLE, par le même technicien, avec au moins 2h d'écart.",
-  "locations": [
-    {
-      "id": "DEPOT",
-      "latitude": 48.8566,
-      "longitude": 2.3522
-    },
-    {
-      "id": "LOC-1",
-      "latitude": 48.8738,
-      "longitude": 2.295
-    }
-  ],
-  "job_types": [
-    {
-      "id": "DEFAULT",
-      "custom_duration": "PT1H"
-    }
-  ],
+  "_comment": "⚠️ OFFRE COMPLÈTE NOMADIA UNIQUEMENT — PAS D'ÉQUIVALENT EN SELF-SERVICE. L'ordre/dépendance entre jobs (PreRequisiteDefinition) n'existe pas dans l'API self-service accessible avec une simple clé de test — voir reference/entities.md et reference/offre-complete-nomadia.md §3. Ce payload est reproduit depuis la documentation interne de l'offre complète (33 pages), à titre d'exemple de ce que Nomadia sait faire avec une équipe projet — NE PAS l'envoyer à l'API self-service : la clé 'pre_requisite_definitions' serait silencieusement ignorée (HTTP 200 trompeur), pas rejetée. Si un client a ce besoin (ex. installation puis contrôle, par le même technicien, avec un écart minimum), montrer cet exemple puis l'orienter vers un contact Nomadia — ne jamais essayer de le simuler en self-service.",
   "jobs": [
-    {
-      "id": "JOB-INSTALL",
-      "job_type_id": "DEFAULT",
-      "location_id": "LOC-1",
-      "sla": {
-        "earliest_start_date_time": "2026-11-02T08:00:00",
-        "latest_start_date_time": "2026-11-02T18:00:00"
-      }
-    },
-    {
-      "id": "JOB-CONTROLE",
-      "job_type_id": "DEFAULT",
-      "location_id": "LOC-1",
-      "sla": {
-        "earliest_start_date_time": "2026-11-02T08:00:00",
-        "latest_start_date_time": "2026-11-02T18:00:00"
-      }
-    }
+    { "id": "JOB-INSTALL" },
+    { "id": "JOB-CONTROLE" }
   ],
   "pre_requisite_definitions": [
     {
@@ -45,26 +11,6 @@
       "minimum_time_difference": "PT2H",
       "same_resource": true,
       "all_or_nothing": true
-    }
-  ],
-  "resource_types": [
-    {
-      "id": "TECH",
-      "start_location_id": "DEPOT",
-      "end_location_id": "DEPOT"
-    }
-  ],
-  "resources": [
-    {
-      "id": "RES-1",
-      "resource_type_id": "TECH",
-      "shifts": [
-        {
-          "id": "SHIFT-RES-1-1",
-          "start_date_time": "2026-11-02T08:00:00",
-          "end_date_time": "2026-11-02T18:00:00"
-        }
-      ]
     }
   ]
 }

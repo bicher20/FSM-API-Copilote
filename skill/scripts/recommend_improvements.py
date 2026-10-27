@@ -42,19 +42,23 @@ def recommend_from_payload(payload: dict) -> list[dict]:
     resources = payload.get("resources", [])
     resource_types = payload.get("resource_types", [])
     locations = payload.get("locations", [])
-    slas = payload.get("slas", [])
-    requirements = payload.get("requirements", [])
-    job_requirements = payload.get("job_requirements", [])
+    # Schéma self-service réel (reference/entities.md) : requirements est une simple
+    # liste de chaînes directement sur jobs[]/job_types[]/resources[]/resource_types[],
+    # il n'existe pas d'entité "Requirement"/"JobRequirement"/"ResourceRequirement"
+    # séparée (ça, c'est l'offre complète — reference/offre-complete-nomadia.md).
+    job_types = payload.get("job_types", [])
+    has_job_requirements = any(j.get("requirements") for j in jobs) or any(jt.get("requirements") for jt in job_types)
+    has_resource_requirements = any(r.get("requirements") for r in resources) or any(rt.get("requirements") for rt in resource_types)
 
     # 1. Aucune contrainte de compétence définie du tout
-    if jobs and not requirements and not job_requirements:
+    if jobs and not has_job_requirements and not has_resource_requirements:
         recs.append({
             "priority": "MEDIUM",
-            "finding": "aucune compétence/habilitation (Requirement) n'est définie sur les jobs ou ressources",
+            "finding": "aucune compétence/habilitation (champ 'requirements') n'est définie sur les jobs ou ressources",
             "action": "si certains jobs exigent une qualification précise (habilitation électrique, "
-                      "certification...), ajouter Requirement + JobRequirement côté job et "
-                      "ResourceRequirement côté ressource — sinon l'API peut affecter n'importe quelle "
-                      "ressource à n'importe quel job",
+                      "certification...), ajouter une liste 'requirements' (chaînes simples) sur le job "
+                      "concerné et sur les ressources habilitées — sinon l'API peut affecter n'importe "
+                      "quelle ressource à n'importe quel job",
             "impact": "évite une non-conformité terrain (technicien envoyé sans la bonne habilitation) — "
                       "voir reference/kpis-metier.md §1",
         })
@@ -83,26 +87,30 @@ def recommend_from_payload(payload: dict) -> list[dict]:
         })
 
     # 4. SLA sans pénalité -> aucune incitation à planifier tôt dans la fenêtre
+    # Schéma self-service réel : sla et appointment_sla sont TOUJOURS des objets
+    # imbriqués directement sur le job — il n'y a pas d'entité "SLA" top-level ni de
+    # job_sla_id/appointment_sla_id référencés (ça, c'est l'offre complète).
     def sla_has_zero_penalty(sla):
         return sla.get("penalty_per_hour", 0) == 0 and sla.get("base_jeopardy_penalty", 0) == 0
 
     inline_slas = [j.get("sla") for j in jobs if isinstance(j.get("sla"), dict)]
-    all_slas = slas + inline_slas
-    if all_slas and all(sla_has_zero_penalty(s) for s in all_slas):
+    inline_slas += [j.get("appointment_sla") for j in jobs if isinstance(j.get("appointment_sla"), dict)]
+    if inline_slas and all(sla_has_zero_penalty(s) for s in inline_slas):
         recs.append({
             "priority": "LOW",
-            "finding": "toutes les SLA ont penalty_per_hour=0 et base_jeopardy_penalty=0 (valeurs par défaut)",
+            "finding": "toutes les fenêtres sla/appointment_sla ont penalty_per_hour=0 et "
+                       "base_jeopardy_penalty=0 (valeurs par défaut)",
             "action": "fixer penalty_per_hour > 0 pour pousser l'API à planifier au plus tôt dans la "
                       "fenêtre, et/ou base_jeopardy_penalty > 0 si rater le SLA doit vraiment coûter cher "
                       "à l'optimisation",
             "impact": "réduit le risque de planifier systématiquement en fin de fenêtre client — voir "
                       "reference/kpis-metier.md §3",
         })
-    elif not all_slas and jobs:
+    elif not inline_slas and jobs:
         recs.append({
             "priority": "HIGH",
-            "finding": "aucun job n'a de fenêtre SLA (ni job_sla_id, ni appointment_sla_id, ni sla inline)",
-            "action": "définir au moins une SLA par job avec une fenêtre réaliste "
+            "finding": "aucun job n'a de fenêtre 'sla' définie (objet imbriqué obligatoire côté self-service)",
+            "action": "définir au moins l'objet 'sla' par job avec une fenêtre réaliste "
                       "(earliest_start_date_time / latest_start_date_time)",
             "impact": "sans SLA, l'API n'a aucune contrainte de respect de rendez-vous client — risque "
                       "direct de planning inexploitable commercialement, voir reference/kpis-metier.md §3",
@@ -121,27 +129,28 @@ def recommend_from_payload(payload: dict) -> list[dict]:
                       "reference/kpis-metier.md §4",
         })
 
-    # 6. Aucune fenêtre de planification (ScheduleDefinition) détectée
-    # NOTE DE FIABILITÉ : reference/entities.md documente les champs de l'entité
-    # ScheduleDefinition mais ne confirme pas le nom de la clé JSON racine qui la
-    # contient dans le payload (par analogie avec locations/jobs/resources, on
-    # suppose "schedule_definitions" au pluriel, mais ce n'est PAS vérifié contre un
-    # exemple réel ni contre un appel API). Priorité volontairement basse et message
-    # explicite tant que ce n'est pas confirmé par un vrai test (voir FEEDBACK.md) —
-    # ne jamais remonter ça en HIGH/MEDIUM sans l'avoir vérifié.
-    has_schedule_definition_key = any(
-        k in payload for k in ("schedule_definitions", "schedule_definition")
-    )
-    if not has_schedule_definition_key:
+    # 6. Mécanismes de l'offre complète envoyés par erreur (silencieusement ignorés)
+    # Confirmé par le schéma OpenAPI réel (reference/entities.md) : ScheduleDefinition,
+    # PreRequisiteDefinition, Part/JobResourcePart/ResourcePart et JobResource
+    # n'existent PAS en self-service. Si l'un de ces champs apparaît dans le payload,
+    # ce n'est jamais un oubli à corriger — c'est un signal qu'on a essayé d'utiliser
+    # un mécanisme de l'offre complète qui sera silencieusement ignoré par l'API.
+    offre_complete_keys_present = [
+        k for k in ("schedule_definitions", "schedule_definition", "pre_requisite_definitions",
+                    "job_resources", "parts", "job_parts", "resource_parts")
+        if payload.get(k)
+    ]
+    if offre_complete_keys_present:
         recs.append({
-            "priority": "LOW",
-            "finding": "aucune clé \"schedule_definitions\" détectée dans le payload "
-                       "(vérification non confirmée — voir note dans le code de ce script)",
-            "action": "si l'horizon de planification doit être borné (ex: ne pas planifier au-delà de "
-                      "cette semaine), ajouter un ScheduleDefinition — sinon l'API prend tous les "
-                      "shifts/SLA fournis sans limite. Vérifier le nom exact de la clé lors du premier "
-                      "vrai appel API plutôt que de faire confiance à cette suggestion les yeux fermés",
-            "impact": "évite un plan qui s'étale au-delà de l'horizon réellement pertinent pour le client",
+            "priority": "HIGH",
+            "finding": f"le payload contient {', '.join(offre_complete_keys_present)} — "
+                       f"mécanisme(s) de l'offre complète Nomadia, absent(s) de l'API self-service",
+            "action": "ces clés seront silencieusement ignorées par l'API self-service (HTTP 200 "
+                      "trompeur, pas une erreur). Si le besoin métier est réel, voir "
+                      "reference/offre-complete-nomadia.md pour l'exemple correspondant et orienter le "
+                      "client vers un contact Nomadia plutôt que de garder ce payload tel quel",
+            "impact": "évite de croire qu'une contrainte a été prise en compte par le solveur alors "
+                      "qu'elle a été purement et simplement ignorée",
         })
 
     return recs

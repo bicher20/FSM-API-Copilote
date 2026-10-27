@@ -1,109 +1,34 @@
 {
-  "_comment": "Stock embarqué limité : chaque job consomme 1 'filtre', la ressource part avec 2 filtres -> un 3e job de ce type ne pourra pas lui être affecté sur ce shift (PossibleResourcesInsufficientParts).",
-  "locations": [
-    {
-      "id": "DEPOT",
-      "latitude": 48.8566,
-      "longitude": 2.3522
-    },
-    {
-      "id": "LOC-1",
-      "latitude": 48.8738,
-      "longitude": 2.295
-    },
-    {
-      "id": "LOC-2",
-      "latitude": 48.8462,
-      "longitude": 2.3372
-    },
-    {
-      "id": "LOC-3",
-      "latitude": 48.89,
-      "longitude": 2.24
-    }
-  ],
-  "job_types": [
-    {
-      "id": "CHANGEMENT_FILTRE",
-      "custom_duration": "PT45M"
-    }
-  ],
+  "_comment": "⚠️ OFFRE COMPLÈTE NOMADIA UNIQUEMENT — PAS D'ÉQUIVALENT EN SELF-SERVICE. La gestion de pièces/stock embarqué (Part/ResourcePart/JobResourcePart) n'existe pas dans l'API self-service accessible avec une simple clé de test — voir reference/entities.md et reference/offre-complete-nomadia.md §2. Ce payload est reproduit depuis la documentation interne de l'offre complète (33 pages), à titre d'exemple de ce que Nomadia sait faire avec une équipe projet — NE PAS l'envoyer à l'API self-service : les clés 'parts', 'job_resource_parts' et 'resource_parts' seraient silencieusement ignorées (HTTP 200 trompeur), pas rejetées. Si un client a ce besoin, montrer cet exemple puis l'orienter vers un contact Nomadia — ne jamais essayer de le simuler en self-service.",
   "parts": [
+    { "id": "PART-FILTRE-A", "name": "Filtre A" }
+  ],
+  "resources": [
     {
-      "id": "FILTRE"
+      "id": "RES-1",
+      "resource_parts": [
+        { "part_id": "PART-FILTRE-A", "quantity": 2 }
+      ]
     }
   ],
   "jobs": [
     {
       "id": "JOB-1",
-      "job_type_id": "CHANGEMENT_FILTRE",
-      "location_id": "LOC-1",
-      "sla": {
-        "earliest_start_date_time": "2026-11-02T08:00:00",
-        "latest_start_date_time": "2026-11-02T18:00:00"
-      }
+      "job_resource_parts": [
+        { "part_id": "PART-FILTRE-A", "quantity": 1 }
+      ]
     },
     {
       "id": "JOB-2",
-      "job_type_id": "CHANGEMENT_FILTRE",
-      "location_id": "LOC-2",
-      "sla": {
-        "earliest_start_date_time": "2026-11-02T08:00:00",
-        "latest_start_date_time": "2026-11-02T18:00:00"
-      }
+      "job_resource_parts": [
+        { "part_id": "PART-FILTRE-A", "quantity": 1 }
+      ]
     },
     {
       "id": "JOB-3",
-      "job_type_id": "CHANGEMENT_FILTRE",
-      "location_id": "LOC-3",
-      "sla": {
-        "earliest_start_date_time": "2026-11-02T08:00:00",
-        "latest_start_date_time": "2026-11-02T18:00:00"
-      }
-    }
-  ],
-  "job_parts": [
-    {
-      "job_id": "JOB-1",
-      "part_id": "FILTRE",
-      "consumption": 1
-    },
-    {
-      "job_id": "JOB-2",
-      "part_id": "FILTRE",
-      "consumption": 1
-    },
-    {
-      "job_id": "JOB-3",
-      "part_id": "FILTRE",
-      "consumption": 1
-    }
-  ],
-  "resource_types": [
-    {
-      "id": "TECH",
-      "start_location_id": "DEPOT",
-      "end_location_id": "DEPOT"
-    }
-  ],
-  "resources": [
-    {
-      "id": "RES-1",
-      "resource_type_id": "TECH",
-      "shifts": [
-        {
-          "id": "SHIFT-RES-1-1",
-          "start_date_time": "2026-11-02T08:00:00",
-          "end_date_time": "2026-11-02T18:00:00"
-        }
+      "job_resource_parts": [
+        { "part_id": "PART-FILTRE-A", "quantity": 1 }
       ]
-    }
-  ],
-  "resource_parts": [
-    {
-      "resource_id": "RES-1",
-      "part_id": "FILTRE",
-      "available_quantity": 2
     }
   ]
 }

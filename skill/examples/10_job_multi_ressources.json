@@ -1,41 +1,10 @@
 {
-  "_comment": "Démontre JobResource.resource_index : JOB-BINOME nécessite 2 ressources simultanément (ex. levage à deux) via deux lignes JobResource (resource_index 1 et 2) sur le même job_id.",
-  "locations": [
-    { "id": "DEPOT", "latitude": 48.8566, "longitude": 2.3522 },
-    { "id": "LOC-1", "latitude": 48.8738, "longitude": 2.2950 }
-  ],
-  "job_types": [
-    { "id": "DEFAULT", "custom_duration": "PT1H" }
-  ],
+  "_comment": "⚠️ OFFRE COMPLÈTE NOMADIA UNIQUEMENT — PAS D'ÉQUIVALENT EN SELF-SERVICE, CONFIRMÉ PAR TEST RÉEL. Un job qui nécessite plusieurs ressources simultanément (binôme) n'existe pas dans l'API self-service : aucun champ n'exprime 'N ressources requises en même temps' (split_allowed ne découpe que dans le temps, jamais entre ressources). Deux appels réels identiques sur ce payload (envoyé avec la clé 'job_resources' ci-dessous) ont chacun alloué UNE SEULE ressource (RES-1 puis RES-2, sans erreur ni unallocated_job_reasons) — voir troubleshooting.md §4bis et reference/entities.md pour la confirmation définitive via le schéma OpenAPI réel. Ce payload est reproduit depuis la documentation interne de l'offre complète (33 pages) à titre d'exemple de ce que Nomadia sait faire avec une équipe projet — NE PAS l'envoyer tel quel à l'API self-service en espérant un vrai binôme : la clé 'job_resources' est silencieusement ignorée (HTTP 200 trompeur), pas rejetée. Si un client a ce besoin, montrer cet exemple puis l'orienter vers un contact Nomadia.",
   "jobs": [
-    {
-      "id": "JOB-BINOME",
-      "job_type_id": "DEFAULT",
-      "location_id": "LOC-1",
-      "sla": { "earliest_start_date_time": "2026-11-02T08:00:00", "latest_start_date_time": "2026-11-02T18:00:00" }
-    }
+    { "id": "JOB-BINOME" }
   ],
   "job_resources": [
-    { "job_id": "JOB-BINOME", "resource_index": 1 },
-    { "job_id": "JOB-BINOME", "resource_index": 2 }
-  ],
-  "resource_types": [
-    { "id": "TECH", "start_location_id": "DEPOT", "end_location_id": "DEPOT" }
-  ],
-  "resources": [
-    {
-      "id": "RES-1",
-      "resource_type_id": "TECH",
-      "shifts": [
-        { "id": "SHIFT-RES-1-1", "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T18:00:00" }
-      ]
-    },
-    {
-      "id": "RES-2",
-      "resource_type_id": "TECH",
-      "shifts": [
-        { "id": "SHIFT-RES-2-1", "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T18:00:00" }
-      ]
-    }
+    { "resource_index": 1, "fixed_resource_id": "RES-1" },
+    { "resource_index": 2, "fixed_resource_id": "RES-2" }
   ]
 }

@@ -1,22 +1,11 @@
 {
-  "_comment": "Job qui ne peut être fait que du lundi au vendredi, entre 9h et 12h, sur une période de 2 mois — via JobAvailabilityPattern + DayPattern prédéfini.",
+  "_comment": "Disponibilité limitée à des créneaux précis. ⚠️ L'API self-service n'a AUCUN mécanisme de récurrence (pas de 'tous les lundis') — voir reference/entities.md et reference/offre-complete-nomadia.md §5 pour l'équivalent offre complète (JobAvailabilityPattern + DayPattern). En self-service, chaque fenêtre doit être énumérée explicitement dans job.availabilities[] : ici, le job ne peut démarrer QUE le 2 ou le 4 novembre entre 9h et 12h — pour couvrir plus d'occurrences (ex. tous les jours ouvrés sur 2 mois), il faut soit lister chaque fenêtre une par une (beaucoup de lignes), soit orienter le client vers l'offre complète s'il a vraiment besoin d'une récurrence générique.",
   "locations": [
-    {
-      "id": "DEPOT",
-      "latitude": 48.8566,
-      "longitude": 2.3522
-    },
-    {
-      "id": "LOC-1",
-      "latitude": 48.8738,
-      "longitude": 2.295
-    }
+    { "id": "DEPOT", "latitude": 48.8566, "longitude": 2.3522 },
+    { "id": "LOC-1", "latitude": 48.8738, "longitude": 2.295 }
   ],
   "job_types": [
-    {
-      "id": "DEFAULT",
-      "custom_duration": "PT1H"
-    }
+    { "id": "DEFAULT", "custom_duration": "PT1H" }
   ],
   "jobs": [
     {
@@ -25,39 +14,24 @@
       "location_id": "LOC-1",
       "sla": {
         "earliest_start_date_time": "2026-11-02T00:00:00",
-        "latest_start_date_time": "2026-12-31T23:59:59"
-      }
-    }
-  ],
-  "job_availability_patterns": [
-    {
-      "id": "PATTERN-JOB-1",
-      "job_id": "JOB-1",
-      "start_time": "09:00:00",
-      "end_time": "12:00:00",
-      "day_pattern_id": "MONDAY_TO_FRIDAY",
-      "pattern_start_date": "2026-11-02",
-      "pattern_end_date": "2026-12-31",
-      "time_zone_id": "Europe/Paris"
+        "latest_start_date_time": "2026-11-05T23:59:59"
+      },
+      "availabilities": [
+        { "start_date_time": "2026-11-02T09:00:00", "end_date_time": "2026-11-02T12:00:00" },
+        { "start_date_time": "2026-11-04T09:00:00", "end_date_time": "2026-11-04T12:00:00" }
+      ]
     }
   ],
   "resource_types": [
-    {
-      "id": "TECH",
-      "start_location_id": "DEPOT",
-      "end_location_id": "DEPOT"
-    }
+    { "id": "TECH", "start_location_id": "DEPOT", "end_location_id": "DEPOT" }
   ],
   "resources": [
     {
       "id": "RES-1",
       "resource_type_id": "TECH",
       "shifts": [
-        {
-          "id": "SHIFT-RES-1-1",
-          "start_date_time": "2026-11-02T08:00:00",
-          "end_date_time": "2026-11-02T18:00:00"
-        }
+        { "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T18:00:00" },
+        { "start_date_time": "2026-11-04T08:00:00", "end_date_time": "2026-11-04T18:00:00" }
       ]
     }
   ]

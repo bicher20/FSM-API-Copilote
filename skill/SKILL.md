@@ -1,7 +1,7 @@
 ---
 name: nomadia-scheduler-api
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.16
+version: 1.17
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -16,6 +16,18 @@ homepage: https://scheduler-json-api.readme.io
 > d'exécution de commandes", comprends : utilise le mécanisme d'exécution shell dont tu
 > disposes, quel qu'il soit — jamais besoin de demander à l'utilisateur de le lancer à ta
 > place.
+
+> **Deux offres Nomadia, à ne jamais confondre.** Ce skill cible l'**offre
+> self-service** — celle que la clé API de test/essai permet réellement d'appeler,
+> documentée sur https://scheduler-json-api.readme.io (reference/entities.md en est
+> la transcription complète et fiable). Nomadia a aussi une **offre complète**
+> (documentation interne 33 pages), avec des mécanismes avancés
+> (multi-ressources/binôme, stock de pièces, ordre entre jobs, horizon borné,
+> disponibilité récurrente) **absents du self-service** — un payload qui les utilise
+> reçoit un HTTP 200 mais le mécanisme est silencieusement ignoré, pas rejeté. Pour
+> ces besoins, voir `reference/offre-complete-nomadia.md` : montrer l'exemple, puis
+> orienter le client vers un contact Nomadia — jamais essayer de les simuler en
+> self-service.
 
 ## -1. Premier contact — si l'utilisateur ne sait pas par où commencer
 
@@ -101,15 +113,22 @@ Si l'objectif est déjà clair depuis le message de l'utilisateur ou le contexte
 l'objectif métier est connu, traduis-le immédiatement en mécanismes Nomadia concrets à
 activer — ne laisse jamais l'utilisateur deviner quelle case cocher :
 
-| Objectif client | Mécanismes à activer | Pourquoi (ROI) |
+| Objectif client | Mécanisme self-service à activer | Pourquoi (ROI) |
 |---|---|---|
-| Respecter des rendez-vous/fenêtres client stricts | `SLA` avec `penalty_per_hour`/`base_jeopardy_penalty` > 0 | évite le risque réputationnel d'un rdv raté — kpis-metier.md §3 |
-| Technicien avec habilitation/compétence obligatoire | `Requirement` + `JobRequirement`/`ResourceRequirement` | évite d'envoyer la mauvaise ressource — kpis-metier.md §1 |
-| Stock embarqué limité (pièces, matériel) | `Part` + `JobPart.consumption` + `ResourcePart.available_quantity` | évite une tournée bloquée par manque de stock |
+| Respecter des rendez-vous/fenêtres client stricts | `job.sla` avec `penalty_per_hour`/`base_jeopardy_penalty` > 0 | évite le risque réputationnel d'un rdv raté — kpis-metier.md §3 |
+| Rendez-vous client avec sa propre tolérance, en plus du SLA général | `job.appointment_sla` (2e objet SLA imbriqué) | couvre le besoin "rdv prioritaire" sans le champ `appointment_priority` dédié (offre complète) |
+| Technicien avec habilitation/compétence obligatoire | `requirements: ["..."]` (liste de chaînes) sur le `job` et sur la/les `resource(s)` habilitée(s) | évite d'envoyer la mauvaise ressource — kpis-metier.md §1 |
 | Réduire les km/le temps de trajet | `locality` sur les `Location` + revoir `start_location_id`/`end_location_id` | argument ROI le plus direct — kpis-metier.md §2 |
 | Limiter le nombre de véhicules/techniciens mobilisés | `shift_penalty` > 0 | baisse du coût fixe journalier — kpis-metier.md §4 |
-| Ordre obligatoire entre deux interventions | `PreRequisiteDefinition` | évite un plan métier incohérent (ex: poser avant de câbler) |
-| Disponibilité récurrente (horaires fixes chaque semaine) | `JobAvailabilityPattern` + `DayPattern` | évite de ressaisir la dispo à chaque appel |
+| Technicien déjà engagé/en route sur un job | `fixed_resource_id` directement sur le `job` | empêche l'API de réaffecter un job déjà pris en charge |
+
+Si l'objectif correspond plutôt à un mécanisme de l'**offre complète** (job
+multi-ressources/binôme, stock de pièces embarqué, ordre obligatoire entre deux
+jobs, horizon de planification borné, disponibilité vraiment récurrente) : ouvrir
+`reference/offre-complete-nomadia.md`, montrer l'exemple qui y figure, et dire
+explicitement au client qu'il doit contacter l'équipe Nomadia pour l'activer — ne
+jamais essayer de l'encoder dans un payload self-service (il serait silencieusement
+ignoré, voir l'avertissement en tête de ce fichier).
 
 Une fois la configuration posée, lance **`scripts/recommend_improvements.py`** (voir
 étape 3.4bis) pour vérifier qu'aucun levier ROI évident n'a été oublié avant de
@@ -118,11 +137,14 @@ présenter le résultat.
 **Étape 3 — Attaquer le chantier, avec auto-correction.** Une fois le besoin cadré, ne
 t'arrête pas au premier jet — boucle jusqu'à un résultat vérifié :
 
-1. Si un pattern proche existe dans `examples/` (compétence requise, stock de pièces,
-   ordre entre jobs, disponibilité récurrente, ressource déjà engagée, pause
-   obligatoire, indisponibilité ressource, rendez-vous client prioritaire, job
-   multi-ressources…), pars de ce fichier plutôt que d'une page blanche — ce sont des
-   payloads déjà vérifiés (voir `examples/README.md` pour la liste complète).
+1. Si un pattern proche existe dans `examples/` (compétence requise, disponibilité
+   limitée à des créneaux, ressource déjà engagée, pause obligatoire, indisponibilité
+   ressource, rendez-vous client), pars de ce fichier plutôt que d'une page blanche —
+   ce sont des payloads self-service déjà vérifiés (voir `examples/README.md` pour la
+   liste complète). Trois exemples (`03`, `04`, `10`) sont marqués "offre complète
+   uniquement" : ils montrent la forme du payload côté offre complète pour un besoin
+   qui n'a pas d'équivalent self-service — ne jamais les envoyer tels quels à l'API
+   self-service en espérant un vrai résultat.
 2. Pour tout champ dont tu n'es pas sûr à 100% du nom exact, du type ou de la valeur par
    défaut, ouvre `reference/entities.md` plutôt que de répondre de mémoire — ce fichier
    est la transcription complète et fiable du schéma, §3-11 ci-dessous n'en est qu'un
@@ -152,9 +174,12 @@ t'arrête pas au premier jet — boucle jusqu'à un résultat vérifié :
    d'allocation réel, la répartition des `unallocated_job_reasons`, et le ratio
    trajet/temps utile — ce sont les trois chiffres à mettre en avant pour montrer
    l'intérêt concret du résultat à l'utilisateur.
-6. Si le besoin touche une contrainte dure (compétence, stock, ordre entre jobs),
-   vérifie le §8/§11 — ces mécanismes sont souvent oubliés alors qu'ils sont la vraie
-   raison d'un plan qui ne correspond pas à l'attente métier.
+6. Si le besoin touche une contrainte dure self-service (compétence via
+   `requirements`), vérifie le §8. Si le besoin correspond à un mécanisme absent du
+   self-service (multi-ressources, stock, ordre entre jobs, horizon borné,
+   récurrence), ouvre `reference/offre-complete-nomadia.md` plutôt que d'essayer de
+   le simuler — c'est souvent la vraie raison d'un plan qui ne correspond pas à
+   l'attente métier, pas un bug de modélisation.
 7. Garde le format de sortie adapté au contexte : du code si on est dans un projet, un
    payload JSON commenté si c'est de la modélisation, une explication ciblée si c'est du
    débogage.
@@ -243,181 +268,143 @@ Réponse : `allocations` (qui fait quoi, quand), `travels` (trajets), `unallocat
 - `400` requête invalide · `401` clé API manquante/invalide/bloquée · `402` solde de
   crédits négatif · `403` période d'essai terminée (abonnement requis)
 
-## 3. Modèle de données — vue d'ensemble
+## 3. Modèle de données — vue d'ensemble (self-service)
 
-Le schéma est organisé en 6 modules :
+**Source de vérité : `reference/entities.md`**, transcrit du schéma OpenAPI réel qui
+alimente l'API self-service (confirmé le 27/10/2026 par fetch direct du schéma, pas
+par la doc rendue). Les sections 4-8 ci-dessous n'en sont qu'un résumé de confort —
+toujours ouvrir `reference/entities.md` pour le détail exact d'un champ.
 
-| Module | Couleur (doc) | Contenu |
+Cinq entités d'entrée au niveau racine, aucune entité "jointure" séparée — tout le
+reste (SLA, Shift, Break, disponibilités) est **imbriqué** :
+
+| Entité | Clé racine | Obligatoire |
 |---|---|---|
-| Général | — | `ScheduleDefinition`, `DeletedEntity`, `Location` |
-| Job | Bleu | Ce qui doit être fait : `Job`, `JobType`, `SLA`, `JobResource`, disponibilités |
-| Resource | Vert | Qui peut le faire : `Resource`, `ResourceType`, `Shift`, `Break`, indisponibilités |
-| Output | Violet | Le plan renvoyé : allocations, trajets, raisons de non-allocation |
-| Constraints | Rouge | Contraintes dures : `Requirement` (compétences), `Part` (pièces/stock) |
-| Events | Cyan | Événements temps réel : statut de job, position connue d'une ressource |
-| Advanced | Jaune | Pré-requis entre jobs, priorité de ressource, découpage de job |
+| `Job` | `jobs` | oui |
+| `ResourceType` | `resource_types` | oui |
+| `Resource` | `resources` | oui |
+| `Location` | `locations` | oui |
+| `JobType` | `job_types` | non |
 
-Chaque entité a un `id` (clé primaire, String(32)). M = obligatoire, O = optionnel,
-M(valeur) = valeur par défaut si omis.
+**⚠️ Pas de rejet garanti des champs inconnus.** La spec déclare
+`additionalProperties: false`, mais un champ inconnu au niveau racine a été observé
+silencieusement ignoré par l'API réelle (HTTP 200) plutôt que rejeté. Un payload qui
+"passe" ne prouve donc pas que tous ses champs ont été pris en compte — toujours
+vérifier le résultat, pas seulement le code HTTP.
 
-## 4. Entités générales
+## 4. Location
 
-**Location** — `id`, `latitude`, `longitude`, `locality` (O, regroupe des lieux : l'API
-essaie de faire tous les jobs d'une même localité d'un coup), `additional_travel_time` (O).
-
-**ScheduleDefinition** — `id`, `schedule_window_end_date_time` (O, fin de la fenêtre de
-planification — sans ça l'API prend tous les shifts/SLA), `current_date_time` (O, pour
-planifier à une date autre que maintenant).
-
-**DeletedEntity** (Input/Output) — sert à signaler qu'une entité a été supprimée dans une
-mise à jour incrémentale : `entity_type`, `entity_id1/2/3`.
+`id` (M), `latitude`/`longitude` (M), `locality` (O, regroupe des lieux : l'API
+essaie de faire tous les jobs d'une même localité d'un coup), `additional_travel_time`
+(O, s'ajoute à tout trajet vers ce lieu).
 
 ## 5. Module Job — ce qui doit être fait
 
-**JobType** — gabarit partagé par plusieurs jobs : `id`, `custom_duration` (M, défaut
-PT1H), `duration_in_half_days` (O, utilisé seulement si `custom_duration` absent),
-`value_per_hour` (M, défaut 10000 — la "valeur"/criticité du job), `split_allowed` (O).
+**JobType** (optionnel) — valeurs par défaut partagées par plusieurs jobs : `id` (M),
+`requirements` (liste de chaînes), `custom_duration`, `duration_in_half_days`,
+`value_per_hour`, `split_allowed`.
 
-**SLA** — fenêtre de temps dans laquelle un job doit démarrer : `id`,
-`earliest_start_date_time` (M), `latest_start_date_time` (M), `penalty_per_hour` (M=0,
-pénalité progressive pour planifier tard dans la fenêtre — pousse à planifier tôt),
-`base_jeopardy_penalty` (M=0, pénalité one-shot si le SLA est raté — peut empêcher
-l'allocation hors SLA si > valeur du job), `penalty_per_hour_jeopardy` (M, pénalité
-progressive après le SLA raté).
+**SLA** (objet imbriqué, jamais une entité top-level avec id) — utilisé par
+`job.sla` et `job.appointment_sla` : `earliest_start_date_time` (M),
+`latest_start_date_time` (M), `penalty_per_hour` (O, pousse à planifier tôt),
+`base_jeopardy_penalty` (O, pénalité fixe si la fenêtre est ratée — peut empêcher
+l'allocation hors fenêtre si > `value_per_hour` du job), `penalty_per_hour_jeopardy`
+(O, ⚠️ la doc officielle donne une valeur par défaut incohérente avec son propre
+type — toujours la fixer explicitement si utilisée).
 
-**Job** — `id`, `job_sla_id` (M, sauf si `appointment_sla_id` fourni), `appointment_sla_id`
-(O), `job_type_id` (M, défaut "DEFAULT"), `location_id` (M), `custom_duration` /
-`duration_in_half_days` (O, sinon hérité du job_type), `value_per_hour` (O, sinon hérité),
-`split_allowed` (O, sinon hérité), `fixed_date_time` (O, démarrage imposé),
-`appointment_priority` (M=999, les jobs à valeur plus haute "passent devant" pour les
-créneaux de rendez-vous).
-
-**JobResource** — associe un job à une ressource (multi-ressources possible via
-`resource_index` différents) : `job_id`, `resource_index` (M=1), `fixed_resource_id` (O,
-force la ressource — outrepasse les contraintes dures), `commit_date_time_stamp` (O, job
-"committé" = à faire au plus tôt sur la ressource fixée, triés par cette valeur si
-plusieurs committés).
-
-**JobAvailability / JobUnavailability** — fenêtres où le job PEUT / NE PEUT PAS démarrer
-(`job_id`, `start_date_time`, `end_date_time`). En cas de chevauchement, l'unavailability
-gagne.
-
-**JobAvailabilityPattern + DayPattern** — disponibilité récurrente par motif de jours
-(cron simplifié `<jour-du-mois> <mois> <jour-de-semaine>`, patterns prédéfinis
-`EVERY_DAY`, `MONDAY_TO_THURSDAY`, `MONDAY_TO_FRIDAY`, `MONDAY_TO_SATURDAY`, ou expression
-custom avec `*, ?, -, ,, /, L, W, #`).
+**Job** — `id` (M), `job_type_id` (M, défaut `"DEFAULT"`), `location_id` (M), `sla`
+(objet SLA, M), `appointment_sla` (objet SLA, O — **deuxième** fenêtre distincte,
+pour un rendez-vous avec sa propre tolérance), `fixed_resource_id` (O, ressource à
+laquelle le job est engagé — champ direct, pas d'entité séparée, pas de
+`commit_date_time_stamp`), `fixed_date_time` (O, démarrage exact imposé),
+`custom_duration`/`duration_in_half_days` (O, sinon hérité du `job_type`),
+`value_per_hour` (O), `split_allowed` (O, étale le job **dans le temps** sur
+plusieurs visites — jamais sur plusieurs ressources simultanées),
+`availabilities`/`unavailabilities` (listes de fenêtres fixes `{start_date_time,
+end_date_time}`, **aucune récurrence possible**), `requirements` (liste de chaînes).
 
 ## 6. Module Resource — qui peut le faire
 
-**ResourceType** — gabarit partagé par plusieurs ressources (ex. "technicien", "camion
-3.5T") : `id`, `start_location_id`/`end_location_id` (M), `cost_per_kilometre`/
-`cost_per_hour` (M=1), `maximum_travel_time_from_start_location` / `_individual_` /
-`_per_shift` (O), `travel_time_multiplier`/`work_time_multiplier` (M=1),
-`minimum_jobs_per_shift`/`maximum_jobs_per_shift` (O), `pre_shift_travel_period`/
-`post_shift_travel_period` (M=PT0S), `overtime_period` (M=PT0S),
-`overtime_cost_multiplier` (M=5), `shift_penalty` (M=0, coût fixe dès qu'un shift a au
-moins 1 job — pousse à concentrer le travail sur moins de ressources/shifts).
+**ResourceType** — `id` (M), `start_location_id`/`end_location_id` (M),
+`requirements` (liste de chaînes), `cost_per_kilometre`/`cost_per_hour` (défaut 1),
+`maximum_travel_time_from_start_location`/`maximum_individual_travel_time`/
+`maximum_travel_time_per_shift` (O), `minimum_jobs_per_shift`/`maximum_jobs_per_shift`
+(O), `pre_shift_travel_period`/`post_shift_travel_period` (défaut PT0S),
+`overtime_period` (défaut PT0S), `overtime_cost_multiplier` (défaut 5),
+`shift_penalty` (défaut 0, coût fixe dès qu'un shift a au moins 1 job — pousse à
+concentrer le travail sur moins de ressources/shifts).
 
-**Resource** — une ressource précise, hérite de `ResourceType` sauf si surchargé : mêmes
-champs que ci-dessus en option, + `id`, `resource_type_id` (M, défaut "DEFAULT").
+**Resource** — `id` (M), `resource_type_id` (M, défaut `"DEFAULT"`), `shifts` (liste
+de `Shift`), `unavailabilities` (liste de `ResourceUnavailability`, **imbriquée ici**,
+pas une entité top-level avec `resource_id`), `requirements` (liste de chaînes),
+`start_location_id`/`end_location_id` (O, surcharge le `resource_type`).
 
-**Shift** — une journée de travail précise pour une ressource : `id`, `resource_id` (M),
-`start_date_time`/`end_date_time` (M), tout le reste hérite de `Resource` si omis.
+**Shift** (`resources[].shifts[]`) — `start_date_time`/`end_date_time` (M), `breaks`
+(liste de `Break`), `start_location_id`/`end_location_id` (O, surcharge pour ce
+shift). Pas de champ `id`.
 
-**Break** — pause dans un shift : `id`, `shift_id` (M), `earliest_start_date_time`/
-`latest_start_date_time` (M), `duration` (M=PT1H), `fixed_date_time` (O).
+**Break** (`shifts[].breaks[]`) — `earliest_start_date_time`/`latest_start_date_time`
+(M), `duration` (M), `fixed_date_time` (O). Pas de champ `id`/`shift_id` : la pause
+est définie par sa position dans `shift.breaks[]`.
 
-**ResourceUnavailability** — période où une ressource ne peut pas travailler : `id`,
-`resource_id` (M), `start_date_time`/`end_date_time` (M), `location_id` (O).
+**ResourceUnavailability** (`resources[].unavailabilities[]`) — `id` (M),
+`start_date_time`/`end_date_time` (M), `location_id` (O).
 
 ## 7. Module Output — ce que l'API renvoie
 
-| Entité | Rôle |
+| Clé | Rôle |
 |---|---|
-| `JobResourceAllocation` | quelle ressource fait quel job |
-| `JobDateTimeAllocation` | quand (± plusieurs `visit_id` si job découpé) |
-| `BreakAllocation` | quand la pause a été planifiée |
-| `Travel` | trajets d'une ressource (distance, lieux, horaires) |
-| `UnallocatedJobReason` | pourquoi un job n'a pas été planifié (voir §9) |
-| `OutputInformation` | métadonnées (type de sortie COMPLETE/UPDATE, ids de changement) |
+| `allocations[]` | **par job** (`job_id` + liste `visits[]`) — plusieurs `visits` seulement si le job a été étalé dans le temps, jamais plusieurs ressources sur une même visite |
+| `travels[]` | trajets d'une ressource (distance, lieux, horaires) |
+| `unallocated_job_reasons[]` | pourquoi un job n'a pas été planifié (`job_id` + `unallocated_reason`) |
+| `break_allocations[]` | quand chaque pause a été placée |
 
-## 8. Module Constraints — contraintes dures
+Les valeurs possibles de `unallocated_reason` ne sont pas documentées sur les pages
+self-service (elles l'étaient côté offre complète — `NotCalculated`, `ZeroValue`,
+`AllPossibleResourcesFull`, etc.) : à traiter comme probables mais non garanties tant
+qu'un test réel n'en a pas confirmé l'exhaustivité côté self-service.
 
-Deux mécanismes, identiques en structure :
+## 8. Compétences obligatoires (contrainte dure disponible en self-service)
 
-- **Requirement** (compétences/qualifications) : `Requirement` (id) puis
-  `JobTypeRequirement` / `JobRequirement` / `JobResourceRequirement` /
-  `ResourceTypeRequirement` / `ResourceRequirement` / `ShiftRequirement` — un job ne peut
-  être fait que par une ressource ayant TOUS les requirements demandés.
-- **Part** (pièces/stock consommé) : `Part` (id) puis `JobTypePart` / `JobPart` /
-  `JobResourcePart` (avec `consumption`) côté job, `ResourceTypePart` / `ResourcePart` /
-  `ShiftPart` (avec `available_quantity`) côté ressource — chaque job fait consomme du
-  stock embarqué, qui doit suffire.
+Un seul mécanisme, simple : `requirements` est une **liste de chaînes libres**,
+directement sur `job`/`job_type` d'un côté et `resource`/`resource_type` de l'autre
+(pas d'entité `Requirement` séparée avec id). Un job ne peut être fait que par une
+ressource dont les `requirements` couvrent la liste du job.
 
-## 9. Raisons de non-allocation (`UnallocatedJobReason`)
+Les autres contraintes dures — stock de pièces, ordre entre jobs, multi-ressources —
+n'ont **aucun équivalent self-service** : voir `reference/offre-complete-nomadia.md`.
 
-`NotCalculated`, `Unknown`, `ZeroValue` (valeur du job = 0), `NoValidTimeWithinSchedulingWindow`,
-`NoPossibleResources`, `AllPossibleResourcesFull`, `NoAvailableResourcesMaxTravel`,
-`AvailableResourcesLittleTime`, `PossibleResourcesDistant`,
-`PossibleResourcesInsufficientParts`, `PossibleResourcesHaveMaxJobs`, `LowValue`,
-`JobInvalid`, `MultiResourceJob`, `InvalidFixedJobsInPossibleRoute`,
-`CostsOutweighJobValue`, `NoAvailableResourcesMaxTravelInShift`,
-`PossibleResourcesNoShiftAtTime`, `ResourceNotPermitted`, `ResourceNotPermittedPreReqs`,
-`PreRequisiteJobNotAllocated`, `DependantJobNotAllocated`.
+## 9. FAQ rapide
 
-## 10. Module Events — temps réel
-
-**JobResourceStatus** — événements de suivi d'un job : `job_id`, `resource_index`,
-`visit_id`, `travel_start_date_time` / `expected_arrival_date_time` / `start_date_time` /
-`end_date_time` (tous O) — permet de dire "la ressource est partie", "est arrivée", "a
-commencé", "a fini".
-
-**ResourceKnownLocation** — position GPS connue d'une ressource à un instant T
-(`resource_id`, `date_time_stamp`, `latitude`, `longitude`) pour réajuster le planning en
-temps réel.
-
-## 11. Module Advanced
-
-**PreRequisiteDefinition** — contrainte d'ordre entre 2 jobs : `earlier_job_id`,
-`later_job_id`, `minimum_time_difference`/`maximum_time_difference` (O),
-`same_resource` (M=false), `all_or_nothing` (M=false, si un des deux ne peut être
-planifié, l'autre non plus).
-
-**JobResourcePriority** *(WIP)* — liste de priorité de ressources pour un job :
-`MANDATORY` / `FAVOURED` / `UNFAVOURED` / `FORBIDDEN`.
-
-**AllowedSplitPoint** *(WIP)* — points de découpage autorisés pour un job splittable :
-`job_id`, `index`, `duration`.
-
-## 12. FAQ rapide
-
-- **Comment forcer un technicien précis sur un job ?** `JobResource.fixed_resource_id`
-  (outrepasse les contraintes dures) + éventuellement `commit_date_time_stamp` pour le
-  prioriser au plus tôt.
-- **Comment grouper les jobs d'un même quartier dans une même tournée ?** donner la même
-  `locality` aux `Location` concernées.
-- **Comment pénaliser un planning avec trop de shifts "éclatés" ?** `shift_penalty` sur le
-  `ResourceType`/`Resource`/`Shift`.
+- **Comment forcer un technicien précis sur un job ?** `fixed_resource_id`
+  directement sur le `job`.
+- **Comment grouper les jobs d'un même quartier dans une même tournée ?** donner la
+  même `locality` aux `Location` concernées.
+- **Comment pénaliser un planning avec trop de shifts "éclatés" ?** `shift_penalty`
+  sur le `resource_type`/`resource`.
 - **Comment gérer une compétence obligatoire (ex. habilitation électrique) ?**
-  `Requirement` + `JobRequirement` (ou `JobTypeRequirement`) côté job et
-  `ResourceRequirement` côté ressource.
-- **Comment gérer un stock de pièces embarqué limité ?** `Part` + `JobPart.consumption`
-  côté job et `ResourcePart.available_quantity` côté ressource/shift.
-- **Pourquoi un job n'est pas planifié alors qu'une ressource semble libre ?** regarder
-  `unallocated_job_reasons` — souvent `NoAvailableResourcesMaxTravel`,
-  `PossibleResourcesHaveMaxJobs` ou `CostsOutweighJobValue`.
-- **Le planning évolue en temps réel ?** oui, via `ResourceKnownLocation` (position) et
-  `JobResourceStatus` (avancement) en entrée, `DeletedEntity` en sortie pour signaler ce
-  qui a changé.
+  `requirements: ["HABILITATION_ELEC"]` sur le job et sur la/les ressource(s)
+  habilitée(s) — voir §8.
+- **Comment gérer un rendez-vous avec sa propre tolérance horaire ?**
+  `job.appointment_sla`, un deuxième objet SLA imbriqué.
+- **Et le stock de pièces / l'ordre entre jobs / le multi-ressources / l'horizon
+  borné / la récurrence ?** Aucun équivalent self-service — voir
+  `reference/offre-complete-nomadia.md`, ne jamais essayer de les simuler.
+- **Pourquoi un job n'est pas planifié alors qu'une ressource semble libre ?**
+  regarder `unallocated_job_reasons` — voir §7 et `troubleshooting.md`.
+- **Le planning évolue en temps réel ?** voir
+  `reference/replanification-temps-reel.md` pour ce qui est confirmé côté
+  self-service.
 
-## 13. Fichiers du skill — quand ouvrir quoi
+## 10. Fichiers du skill — quand ouvrir quoi
 
-Ce SKILL.md est un résumé de navigation. Trois fichiers complètent le skill et doivent
-être ouverts selon le besoin — ne pas essayer de tout retenir de mémoire :
+Ce SKILL.md est un résumé de navigation. Les fichiers suivants complètent le skill et
+doivent être ouverts selon le besoin — ne pas essayer de tout retenir de mémoire :
 
 | Fichier | Ouvrir quand… |
 |---|---|
-| `reference/entities.md` | tu écris un payload/code et as besoin du nom exact d'un champ, son type, ou sa valeur par défaut — transcription complète et fiable du schéma, y compris l'énumération entière des `unallocated_reason` |
+| `reference/entities.md` | tu écris un payload/code et as besoin du nom exact d'un champ, son type, ou sa valeur par défaut — transcription fiable du schéma OpenAPI self-service réel (pas la doc PDF de l'offre complète) |
+| `reference/offre-complete-nomadia.md` | le besoin correspond à un mécanisme absent du self-service (multi-ressources, stock, ordre entre jobs, horizon borné, récurrence, priorité de rdv dédiée) — exemple à montrer + comment orienter vers un contact Nomadia |
 | `troubleshooting.md` | un appel échoue, un job n'est pas planifié, ou le plan ne correspond pas à l'attendu — diagnostic par symptôme, à suivre avant de modifier du code au hasard |
 | `snippets/client.js` et `snippets/client.py` | tu démarres une intégration dans un projet JS/Node ou Python — client HTTP minimal + validation locale du payload (détecte les `id` qui ne se référencent pas entre eux, les dates de shift incohérentes, etc. avant de consommer des crédits) |
 | `reference/kpis-metier.md` | tu dois argumenter en rendez-vous commercial ou traduire un résultat technique (taux d'allocation, trajet, SLA) en impact business |
@@ -433,15 +420,20 @@ scripts Python autonomes exécutables en CLI (`python3 chemin/script.py`), `exam
 fichiers. Si ton environnement n'a pas Python 3 disponible, dis-le explicitement plutôt
 que de deviner le résultat de la validation.
 
-## 13bis. Pour un agent qui découvre ce skill en premier
+## 10bis. Pour un agent qui découvre ce skill en premier
 
 Lire `skill/llms.txt` — index priorisé de tous les fichiers du skill, inspiré du
 `llms.txt` de la doc Nomadia elle-même et du pattern `context7.json` du repo GitHub de
 Timefold (manifestes pensés pour être lus par un agent IA avant tout le reste).
 
-## 14. Sources
+## 11. Sources
 
-- Doc schéma complète : PDF "Scheduler Schema Documentation" v1.1.9/1.1.10 (fourni par
-  Nomadia)
-- Doc API interactive : https://scheduler-json-api.readme.io/reference/quick-start
+- Doc self-service (référence primaire de ce skill) :
+  https://scheduler-json-api.readme.io/reference/quick-start,
+  `.../reference/api-keys`, `.../reference/post_schedule`, `.../reference/post_geocode`
+  — schémas OpenAPI complets récupérés le 27/10/2026 et conservés dans
+  `vendor-docs/openapi-schedule.json` et `vendor-docs/openapi-geocode.json`.
+- Doc offre complète (uniquement pour `reference/offre-complete-nomadia.md`) : PDF
+  "Scheduler Schema Documentation" v1.1.9/1.1.10 (fourni par Nomadia) — ne jamais
+  utiliser comme référence pour un payload self-service.
 - Index pour agents IA : https://scheduler-json-api.readme.io/llms.txt

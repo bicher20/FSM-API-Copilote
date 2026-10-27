@@ -7,6 +7,16 @@ détail du test qui échoue et sort avec le code 1.
 Pourquoi ce fichier : un skill qui modifie son propre validateur sans test risque de
 réintroduire silencieusement un faux positif/négatif (c'est déjà arrivé une fois avec
 l'heuristique lat/lng — voir CHANGELOG.md 1.2). Ce fichier fige le comportement attendu.
+
+Depuis la réécriture du 27/10/2026 sur le vrai schéma self-service (voir
+reference/entities.md), 3 des 10 exemples (03, 04, 10) ne sont PAS des payloads
+self-service valides : ils documentent des mécanismes de l'offre complète Nomadia qui
+n'existent pas en self-service (reference/offre-complete-nomadia.md), et sont
+volontairement incomplets (pas de locations/resources, etc.) puisqu'ils ne sont là que
+pour montrer la forme du payload côté offre complète. Le validateur les laisse passer
+en exit 0 avec des [WARN] (il ne les rejette jamais en [ERROR], puisque l'API
+elle-même ne les rejette pas — elle les ignore silencieusement), mais ils sont exclus
+de la boucle "tous les exemples doivent être des payloads self-service complets".
 """
 import copy
 import json
@@ -17,6 +27,14 @@ from pathlib import Path
 SKILL_DIR = Path(__file__).resolve().parent.parent
 VALIDATOR = SKILL_DIR / "scripts" / "validate_payload.py"
 EXAMPLES_DIR = SKILL_DIR / "examples"
+
+# Exemples qui documentent l'offre complète (pas d'équivalent self-service) —
+# volontairement incomplets, exclus de la boucle de validation complète ci-dessous.
+OFFRE_COMPLETE_ONLY_EXAMPLES = {
+    "03_stock_pieces.json",
+    "04_ordre_entre_jobs.json",
+    "10_job_multi_ressources.json",
+}
 
 
 def run_validator(payload: dict) -> tuple[int, str]:
@@ -44,12 +62,23 @@ def check(name: str, condition: bool, detail: str = ""):
         failures.append(f"{name}: {detail}")
 
 
-# --- Les 5 exemples doivent tous passer sans erreur ---
+# --- Les exemples self-service doivent tous passer sans erreur bloquante ---
 for example_file in sorted(EXAMPLES_DIR.glob("*.json")):
+    if example_file.name in OFFRE_COMPLETE_ONLY_EXAMPLES:
+        continue
     with open(example_file) as f:
         payload = json.load(f)
     code, output = run_validator(payload)
     check(f"exemple {example_file.name} valide (exit 0)", code == 0, output)
+
+# --- Les exemples offre-complète-only doivent au moins rester du JSON valide et ne
+#     jamais planter le validateur (exit 0 ou 1 tous deux acceptables selon ce qu'ils
+#     contiennent, mais pas de crash) ---
+for name in OFFRE_COMPLETE_ONLY_EXAMPLES:
+    with open(EXAMPLES_DIR / name) as f:
+        payload = json.load(f)
+    code, output = run_validator(payload)
+    check(f"exemple {name} ne fait pas planter le validateur", code in (0, 1), output)
 
 # --- location_id orpheline doit être détectée ---
 payload = load_minimal()
@@ -103,36 +132,42 @@ payload["locations"][0]["longitude"] = 200.0
 code, output = run_validator(payload)
 check("longitude hors plage détectée (exit 1)", code == 1, output)
 
-# --- shift sans id ne doit être qu'un WARN, jamais bloquant (cf. quick start officiel) ---
+# --- requirements en objets (ancien format offre complète) doit être détecté comme
+#     erreur plutôt que silencieusement accepté : le schéma self-service réel exige
+#     une liste de chaînes simples ---
 payload = load_minimal()
-del payload["resources"][0]["shifts"][0]["id"]
+payload["jobs"][0]["requirements"] = [{"id": "HABILITATION_ELEC"}]
 code, output = run_validator(payload)
-check("shift sans id = WARN seulement, pas bloquant (exit 0)", code == 0, output)
-check("message mentionne l'absence d'id de shift", "id" in output and "WARN" in output, output)
+check("requirements sous forme d'objets détecté (exit 1)", code == 1, output)
 
-# --- pre_requisite_definition avec job inexistant doit être détecté ---
-with open(EXAMPLES_DIR / "04_ordre_entre_jobs.json") as f:
-    payload = json.load(f)
-payload["pre_requisite_definitions"][0]["later_job_id"] = "JOB-FANTOME"
+# --- requirements sous forme de chaînes simples ne doit PAS déclencher d'erreur ---
+payload = load_minimal()
+payload["jobs"][0]["requirements"] = ["HABILITATION_ELEC"]
 code, output = run_validator(payload)
-check("pre_requisite_definition avec job inexistant détecté (exit 1)", code == 1, output)
+check("requirements sous forme de chaînes accepté (exit 0)", code == 0, output)
 
-# --- job_resource.commit_date_time_stamp sans fixed_resource_id doit être détecté ---
-with open(EXAMPLES_DIR / "06_ressource_engagee.json") as f:
-    payload = json.load(f)
-del payload["job_resources"][0]["fixed_resource_id"]
+# --- fixed_resource_id orphelin doit être détecté ---
+payload = load_minimal()
+payload["jobs"][0]["fixed_resource_id"] = "RES-FANTOME"
 code, output = run_validator(payload)
-check("commit_date_time_stamp sans fixed_resource_id détecté (exit 1)", code == 1, output)
+check("fixed_resource_id orphelin détecté (exit 1)", code == 1, output)
 
-# --- resource_unavailability avec resource_id inexistant doit être détecté ---
-with open(EXAMPLES_DIR / "08_indisponibilite_ressource.json") as f:
-    payload = json.load(f)
-payload["resource_unavailabilities"][0]["resource_id"] = "RES-FANTOME"
+# --- unavailability imbriquée (resource.unavailabilities[]) avec start>=end détectée ---
+payload = load_minimal()
+payload["resources"][0]["unavailabilities"] = [
+    {"id": "INDISPO-1", "start_date_time": "2026-11-02T15:00:00", "end_date_time": "2026-11-02T14:00:00"}
+]
 code, output = run_validator(payload)
-check("resource_unavailability avec resource_id inexistant détecté (exit 1)", code == 1, output)
+check("unavailability imbriquée start>=end détectée (exit 1)", code == 1, output)
 
-# --- les 10 exemples doivent rester valides avec le validateur étendu ---
-# (déjà couvert par la boucle "exemple ... valide" ci-dessus sur tout examples/*.json)
+# --- un payload avec un champ de l'offre complète au niveau racine (job_resources)
+#     doit déclencher un WARN fort, mais rester exit 0 puisque l'API elle-même ne le
+#     rejette pas (elle l'ignore silencieusement) ---
+payload = load_minimal()
+payload["job_resources"] = [{"job_id": "JOB-1", "resource_index": 1}]
+code, output = run_validator(payload)
+check("job_resources (offre complète) déclenche un WARN, pas une erreur (exit 0)", code == 0, output)
+check("le WARN mentionne job_resources", "job_resources" in output and "WARN" in output, output)
 
 print()
 if failures:

@@ -1,0 +1,256 @@
+{
+  "_source": "Récupéré le 2026-10-27 via le réseau interne de la page https://scheduler-json-api.readme.io/reference/post_schedule (endpoint https://scheduler-json-api.readme.io/scheduler-json-api/api-next/v2/branches/1.0/reference/post_schedule?reduce=true). Ceci est la spec OpenAPI brute qui alimente la documentation publique/self-service du Scheduler API Nomadia (api.schedule) — source de vérité pour skill/reference/entities.md.",
+  "openapi": "3.0.4",
+  "info": { "title": "Scheduler API", "version": "1.0" },
+  "servers": [{ "url": "https://scheduler-api.nomadia-app.com/api" }],
+  "paths": {
+    "/schedule": {
+      "post": {
+        "tags": ["Endpoints"],
+        "summary": "Schedule",
+        "parameters": [{ "name": "x-api-key", "in": "header", "schema": { "type": "string" } }],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/InputDataset" } },
+            "text/json": { "schema": { "$ref": "#/components/schemas/InputDataset" } },
+            "application/*+json": { "schema": { "$ref": "#/components/schemas/InputDataset" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "OK", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/OutputDataset" } } } },
+          "400": { "description": "Bad Request", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "401": { "description": "Unauthorized", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "402": { "description": "Payment Required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        },
+        "description": "Submit your jobs, resources and locations and get back an optimized schedule: who does each job, when, and in which order."
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InputDataset": {
+        "required": ["jobs", "locations", "resource_types", "resources"],
+        "type": "object",
+        "properties": {
+          "jobs": { "type": "array", "items": { "$ref": "#/components/schemas/JSONJob" } },
+          "resource_types": { "type": "array", "items": { "$ref": "#/components/schemas/JSONResourceType" } },
+          "resources": { "type": "array", "items": { "$ref": "#/components/schemas/JSONResource" } },
+          "locations": { "type": "array", "items": { "$ref": "#/components/schemas/JSONLocation" } },
+          "job_types": { "type": "array", "items": { "$ref": "#/components/schemas/JSONJobType" }, "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "JSONJob": {
+        "required": ["id", "job_type_id", "location_id", "sla"],
+        "type": "object",
+        "properties": {
+          "id": { "minLength": 1, "type": "string" },
+          "sla": { "$ref": "#/components/schemas/JSONSLA" },
+          "appointment_sla": { "$ref": "#/components/schemas/JSONSLA" },
+          "job_type_id": { "minLength": 1, "type": "string", "default": "DEFAULT" },
+          "fixed_resource_id": { "type": "string", "nullable": true, "description": "Id of the resource a job must be fulfilled by (if any). It can specify a job has been commited to a resource, meaning the scheduler cannot change the resource and the job must be scheduled as soon as possible (time constraints allowing)." },
+          "unavailabilities": { "type": "array", "items": { "$ref": "#/components/schemas/JSONJobUnavailability" }, "nullable": true },
+          "availabilities": { "type": "array", "items": { "$ref": "#/components/schemas/JSONJobAvailability" }, "nullable": true },
+          "requirements": { "type": "array", "items": { "type": "string" }, "nullable": true },
+          "location_id": { "minLength": 1, "type": "string" },
+          "custom_duration": { "type": "string", "format": "duration", "nullable": true, "example": "PT30M" },
+          "duration_in_half_days": { "type": "integer", "format": "int32", "nullable": true },
+          "value_per_hour": { "type": "number", "format": "double", "nullable": true },
+          "split_allowed": { "type": "boolean", "nullable": true },
+          "fixed_date_time": { "type": "string", "format": "date-time", "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "JSONJobAvailability": {
+        "type": "object",
+        "properties": {
+          "start_date_time": { "type": "string", "format": "date-time", "nullable": true },
+          "end_date_time": { "type": "string", "format": "date-time", "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "JSONJobUnavailability": {
+        "type": "object",
+        "properties": {
+          "start_date_time": { "type": "string", "format": "date-time", "nullable": true },
+          "end_date_time": { "type": "string", "format": "date-time", "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "JSONJobType": {
+        "required": ["id"],
+        "type": "object",
+        "properties": {
+          "id": { "minLength": 1, "type": "string" },
+          "requirements": { "type": "array", "items": { "type": "string" }, "nullable": true },
+          "custom_duration": { "type": "string", "format": "duration", "nullable": true, "example": "PT30M" },
+          "duration_in_half_days": { "type": "integer", "format": "int32", "nullable": true },
+          "value_per_hour": { "type": "number", "format": "double", "nullable": true },
+          "split_allowed": { "type": "boolean", "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "JSONLocation": {
+        "required": ["id", "latitude", "longitude"],
+        "type": "object",
+        "properties": {
+          "id": { "minLength": 1, "type": "string" },
+          "latitude": { "type": "number", "format": "double" },
+          "longitude": { "type": "number", "format": "double" },
+          "locality": { "type": "string", "nullable": true },
+          "additional_travel_time": { "type": "string", "format": "duration", "nullable": true, "example": "PT30M" }
+        },
+        "additionalProperties": false
+      },
+      "JSONResource": {
+        "required": ["id", "resource_type_id"],
+        "type": "object",
+        "properties": {
+          "id": { "minLength": 1, "type": "string" },
+          "resource_type_id": { "minLength": 1, "type": "string", "default": "DEFAULT" },
+          "shifts": { "type": "array", "items": { "$ref": "#/components/schemas/JSONShift" }, "nullable": true },
+          "unavailabilities": { "type": "array", "items": { "$ref": "#/components/schemas/JSONResourceUnavailability" }, "nullable": true },
+          "requirements": { "type": "array", "items": { "type": "string" }, "nullable": true },
+          "start_location_id": { "type": "string", "nullable": true },
+          "end_location_id": { "type": "string", "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "JSONResourceType": {
+        "required": ["end_location_id", "id", "start_location_id"],
+        "type": "object",
+        "properties": {
+          "id": { "minLength": 1, "type": "string" },
+          "start_location_id": { "minLength": 1, "type": "string" },
+          "end_location_id": { "minLength": 1, "type": "string" },
+          "requirements": { "type": "array", "items": { "type": "string" }, "nullable": true },
+          "cost_per_kilometre": { "type": "number", "format": "double", "default": 1, "nullable": true },
+          "cost_per_hour": { "type": "number", "format": "double", "default": 1, "nullable": true },
+          "maximum_travel_time_from_start_location": { "type": "string", "format": "duration", "nullable": true, "example": "PT30M" },
+          "maximum_individual_travel_time": { "type": "string", "format": "duration", "nullable": true, "example": "PT30M" },
+          "maximum_travel_time_per_shift": { "type": "string", "format": "duration", "nullable": true, "example": "PT30M" },
+          "minimum_jobs_per_shift": { "type": "integer", "format": "int32", "nullable": true },
+          "maximum_jobs_per_shift": { "type": "integer", "format": "int32", "nullable": true },
+          "pre_shift_travel_period": { "type": "string", "format": "duration", "default": "PT0S", "nullable": true, "example": "PT30M" },
+          "post_shift_travel_period": { "type": "string", "format": "duration", "default": "PT0S", "nullable": true, "example": "PT30M" },
+          "overtime_period": { "type": "string", "format": "duration", "default": "PT0S", "nullable": true, "example": "PT30M" },
+          "overtime_cost_multiplier": { "type": "number", "format": "double", "default": 5, "nullable": true },
+          "shift_penalty": { "type": "number", "format": "double", "default": 0, "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "JSONResourceUnavailability": {
+        "required": ["end_date_time", "id", "start_date_time"],
+        "type": "object",
+        "properties": {
+          "id": { "minLength": 1, "type": "string" },
+          "start_date_time": { "type": "string", "format": "date-time" },
+          "end_date_time": { "type": "string", "format": "date-time" },
+          "location_id": { "type": "string", "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "JSONSLA": {
+        "required": ["earliest_start_date_time", "latest_start_date_time"],
+        "type": "object",
+        "properties": {
+          "earliest_start_date_time": { "type": "string", "format": "date-time" },
+          "latest_start_date_time": { "type": "string", "format": "date-time" },
+          "penalty_per_hour": { "type": "number", "format": "double", "nullable": true },
+          "base_jeopardy_penalty": { "type": "number", "format": "double", "nullable": true },
+          "penalty_per_hour_jeopardy": { "type": "number", "format": "double", "default": "*", "nullable": true, "_note": "incohérence dans la doc officielle : default déclaré comme la chaîne \"*\" alors que le type est number — ne pas s'y fier" }
+        },
+        "additionalProperties": false
+      },
+      "JSONShift": {
+        "required": ["end_date_time", "start_date_time"],
+        "type": "object",
+        "properties": {
+          "start_date_time": { "type": "string", "format": "date-time" },
+          "end_date_time": { "type": "string", "format": "date-time" },
+          "breaks": { "type": "array", "items": { "$ref": "#/components/schemas/JSONBreak" }, "nullable": true },
+          "start_location_id": { "type": "string", "nullable": true },
+          "end_location_id": { "type": "string", "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "JSONBreak": {
+        "type": "object",
+        "properties": {
+          "earliest_start_date_time": { "type": "string", "format": "date-time" },
+          "latest_start_date_time": { "type": "string", "format": "date-time" },
+          "duration": { "type": "string", "format": "duration", "example": "PT30M" },
+          "fixed_date_time": { "type": "string", "format": "date-time", "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "JSONAllocation": {
+        "type": "object",
+        "properties": {
+          "job_id": { "type": "string", "nullable": true },
+          "visits": { "type": "array", "items": { "$ref": "#/components/schemas/JSONVisit" }, "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "JSONVisit": {
+        "type": "object",
+        "properties": {
+          "visit_id": { "type": "integer", "format": "int32" },
+          "resource_id": { "type": "string", "nullable": true },
+          "start_date_time": { "type": "string", "format": "date-time" },
+          "end_date_time": { "type": "string", "format": "date-time" }
+        },
+        "additionalProperties": false
+      },
+      "JSONTravel": {
+        "type": "object",
+        "properties": {
+          "resource_id": { "type": "string", "nullable": true },
+          "start_date_time": { "type": "string", "format": "date-time" },
+          "end_date_time": { "type": "string", "format": "date-time" },
+          "distance_in_metres": { "type": "number", "format": "double" },
+          "start_location_id": { "type": "string", "nullable": true },
+          "end_location_id": { "type": "string", "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "JSONUnallocatedJobReason": {
+        "type": "object",
+        "properties": {
+          "job_id": { "type": "string", "nullable": true },
+          "unallocated_reason": { "type": "string", "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "JSONBreakAllocation": {
+        "type": "object",
+        "properties": {
+          "resource_id": { "type": "string", "nullable": true },
+          "start_date_time": { "type": "string", "format": "date-time", "nullable": true },
+          "end_date_time": { "type": "string", "format": "date-time", "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "OutputDataset": {
+        "type": "object",
+        "properties": {
+          "allocations": { "type": "array", "items": { "$ref": "#/components/schemas/JSONAllocation" }, "nullable": true },
+          "travels": { "type": "array", "items": { "$ref": "#/components/schemas/JSONTravel" }, "nullable": true },
+          "unallocated_job_reasons": { "type": "array", "items": { "$ref": "#/components/schemas/JSONUnallocatedJobReason" }, "nullable": true },
+          "break_allocations": { "type": "array", "items": { "$ref": "#/components/schemas/JSONBreakAllocation" }, "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string", "nullable": true },
+          "addresses": { "type": "array", "items": { "type": "integer", "format": "int32" }, "nullable": true, "description": "POST /api/geocode only" },
+          "details": { "type": "object", "additionalProperties": { "type": "array", "items": { "type": "string" } }, "nullable": true }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

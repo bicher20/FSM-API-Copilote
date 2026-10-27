@@ -1,356 +1,236 @@
-# Référence exhaustive des entités — Scheduler API Nomadia
+# Schéma de référence — API self-service Nomadia Scheduler
 
-Transcription complète du schéma (toutes les entités, tous les champs, types exacts,
-M/O, valeurs par défaut). À consulter **avant d'écrire un payload ou du code** — ne
-jamais inventer un nom de champ : s'il n'est pas ici, il n'existe pas dans l'API.
+**Source de vérité : le schéma OpenAPI réel qui alimente
+https://scheduler-json-api.readme.io/reference/post_schedule et `.../post_geocode`,
+récupéré le 26-27/10/2026 et conservé dans `vendor-docs/openapi-schedule.json` et
+`vendor-docs/openapi-geocode.json`. Ce fichier en est la transcription lisible.**
 
-Légende : `M` = obligatoire, `O` = optionnel, `M(x)` = obligatoire avec valeur par
-défaut `x` si omis.
+> **Pourquoi ce fichier a changé en profondeur le 27/10/2026.** Jusqu'à cette date, ce
+> fichier décrivait le schéma d'un document PDF interne Nomadia ("Scheduler Schema
+> Documentation", 33 pages) qui s'est révélé décrire l'**offre complète** (avec équipe
+> projet Nomadia), pas l'API self-service réellement accessible avec une simple clé.
+> Un test réel (payload multi-ressources, `examples/10_job_multi_ressources.json`) a
+> donné un résultat qui ne correspondait pas à ce que le PDF décrivait, ce qui a
+> déclenché cette vérification. Conséquence concrète : plusieurs mécanismes
+> documentés ici avant (job multi-ressources, pièces/stock, ordre entre jobs,
+> disponibilité récurrente, horizon de planification borné) **n'existent pas** dans
+> l'API self-service — voir `reference/offre-complete-nomadia.md` pour savoir quoi
+> dire à un client qui en a besoin.
+
+## Vue d'ensemble
+
+Cinq entités d'entrée, toutes au niveau racine du payload :
+
+| Entité | Clé racine | Obligatoire |
+|---|---|---|
+| Job | `jobs` | oui |
+| ResourceType | `resource_types` | oui |
+| Resource | `resources` | oui |
+| Location | `locations` | oui |
+| JobType | `job_types` | non (peut être `null`) |
+
+Tout le reste (SLA, Shift, Break, disponibilités/indisponibilités) est **imbriqué**
+dans l'une de ces cinq entités — il n'y a aucune entité "jointure" séparée au niveau
+racine (pas de `job_requirements`, `resource_parts`, `job_resources`, etc.).
+
+**Règle de nommage des identifiants ISO 8601** : dates en `date-time`
+(`2026-11-02T08:00:00`), durées en `duration` (`PT30M` = 30 min, `PT1H` = 1h).
+
+**Permissivité observée** : la spec déclare `additionalProperties: false` sur tous
+les objets (ce qui devrait rejeter tout champ inconnu avec un 400), mais un test réel
+a montré qu'un champ inconnu au niveau racine (`job_resources`) est **silencieusement
+ignoré** (HTTP 200, comportement par défaut appliqué) plutôt que de déclencher une
+erreur — cohérent avec un désérialiseur runtime permissif (ex: `System.Text.Json` par
+défaut en .NET) qui ne respecte pas forcément cette annotation de doc. **Conséquence
+pratique : un payload qui "passe" (HTTP 200) ne prouve pas que tous ses champs ont été
+pris en compte.** Toujours vérifier dans la réponse que le résultat correspond
+réellement à ce qui était demandé.
 
 ---
 
-## Général
+## Job (`jobs[]`)
 
-### Location (Input)
-| Champ | Type | M/O | Défaut/Notes |
-|---|---|---|---|
-| id | String(32) | M | clé primaire |
-| latitude | Double | M | |
-| longitude | Double | M | |
-| locality | String(32) | O | regroupe des lieux : l'API tente de faire tous les jobs d'une même locality d'un coup |
-| additional_travel_time | TimeSpan | O | durée ajoutée à tout trajet vers ce lieu |
-
-### ScheduleDefinition (Input)
 | Champ | Type | M/O | Notes |
 |---|---|---|---|
-| id | String(32) | M | |
-| schedule_window_end_date_time | DateTime | O | sans valeur : l'API considère tous les shifts/SLA |
-| current_date_time | DateTime | O | pour traiter des données hors temps réel |
+| `id` | string | **M** | Unique. |
+| `job_type_id` | string | **M** | Défaut `"DEFAULT"` si omis dans le JSON envoyé — mais le champ reste requis par le schéma ; utiliser `"DEFAULT"` explicitement si aucun `JobType` réel. |
+| `location_id` | string | **M** | Référence un `Location.id`. |
+| `sla` | objet `SLA` | **M** | Fenêtre de planification du job (voir plus bas). |
+| `appointment_sla` | objet `SLA` | O | Une **deuxième** fenêtre SLA, distincte de `sla` — c'est le mécanisme pour un rendez-vous client avec sa propre tolérance, pas un champ `appointment_sla_id`/`appointment_priority` séparé (cette dernière paire **n'existe pas** dans ce schéma). |
+| `fixed_resource_id` | string | O | Id d'une `Resource` à laquelle ce job est "engagé" — le solveur ne peut plus changer la ressource, et planifie le job au plus tôt. **Pas de champ séparé pour forcer une date précise d'engagement** (pas de `commit_date_time_stamp`) — combiner avec `fixed_date_time` si une heure exacte est aussi requise. |
+| `fixed_date_time` | date-time | O | Le job doit démarrer exactement à cette date/heure. |
+| `custom_duration` | duration | O | Sinon valeur du `job_type`, sinon défaut implicite de l'API. |
+| `duration_in_half_days` | integer | O | Alternative à `custom_duration`, en demi-journées. |
+| `value_per_hour` | double | O | Valeur/criticité du job pour l'arbitrage du solveur. |
+| `split_allowed` | boolean | O | Le job peut être découpé en **plusieurs visites dans le temps** (ex: sur deux shifts) si sa durée l'exige. **Ne concerne jamais plusieurs ressources simultanées** — voir l'avertissement multi-ressources ci-dessous. |
+| `availabilities` | liste de `JobAvailability` | O | Fenêtres où le job **peut** démarrer. |
+| `unavailabilities` | liste de `JobUnavailability` | O | Fenêtres où le job **ne peut pas** démarrer (prioritaire sur `availabilities` en cas de recouvrement). |
+| `requirements` | liste de **chaînes** | O | Compétences requises — simples chaînes libres, à faire correspondre avec `requirements` côté `Resource`/`ResourceType`/`JobType`. **Pas d'entité `Requirement` séparée avec id.** |
 
-### DeletedEntity (Input/Output)
+### JobAvailability / JobUnavailability
+
+```json
+{ "start_date_time": "2026-11-02T08:00:00", "end_date_time": "2026-11-02T12:00:00" }
+```
+Juste une fenêtre fixe. **Aucun mécanisme de récurrence** (pas de "tous les lundis") —
+pour une disponibilité qui se répète, il faut soit lister chaque occurrence
+explicitement, soit faire plusieurs appels, soit passer par l'offre complète (voir
+`reference/offre-complete-nomadia.md`).
+
+### SLA (utilisé par `job.sla` et `job.appointment_sla`)
+
 | Champ | Type | M/O |
 |---|---|---|
-| entity_type | String(32) | M |
-| entity_id1 | String(32) | M |
-| entity_id2 | String(32) | O |
-| entity_id3 | String(32) | O |
+| `earliest_start_date_time` | date-time | **M** |
+| `latest_start_date_time` | date-time | **M** |
+| `penalty_per_hour` | double | O — pousse à planifier au plus tôt dans la fenêtre |
+| `base_jeopardy_penalty` | double | O — pénalité fixe si la fenêtre est ratée ; une valeur supérieure à `value_per_hour` du job peut empêcher l'allocation hors fenêtre |
+| `penalty_per_hour_jeopardy` | double | O — pénalité progressive si la fenêtre est ratée (⚠️ la doc officielle déclare une valeur par défaut `"*"` incohérente avec son propre type `number` — ne pas s'y fier, toujours fixer explicitement si utilisé) |
 
 ---
 
-## Module Job
+## JobType (`job_types[]`, optionnel)
 
-### JobType (Input)
-| Champ | Type | M/O | Défaut |
-|---|---|---|---|
-| id | String(32) | M | |
-| custom_duration | TimeSpan | M | PT1H |
-| duration_in_half_days | Integer | O | utilisé seulement si custom_duration absent |
-| value_per_hour | Double | M | 10000 |
-| split_allowed | Boolean | O | |
+Valeurs par défaut partagées par plusieurs jobs : `id` (**M**), `requirements`,
+`custom_duration`, `duration_in_half_days`, `value_per_hour`, `split_allowed` — mêmes
+sens que sur `Job`, utilisés si le job ne redéfinit pas sa propre valeur.
 
-### SLA (Input)
-| Champ | Type | M/O | Défaut |
-|---|---|---|---|
-| id | String(32) | M | |
-| earliest_start_date_time | DateTime | M | |
-| latest_start_date_time | DateTime | M | |
-| penalty_per_hour | Double | M | 0 |
-| base_jeopardy_penalty | Double | M | 0 |
-| penalty_per_hour_jeopardy | Double | M | * (valeur élevée par défaut) |
+---
 
-### Job (Input)
+## Location (`locations[]`)
+
+| Champ | Type | M/O |
+|---|---|---|
+| `id` | string | **M** |
+| `latitude` | double | **M** |
+| `longitude` | double | **M** |
+| `locality` | string | O — regroupe des locations ; le solveur tente de traiter tous les jobs d'une même `locality` d'un coup |
+| `additional_travel_time` | duration | O — s'ajoute à tout trajet vers cette location |
+
+---
+
+## Resource (`resources[]`)
+
 | Champ | Type | M/O | Notes |
 |---|---|---|---|
-| id | String(32) | M | |
-| job_sla_id | String(32) | M | ignoré si appointment_sla_id fourni — FK SLA |
-| appointment_sla_id | String(32) | O | FK SLA |
-| job_type_id | String(32) | M(DEFAULT) | FK JobType |
-| location_id | String(32) | M | FK Location |
-| custom_duration | TimeSpan | O | sinon hérité du job_type |
-| duration_in_half_days | Integer | O | utilisé seulement si custom_duration absent ; sinon hérité |
-| value_per_hour | Double | O | sinon hérité du job_type |
-| split_allowed | Boolean | O | sinon hérité du job_type |
-| fixed_date_time | DateTime | O | démarrage imposé |
-| appointment_priority | Integer | M(999) | plus bas = prioritaire pour les créneaux de rendez-vous |
+| `id` | string | **M** | |
+| `resource_type_id` | string | **M** | Défaut `"DEFAULT"`. |
+| `shifts` | liste de `Shift` | O | |
+| `unavailabilities` | liste de `ResourceUnavailability` | O | **Imbriquée ici**, pas une entité top-level avec `resource_id` en clé étrangère. |
+| `requirements` | liste de chaînes | O | Compétences/habilitations de cette ressource précise. |
+| `start_location_id` / `end_location_id` | string | O | Surcharge le `start_location_id`/`end_location_id` du `resource_type` pour cette ressource précise. |
 
-### JobResource (Input)
-| Champ | Type | M/O | Notes |
-|---|---|---|---|
-| job_id | String(32) | M | FK Job — clé composite avec resource_index |
-| resource_index | Integer | M(1) | permet un job multi-ressources (plusieurs lignes) |
-| fixed_resource_id | String(32) | O | FK Resource — outrepasse toute contrainte dure |
-| commit_date_time_stamp | DateTime | O | nécessite fixed_resource_id ; trie les jobs committés entre eux |
+### Shift (`resources[].shifts[]`)
 
-### JobAvailability (Input)
 | Champ | Type | M/O |
 |---|---|---|
-| id | String(32) | M |
-| job_id | String(32) | M |
-| start_date_time | DateTime | M |
-| end_date_time | DateTime | M |
+| `start_date_time` | date-time | **M** |
+| `end_date_time` | date-time | **M** |
+| `breaks` | liste de `Break` | O |
+| `start_location_id` / `end_location_id` | string | O — surcharge celle de la `Resource` pour ce shift précis |
 
-### JobUnavailability (Input)
-Mêmes champs que JobAvailability. **En cas de chevauchement, JobUnavailability gagne.**
+### Break (`resources[].shifts[].breaks[]`)
 
-### JobAvailabilityPattern (Input)
+```json
+{
+  "earliest_start_date_time": "2026-11-02T12:00:00",
+  "latest_start_date_time": "2026-11-02T13:00:00",
+  "duration": "PT45M"
+}
+```
+Pas de `id` ni de `shift_id` — la pause est entièrement définie par sa position dans
+`shift.breaks[]`, inutile d'en ajouter. `fixed_date_time` optionnel si la pause doit
+démarrer à une heure précise plutôt que dans une fenêtre.
+
+### ResourceUnavailability (`resources[].unavailabilities[]`)
+
 | Champ | Type | M/O |
 |---|---|---|
-| id | String(32) | M |
-| job_id | String(32) | M |
-| start_time | TimeOnly | M |
-| end_time | TimeOnly | M |
-| day_pattern_id | String(32) | M | FK DayPattern |
-| pattern_start_date | DateOnly | M |
-| pattern_end_date | DateOnly | M |
-| time_zone_id | String(64) | M | IANA (ex. "Europe/Paris") ou nom Windows |
-
-### DayPattern (Input)
-| Champ | Type | M/O |
-|---|---|---|
-| id | String(32) | M |
-| day_based_cron_expression | String(256) | M |
-
-Patterns prédéfinis (ids tout faits, pas besoin de les envoyer) :
-`EVERY_DAY`, `MONDAY_TO_THURSDAY`, `MONDAY_TO_FRIDAY`, `MONDAY_TO_SATURDAY`.
-
-Format `day_based_cron_expression` : `<Day-of-Month> <Month> <Day-of-Week>`
-- Day-of-Month : `1-31`, caractères spéciaux `, - * ? / L W`
-- Month : `1-12` ou `JAN-DEC`, caractères spéciaux `, - * /`
-- Day-of-Week : `1-7` ou `SUN-SAT`, caractères spéciaux `, - * ? / L #`
-
-| Caractère | Sens |
-|---|---|
-| `*` | toute valeur |
-| `?` | valeur arbitraire (ignore le champ) |
-| `-` | plage (ex. `10-12`) |
-| `,` | liste de valeurs |
-| `/` | incrément (ex. `3/5` = 3,8,13,18,23,28) |
-| `L` | dernier jour du mois (Day-of-Month), ou dernier jour de semaine du mois si précédé d'un chiffre (Day-of-Week, ex. `6L` = dernier vendredi) |
-| `W` | jour ouvré le plus proche (Day-of-Month uniquement) |
-| `#` | n-ième occurrence d'un jour de semaine (ex. `6#3` = 3e vendredi) |
-
-Exemples : `* * ?` = tous les jours · `? 6 TUE` = tous les mardis de juin ·
-`? * MON-FRI` = tous les jours ouvrés · `15 * ?` = le 15 de chaque mois ·
-`L-3 * ?` = avant-avant-dernier jour du mois.
+| `id` | string | **M** |
+| `start_date_time` | date-time | **M** |
+| `end_date_time` | date-time | **M** |
+| `location_id` | string | O |
 
 ---
 
-## Module Resource
+## ResourceType (`resource_types[]`)
 
-### ResourceType (Input)
 | Champ | Type | M/O | Défaut |
 |---|---|---|---|
-| id | String(32) | M | |
-| start_location_id | String(32) | M | FK Location |
-| end_location_id | String(32) | M | FK Location |
-| cost_per_kilometre | Double | M | 1 |
-| cost_per_hour | Double | M | 1 |
-| maximum_travel_time_from_start_location | TimeSpan | O | |
-| maximum_individual_travel_time | TimeSpan | O | entre 2 lieux consécutifs de la route |
-| maximum_travel_time_per_shift | TimeSpan | O | trajet total cumulé sur le shift |
-| travel_time_multiplier | Double | M | 1 |
-| work_time_multiplier | Double | M | 1 |
-| minimum_jobs_per_shift | Integer | O | |
-| maximum_jobs_per_shift | Integer | O | |
-| pre_shift_travel_period | TimeSpan | M | PT0S |
-| post_shift_travel_period | TimeSpan | M | PT0S |
-| overtime_period | TimeSpan | M | PT0S |
-| overtime_cost_multiplier | Double | M | 5 |
-| shift_penalty | Double | M | 0 — coût fixe dès qu'un shift a ≥1 job |
-
-### Resource (Input)
-Mêmes champs que ResourceType (tous optionnels ici, héritent du ResourceType si omis),
-plus :
-| Champ | Type | M/O | Défaut |
-|---|---|---|---|
-| id | String(32) | M | |
-| resource_type_id | String(32) | M(DEFAULT) | FK ResourceType |
-
-### Shift (Input)
-Mêmes champs optionnels que Resource (héritent de la Resource si omis), plus :
-| Champ | Type | M/O |
-|---|---|---|
-| id | String(32) | M |
-| resource_id | String(32) | M |
-| start_date_time | DateTime | M |
-| end_date_time | DateTime | M |
-
-### Break (Input)
-| Champ | Type | M/O | Défaut |
-|---|---|---|---|
-| id | String(32) | M | |
-| shift_id | String(32) | M | FK Shift |
-| earliest_start_date_time | DateTime | M | |
-| latest_start_date_time | DateTime | M | |
-| duration | TimeSpan | M | PT1H |
-| fixed_date_time | DateTime | O | |
-
-### ResourceUnavailability (Input)
-| Champ | Type | M/O |
-|---|---|---|
-| id | String(32) | M |
-| resource_id | String(32) | M |
-| start_date_time | DateTime | M |
-| end_date_time | DateTime | M |
-| location_id | String(32) | O |
+| `id` | string | **M** | |
+| `start_location_id` | string | **M** | |
+| `end_location_id` | string | **M** | |
+| `requirements` | liste de chaînes | O | |
+| `cost_per_kilometre` | double | O | `1` |
+| `cost_per_hour` | double | O | `1` |
+| `maximum_travel_time_from_start_location` | duration | O | |
+| `maximum_individual_travel_time` | duration | O | |
+| `maximum_travel_time_per_shift` | duration | O | |
+| `minimum_jobs_per_shift` | integer | O | |
+| `maximum_jobs_per_shift` | integer | O | |
+| `pre_shift_travel_period` | duration | O | `PT0S` |
+| `post_shift_travel_period` | duration | O | `PT0S` |
+| `overtime_period` | duration | O | `PT0S` |
+| `overtime_cost_multiplier` | double | O | `5` |
+| `shift_penalty` | double | O | `0` — pénalité par shift dès qu'au moins un job y est planifié ; utile pour inciter à concentrer le travail sur moins de ressources/shifts |
 
 ---
 
-## Module Output
+## Sortie (`POST /schedule`, code 200)
 
-### JobResourceAllocation (Output)
-| Champ | Type | M/O |
-|---|---|---|
-| job_id | String(32) | M |
-| resource_index | Integer | M |
-| resource_id | String(32) | M |
+```json
+{
+  "allocations": [
+    { "job_id": "JOB-1", "visits": [
+      { "visit_id": 1, "resource_id": "RES-1", "start_date_time": "...", "end_date_time": "..." }
+    ]}
+  ],
+  "travels": [
+    { "resource_id": "RES-1", "start_date_time": "...", "end_date_time": "...", "distance_in_metres": 4200, "start_location_id": "DEPOT", "end_location_id": "LOC-1" }
+  ],
+  "unallocated_job_reasons": [
+    { "job_id": "JOB-2", "unallocated_reason": "AllPossibleResourcesFull" }
+  ],
+  "break_allocations": [
+    { "resource_id": "RES-1", "start_date_time": "...", "end_date_time": "..." }
+  ]
+}
+```
 
-### JobDateTimeAllocation (Output)
-| Champ | Type | M/O |
-|---|---|---|
-| job_id | String(32) | M |
-| resource_index | Integer | M |
-| visit_id | Integer | M | plusieurs lignes si job découpé |
-| start_date_time | DateTime | M |
-| end_date_time | DateTime | M |
+**Point important, confirmé par test réel le 26/10/2026** : `allocations[]` est une
+liste **par job**, chaque entrée portant une liste `visits[]` (pas une liste plate
+`{job_id, resource_id, ...}`). Un job a plusieurs `visits` seulement si `split_allowed`
+l'a fait étaler **dans le temps** — jamais plusieurs ressources sur la même visite.
+**Il n'y a aucun champ qui permettrait d'exprimer "ce job nécessite 2 ressources en
+même temps"** — voir avertissement ci-dessous.
 
-### BreakAllocation (Output)
-| Champ | Type | M/O |
-|---|---|---|
-| break_id | String(32) | M |
-| resource_id | String(32) | M |
-| start_date_time | DateTime | M |
-| end_date_time | DateTime | M |
-
-### Travel (Output)
-| Champ | Type | M/O |
-|---|---|---|
-| resource_id | String(32) | M |
-| start_date_time | DateTime | M |
-| end_date_time | DateTime | M |
-| distance_in_metres | Double | M |
-| start_location_id | String(32) | O |
-| end_location_id | String(32) | O |
-
-### UnallocatedJobReason (Output)
-| Champ | Type | M/O |
-|---|---|---|
-| job_id | String(32) | M |
-| unallocated_reason | String | M | voir énumération ci-dessous |
-
-### OutputInformation (Output)
-| Champ | Type | M/O |
-|---|---|---|
-| last_change_id | Long | O |
-| output_type | String(32) | O | "COMPLETE" ou "UPDATE" |
-| last_input_change_id | Long | O |
+Les raisons possibles de `unallocated_reason` ne sont pas documentées sur cette page
+self-service (elles l'étaient dans le PDF de l'offre complète — `NotCalculated`,
+`ZeroValue`, `AllPossibleResourcesFull`, etc.). À traiter comme des valeurs probables
+mais non garanties tant qu'un test réel n'en a pas confirmé l'exhaustivité côté
+self-service.
 
 ---
 
-## Module Constraints
+## ⚠️ Mécanismes absents de l'API self-service
 
-### Requirement (Input)
-| Champ | Type | M/O |
-|---|---|---|
-| id | String(32) | M |
+Confirmés absents du schéma OpenAPI réel (donc : un payload qui en envoie reçoit un
+HTTP 200 mais le mécanisme est **silencieusement ignoré**, pas une erreur) :
 
-### JobTypeRequirement / JobRequirement / JobResourceRequirement / ResourceTypeRequirement / ResourceRequirement / ShiftRequirement (Input)
-Toutes sur le même schéma : FK vers l'entité concernée + `requirement_id` (M, FK
-Requirement). `JobResourceRequirement` a en plus `resource_index` (Integer, M(1)).
+- **Job multi-ressources / binôme** (pas de `JobResource`, `resource_index`, ni aucun
+  champ "nombre de ressources requises" — `split_allowed` ne concerne que l'étalement
+  dans le temps). Confirmé par test réel le 26/10/2026 : deux appels identiques sur un
+  job déclaré "binôme" n'ont chacun alloué qu'une seule ressource, sans erreur.
+- **Pièces/stock embarqué** (pas de `Part`, `JobResourcePart`, `ResourcePart`).
+- **Ordre/dépendance entre jobs** (pas de `PreRequisiteDefinition`).
+- **Horizon de planification borné** (pas de `ScheduleDefinition`).
+- **Disponibilité récurrente** (pas de pattern "tous les lundis" — seulement des
+  fenêtres fixes via `availabilities`/`unavailabilities`).
+- **`appointment_priority`** en tant que champ dédié (le besoin métier "rendez-vous
+  prioritaire" se couvre avec `appointment_sla` + `base_jeopardy_penalty`, pas avec un
+  champ de priorité séparé).
 
-### Part (Input)
-| Champ | Type | M/O |
-|---|---|---|
-| id | String(32) | M |
-
-### JobTypePart / JobPart / JobResourcePart (Input)
-FK vers l'entité + `part_id` (M, FK Part) + `consumption` (Integer, M). `JobResourcePart`
-ajoute `resource_index` (Integer, M(1)).
-
-### ResourceTypePart / ResourcePart / ShiftPart (Input)
-FK vers l'entité + `part_id` (M, FK Part) + `available_quantity` (Integer, M).
-
----
-
-## Module Events
-
-### JobResourceStatus (Input)
-| Champ | Type | M/O |
-|---|---|---|
-| job_id | String(32) | M |
-| resource_index | Integer | M(1) |
-| visit_id | Integer | M |
-| travel_start_date_time | DateTime | O |
-| expected_arrival_date_time | DateTime | O |
-| start_date_time | DateTime | O |
-| end_date_time | DateTime | O |
-
-### ResourceKnownLocation (Input)
-| Champ | Type | M/O |
-|---|---|---|
-| resource_id | String(32) | M |
-| date_time_stamp | DateTime | M |
-| latitude | Double | M |
-| longitude | Double | M |
-
----
-
-## Module Advanced
-
-### PreRequisiteDefinition (Input)
-| Champ | Type | M/O | Défaut |
-|---|---|---|---|
-| earlier_job_id | String(32) | M | |
-| later_job_id | String(32) | M | |
-| minimum_time_difference | TimeSpan | O | |
-| maximum_time_difference | TimeSpan | O | |
-| same_resource | Boolean | M | false |
-| all_or_nothing | Boolean | M | false |
-
-### JobResourcePriority (Input) — *WIP*
-| Champ | Type | M/O |
-|---|---|---|
-| job_id | String(32) | M |
-| resource_index | Integer | M(1) |
-| resource_id | String(32) | M |
-| priority | String(32) | M | `MANDATORY` \| `FAVOURED` \| `UNFAVOURED` \| `FORBIDDEN` |
-
-### AllowedSplitPoint (Input) — *WIP*
-| Champ | Type | M/O |
-|---|---|---|
-| job_id | String(32) | M |
-| index | Integer | M(1) |
-| duration | TimeSpan | M |
-
-⚠️ Les entités marquées *WIP* dans la doc source peuvent ne pas être pleinement
-supportées par le moteur — à valider par un appel réel avant de s'appuyer dessus en
-prod.
-
----
-
-## Énumération complète — `unallocated_reason`
-
-| Valeur | Signification |
-|---|---|
-| NotCalculated | raison non calculée (contrainte de temps de calcul) |
-| Unknown | raison indéterminée |
-| ZeroValue | valeur du job = 0, impossible à planifier |
-| NoValidTimeWithinSchedulingWindow | pas de fenêtre de temps valide dans la fenêtre de planification |
-| NoPossibleResources | job fixé (fixed_resource_id) sur une ressource non permise |
-| AllPossibleResourcesFull | aucune ressource n'a de temps libre |
-| NoAvailableResourcesMaxTravel | toutes les ressources dépasseraient leur trajet max |
-| AvailableResourcesLittleTime | ressources dispo mais pas le temps d'y aller |
-| PossibleResourcesDistant | ressources dispo mais toutes trop loin |
-| PossibleResourcesInsufficientParts | pas assez de pièces/stock embarqué |
-| PossibleResourcesHaveMaxJobs | ressources déjà au max de jobs/shift |
-| LowValue | valeur trop basse pour justifier le détour |
-| JobInvalid | données du job invalides, non chargées |
-| MultiResourceJob | job multi-ressources difficile à caser |
-| InvalidFixedJobsInPossibleRoute | d'autres jobs fixés invalides perturbent la route |
-| CostsOutweighJobValue | coût de réalisation > valeur du job |
-| NoAvailableResourcesMaxTravelInShift | dépasserait le trajet max du shift |
-| PossibleResourcesNoShiftAtTime | aucune ressource n'a de shift sur ce créneau |
-| ResourceNotPermitted | ressource individuelle non autorisée |
-| ResourceNotPermittedPreReqs | non autorisée à cause d'une contrainte de pré-requis |
-| PreRequisiteJobNotAllocated | un job pré-requis n'a pas été planifié |
-| DependantJobNotAllocated | un job dépendant n'a pas été planifié |
+Si le besoin d'un client correspond à l'un de ces points, voir
+`reference/offre-complete-nomadia.md` : ne jamais lui dire "impossible" ni essayer de
+l'encoder quand même dans le self-service — montrer que Nomadia sait le faire (offre
+complète) et orienter vers un contact.
