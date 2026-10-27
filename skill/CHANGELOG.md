@@ -1,5 +1,36 @@
 # Changelog du skill
 
+## 1.23 — 2026-10-27
+- **L'entretien de découverte (v1.22) passe en QCM** : chaque section de
+  `reference/sections.json` a maintenant une liste d'options numérotées
+  (`options[].id/label/criteria`) en plus de ses critères — le client répond en
+  cochant un ou plusieurs numéros plutôt qu'en rédigeant une réponse ouverte, et peut
+  toujours ajouter une précision libre. Nouvelle sous-commande
+  `scripts/interview_state.py options <section>` pour afficher le questionnaire.
+  `record` accepte `--options id1,id2,...` et marque **automatiquement** les critères
+  liés (plus besoin que l'agent devine) ; le texte libre optionnel vient en
+  complément, composé avec les choix dans la réponse enregistrée.
+- **Couleurs ANSI par défaut dans le terminal** pour toute la sortie de
+  `interview_state.py` ([OK] en vert, [ERROR] en rouge, symboles ○/◐/● de couverture,
+  pourcentage d'avancement en cyan, numéros du QCM) — désactivées automatiquement si
+  `NO_COLOR` est défini ou si la sortie n'est pas un vrai terminal (redirection,
+  pipe), pour ne jamais polluer une sortie relue par un autre outil.
+- **Nouveau critère "clé API + suivi des crédits"** dans la section `niveau_offre` :
+  le PRD ne se considère plus complet sans confirmer explicitement que la clé API
+  utilisée appartient au client courant et sans indiquer où suivre sa consommation de
+  crédits (portail Nomadia) avant un premier appel réel — relié à `ONBOARDING.md` §2
+  et au garde-fou clé API déjà présent en `SKILL.md` §-1. `reference/regles-entretien.md`
+  §7 rappelle ce point explicitement au moment d'enchaîner le PRD vers un appel réel.
+- **Retrait de toute mention du nom d'un concurrent** (présent dans `SKILL.md`,
+  `llms.txt`, `reference/decouverte-besoin.md`, `reference/regles-entretien.md`,
+  `reference/sections.json`, `scripts/interview_state.py`, `scripts/doctor.py`,
+  `scripts/compare_scenarios.py`, `reference/replanification-temps-reel.md`,
+  `CHANGELOG.md`) — la méthode (découverte par thèmes, suivi de couverture, document
+  de besoins généré une fois le cadrage suffisant) reste la même, décrite sans nommer
+  l'outil qui l'a inspirée. Le comparatif commercial détaillé reste uniquement dans
+  `internal/battlecard-timefold.md`, jamais livré au client
+  (`scripts/package_for_client.py` ne copie que `skill/`).
+
 ## 1.22bis — 2026-10-27
 - **Renommé le skill `nomadia-scheduler-api` → `nomadia`**, nom plus simple à retenir
   et à invoquer. Changé dans `SKILL.md` (`name:`), `llms.txt`, `ONBOARDING.md`,
@@ -11,7 +42,7 @@
 ## 1.22 — 2026-10-27
 - **Entretien structuré avec état persistant et génération de PRD**, pour aller plus
   loin que `reference/decouverte-besoin.md` (découverte en prose) vers un vrai moteur
-  comme le PRD Assistant de Timefold :
+  de cadrage conversationnel :
   - `reference/sections.json` : les 5 sections de l'entretien (entités, contraintes,
     objectifs, taille, niveau d'offre) en JSON machine-lisible, chacune avec sa
     question d'ouverture et ses critères de couverture, + le seuil global
@@ -32,9 +63,9 @@
     les critères manquants, réouverture d'une section déjà couverte, et l'enchaînement
     du PRD généré vers la construction du payload/code — pas une fin en soi).
   - **Avancement affiché à chaque `record`** (pourcentage global + sections
-    complètes/total), sur le modèle du "coverage: X%" de Timefold — à partager au
-    client à chaque changement de section (`regles-entretien.md` §2bis) pour qu'il voie
-    une progression naturelle et mesurable plutôt que de deviner où en est l'entretien.
+    complètes/total) — à partager au client à chaque changement de section
+    (`regles-entretien.md` §2bis) pour qu'il voie une progression naturelle et
+    mesurable plutôt que de deviner où en est l'entretien.
   - PRD écrit dans `skill/output/<slug-titre>-PRD-<6 hex>.md` (dossier gitignored : un
     PRD est spécifique à un client, jamais à committer dans le repo public du skill).
   - `SKILL.md` §0ter et §10, et `llms.txt`, mis à jour pour pointer vers ce nouveau
@@ -44,11 +75,10 @@
 
 ## 1.21 — 2026-10-27
 - **Nouveau `reference/decouverte-besoin.md`** : découverte structurée du besoin en 4
-  thèmes (entités, contraintes, objectifs, taille du problème), inspirée de l'analyse
-  du "PRD Assistant" de Timefold (https://prd.timefold.ai — conversation guidée +
-  notion de couverture avant génération), mais adaptée à ce que ce skill sait faire en
-  plus : lire le code existant du client (§0 Étape 1) et trancher explicitement entre
-  les deux offres Nomadia, ce que Timefold n'a pas à faire.
+  thèmes (entités, contraintes, objectifs, taille du problème), avec une conversation
+  guidée et une notion de couverture avant génération, adaptée à ce que ce skill sait
+  faire en plus : lire le code existant du client (§0 Étape 1) et trancher
+  explicitement entre les deux offres Nomadia.
 - **Garde-fou explicite ajouté à `SKILL.md` §0 Étape 2** : dès qu'un besoin client
   touche un mécanisme de l'offre complète (multi-ressources, stock, ordre entre jobs,
   horizon borné, récurrence), l'agent doit **poser la question self-service vs offre
@@ -319,32 +349,29 @@
 
 ## 1.7 — 2026-10-23
 - Ajout `skill/llms.txt` : index priorisé des fichiers du skill pour un agent IA qui
-  découvre le repo — inspiré du `llms.txt` de la doc Nomadia et du pattern
-  `context7.json` du repo GitHub `TimefoldAI/timefold-solver` (manifestes
-  machine-lisibles pensés pour un agent, pas pour un humain qui parcourt au hasard).
-- Ajout `CONTRIBUTING.md` (racine du repo) : principes de contribution inspirés du
-  `CONTRIBUTING.md`/`CONSTITUTION.md` du repo Timefold — jamais de champ deviné,
-  jamais de clé API en dur, tout exemple doit passer le validateur, toute modif du
-  validateur doit relancer ses tests, versionner SKILL.md + CHANGELOG + llms.txt à
-  chaque évolution.
+  découvre le repo — inspiré du `llms.txt` de la doc Nomadia et des manifestes
+  machine-lisibles (type `context7.json`) qu'on trouve sur plusieurs repos GitHub
+  d'outils IA, pensés pour un agent plutôt que pour un humain qui parcourt au hasard.
+- Ajout `CONTRIBUTING.md` (racine du repo) : principes de contribution — jamais de
+  champ deviné, jamais de clé API en dur, tout exemple doit passer le validateur,
+  toute modif du validateur doit relancer ses tests, versionner SKILL.md + CHANGELOG +
+  llms.txt à chaque évolution.
 - `SKILL.md` §13bis : pointeur explicite vers `llms.txt` pour tout agent qui découvre
   le skill en premier.
 
 ## 1.6 — 2026-10-23
-- Ajout `reference/battlecard-timefold.md` : argumentaire commercial factuel vs
-  Timefold (barrière technique Java/Kotlin-only de leur Solver open source, pricing
-  100% "contact sales" de leur offre Platform, géocodage inclus chez Nomadia) +
-  reconnaissance honnête de ce que Timefold fait mieux (échelle 500k jobs,
-  explicabilité native payante, what-if avancé) + réponses aux objections courantes.
-  Sourcé sur docs.timefold.ai et timefold.ai/pricing au 23/10/2026.
+- Ajout d'un argumentaire commercial interne (positionnement vs solveurs scientifiques
+  concurrents) + réponses aux objections courantes — déplacé depuis vers `internal/`
+  dès la version suivante qui a séparé le contenu interne du contenu livré au client
+  (voir entrée correspondante plus bas dans ce changelog).
 
 ## 1.5 — 2026-10-23
 - Ajout `scripts/compare_scenarios.py` : comparateur de scénarios, zéro dépendance.
   Mode statique (diff de config, gratuit) ou mode réel (`--api-key`, vrai avant/après
   chiffré sur taux d'allocation/distance/crédits — consomme de vrais crédits, à
   n'utiliser qu'avec l'accord explicite de l'utilisateur). Réponse directe au fait que
-  les solveurs scientifiques (Timefold, OptaPlanner) vendent souvent le benchmarking
-  comme fonctionnalité Enterprise.
+  les solveurs scientifiques généralistes vendent souvent le benchmarking comme
+  fonctionnalité Enterprise.
 - Ajout `reference/replanification-temps-reel.md` : documente les patterns Nomadia
   équivalents aux fonctionnalités "continuous/real-time planning" et "pinned planning
   variables" des solveurs généralistes (fixed_resource_id + commit_date_time_stamp,

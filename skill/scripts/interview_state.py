@@ -5,9 +5,8 @@ uniquement, aucune dépendance externe.
 
 Pourquoi un fichier et pas la mémoire de la conversation : si la conversation est
 interrompue (coupure, changement d'agent, reprise le lendemain), l'état de l'entretien
-ne doit pas se reperdre. C'est ce qui rend un entretien du type "PRD Assistant" de
-Timefold fiable — l'état vit dans un fichier JSON, jamais seulement dans ce qu'un agent
-"se souvient" avoir demandé.
+ne doit pas se reperdre. L'état vit dans un fichier JSON, jamais seulement dans ce
+qu'un agent "se souvient" avoir demandé.
 
 Les sections, questions d'ouverture et critères de couverture sont lus depuis
 reference/sections.json — ce script ne contient aucun texte métier en dur, pour que
@@ -17,10 +16,20 @@ Usage :
     python3 scripts/interview_state.py start
         -> crée un nouvel entretien, affiche son interview_id
 
-    python3 scripts/interview_state.py record <section_id> "<réponse du client>" [--interview ID]
-        -> enregistre un tour sur une section, met à jour sa couverture (voir
-           "Évaluation de couverture" ci-dessous), affiche la progression de CETTE
-           section après l'enregistrement
+    python3 scripts/interview_state.py options <section_id>
+        -> affiche le QCM de cette section (options numérotées + leur id), à poser au
+           client tel quel : "plusieurs choix possibles, et tu peux préciser en plus"
+
+    python3 scripts/interview_state.py record <section_id> ["<précision libre>"] [--options id1,id2,...] [--interview ID]
+        -> enregistre un tour sur une section. --options prend les id choisis par le
+           client (voir 'options <section_id>'), séparés par des virgules, et marque
+           AUTOMATIQUEMENT les critères que ces choix couvrent
+           (reference/sections.json: options[].criteria) — plus besoin que l'agent
+           devine quel critère une réponse libre couvre. Le texte libre optionnel
+           (positionnel, à placer avant --options) s'ajoute en précision, pour ce
+           qu'aucune option ne couvre. --mark-criterion/--unmark-criterion restent
+           disponibles pour un ajustement manuel (ex. critères 2/3 qui dépendent d'une
+           autre section, jamais couverts par un seul choix QCM).
 
     python3 scripts/interview_state.py progress [--interview ID] [--verbose]
         -> affiche l'état de couverture de toutes les sections (○ ouvert / ◐ en cours /
@@ -38,13 +47,14 @@ Usage :
            de l'utilisateur à transmettre depuis l'agent, jamais à activer par défaut).
 
 Évaluation de couverture — volontairement simple et vérifiable, PAS de NLP/LLM dans ce
-script : un critère d'une section est marqué couvert dès qu'AU MOINS UNE réponse
-enregistrée sur cette section contient un mot-clé associé (voir CRITERION_KEYWORDS
-ci-dessous) OU dès que l'agent appelant marque explicitement le critère comme couvert
-via --mark-criterion (l'agent, lui, SAIT ce qu'il vient de confirmer avec le client ;
-ce script ne fait que persister ce qu'on lui dit, il ne comprend pas le français). Une
-section est "◐ en cours" si au moins un tour est enregistré mais pas tous ses critères
-couverts, "● couvert" si tous ses critères sont couverts, "○ ouvert" si aucun tour.
+script : un critère d'une section est marqué couvert dès que le client a choisi une
+option liée à ce critère (voir `options <section>` et `sections.json: options[].criteria`),
+OU dès que l'agent appelant le marque explicitement via --mark-criterion (pour les
+critères qu'un seul choix ne suffit pas à couvrir — l'agent, lui, SAIT ce qu'il vient de
+confirmer avec le client ; ce script ne fait que persister ce qu'on lui dit, il ne
+comprend pas le français). Une section est "◐ en cours" si au moins un tour est
+enregistré mais pas tous ses critères couverts, "● couvert" si tous ses critères sont
+couverts, "○ ouvert" si aucun tour.
 
 Ce script n'invente jamais de réponse : si un critère n'est pas marqué couvert, il reste
 non couvert, point. C'est à l'agent (voir SKILL.md, règles d'entretien) de relancer sur
@@ -53,6 +63,7 @@ deviner.
 """
 import argparse
 import json
+import os
 import secrets
 import sys
 from datetime import datetime, timezone
@@ -63,6 +74,23 @@ SECTIONS_FILE = SKILL_ROOT / "reference" / "sections.json"
 STATE_DIR = SKILL_ROOT.parent / ".interview_state"  # hors du repo du skill lui-même,
 # jamais committé (voir .gitignore racine) : un état d'entretien est spécifique à un
 # client, pas au skill.
+
+# Couleurs ANSI par défaut dans le terminal — désactivées automatiquement si
+# NO_COLOR est défini (convention standard, voir no-color.org) ou si la sortie n'est
+# pas un vrai terminal (redirection vers un fichier, pipe, agent qui capture le texte
+# brut) : jamais de code ANSI littéral dans un fichier ou un résultat non affiché tel
+# quel. Aucune dépendance externe (pas de colorama) — juste des séquences ANSI brutes.
+_USE_COLOR = not os.environ.get("NO_COLOR") and sys.stdout.isatty()
+_CODES = {"green": "32", "red": "31", "yellow": "33", "cyan": "36", "bold": "1", "dim": "2"}
+
+
+def c(text: str, *styles: str) -> str:
+    """Colore `text` si le terminal le supporte, sinon le rend tel quel — jamais de
+    code ANSI qui traînerait dans une sortie redirigée ou relue par un autre outil."""
+    if not _USE_COLOR or not styles:
+        return text
+    prefix = "".join(f"\033[{_CODES[s]}m" for s in styles if s in _CODES)
+    return f"{prefix}{text}\033[0m"
 
 
 def load_sections():
@@ -82,7 +110,7 @@ def new_interview_id() -> str:
 def load_state(interview_id: str) -> dict:
     path = state_path(interview_id)
     if not path.exists():
-        print(f"[ERROR] Aucun entretien avec l'id {interview_id} ({path} introuvable). "
+        print(f"{c('[ERROR]', 'red', 'bold')} Aucun entretien avec l'id {interview_id} ({path} introuvable). "
               f"Lance 'start' d'abord.", file=sys.stderr)
         sys.exit(1)
     with open(path, "r", encoding="utf-8") as f:
@@ -109,7 +137,7 @@ def latest_interview_id() -> str | None:
 def resolve_interview_id(args) -> str:
     interview_id = getattr(args, "interview", None) or latest_interview_id()
     if not interview_id:
-        print("[ERROR] Aucun entretien trouvé. Lance 'start' d'abord, ou précise "
+        print(f"{c('[ERROR]', 'red', 'bold')} Aucun entretien trouvé. Lance 'start' d'abord, ou précise "
               "--interview ID.", file=sys.stderr)
         sys.exit(1)
     return interview_id
@@ -133,7 +161,7 @@ def cmd_start(args):
         },
     }
     save_state(state)
-    print(f"[OK] Entretien créé : {interview_id}")
+    print(f"{c('[OK]', 'green', 'bold')} Entretien créé : {interview_id}")
     print(f"     État : {state_path(interview_id)}")
     print(f"     Sections à couvrir : {', '.join(s['id'] for s in sections)}")
     first = sections[0]
@@ -141,36 +169,89 @@ def cmd_start(args):
     print(f"  {first['opening_question']}")
 
 
+def cmd_options(args):
+    sections, _ = load_sections()
+    sec_def = next((s for s in sections if s["id"] == args.section), None)
+    if sec_def is None:
+        print(f"{c('[ERROR]', 'red', 'bold')} Section inconnue : '{args.section}'. Sections valides : "
+              f"{', '.join(sorted(s['id'] for s in sections))}", file=sys.stderr)
+        sys.exit(1)
+
+    print(sec_def["opening_question"])
+    for i, opt in enumerate(sec_def.get("options", []), start=1):
+        id_tag = c(f"[id: {opt['id']}]", "dim")
+        print(f"  {c(str(i), 'cyan', 'bold')}. {opt['label']}   {id_tag}")
+    if sec_def.get("allow_free_text", True):
+        print("  (+ tu peux ajouter une précision libre en plus de tes choix)")
+    print("\n-> plusieurs choix possibles. Présente cette liste numérotée au client "
+          "tel quel (sans les [id: ...], c'est pour toi) ; il répond par les numéros, "
+          "et record --options reçoit les id correspondants séparés par des virgules "
+          "(ex. --options e1,e4,e6).")
+
+
+def _resolve_options(sec_def: dict, option_ids: list[str] | None) -> tuple[list[str], list[int]]:
+    """Retourne (labels choisis, indices de critères couverts) pour une liste d'id
+    d'options. Erreur si un id ne correspond à aucune option connue de la section —
+    jamais un id ignoré silencieusement, pour éviter de rater une réponse du client."""
+    if not option_ids:
+        return [], []
+    by_id = {opt["id"]: opt for opt in sec_def.get("options", [])}
+    labels, criteria_idx = [], []
+    for oid in option_ids:
+        opt = by_id.get(oid)
+        if opt is None:
+            valid = ", ".join(sorted(by_id)) or "(aucune option définie pour cette section)"
+            print(f"{c('[ERROR]', 'red', 'bold')} Option inconnue '{oid}' pour la section '{sec_def['id']}'. "
+                  f"Options valides : {valid}. Vérifie avec "
+                  f"'scripts/interview_state.py options {sec_def['id']}'.", file=sys.stderr)
+            sys.exit(1)
+        labels.append(opt["label"])
+        criteria_idx.extend(opt.get("criteria", []))
+    return labels, criteria_idx
+
+
 def cmd_record(args):
     sections, _ = load_sections()
     section_ids = {s["id"] for s in sections}
     if args.section not in section_ids:
-        print(f"[ERROR] Section inconnue : '{args.section}'. Sections valides : "
+        print(f"{c('[ERROR]', 'red', 'bold')} Section inconnue : '{args.section}'. Sections valides : "
               f"{', '.join(sorted(section_ids))}", file=sys.stderr)
         sys.exit(1)
+
+    sec_def = next(s for s in sections if s["id"] == args.section)
+    option_ids = [o.strip() for o in args.options.split(",") if o.strip()] if args.options else []
+    option_labels, option_criteria = _resolve_options(sec_def, option_ids)
+
+    free_text = (args.answer or "").strip()
+    if not option_labels and not free_text:
+        print(f"{c('[ERROR]', 'red', 'bold')} Rien à enregistrer : passe --options (choix du client) et/ou "
+              "un texte libre.", file=sys.stderr)
+        sys.exit(1)
+    composed = "; ".join(option_labels)
+    if free_text:
+        composed = f"{composed} + précision : {free_text}" if composed else free_text
 
     interview_id = resolve_interview_id(args)
     state = load_state(interview_id)
     sec_state = state["sections"][args.section]
     sec_state["turns"].append({
         "at": datetime.now(timezone.utc).isoformat(),
-        "answer": args.answer,
+        "answer": composed,
+        **({"option_ids": option_ids} if option_ids else {}),
     })
-
-    sec_def = next(s for s in sections if s["id"] == args.section)
 
     def _check_idx(idx):
         if not (0 <= idx < len(sec_def["criteria"])):
-            print(f"[ERROR] Index de critère invalide pour '{args.section}' : {idx} "
+            print(f"{c('[ERROR]', 'red', 'bold')} Index de critère invalide pour '{args.section}' : {idx} "
                   f"(section a {len(sec_def['criteria'])} critères, 0-indexés)",
                   file=sys.stderr)
             sys.exit(1)
 
-    if args.mark_criterion is not None:
-        for idx in args.mark_criterion:
-            _check_idx(idx)
-            if idx not in sec_state["covered_criteria"]:
-                sec_state["covered_criteria"].append(idx)
+    all_to_mark = list(option_criteria) + list(args.mark_criterion or [])
+    for idx in all_to_mark:
+        _check_idx(idx)
+        if idx not in sec_state["covered_criteria"]:
+            sec_state["covered_criteria"].append(idx)
 
     if args.unmark_criterion is not None:
         for idx in args.unmark_criterion:
@@ -188,13 +269,13 @@ def cmd_record(args):
         1 for s in sections
         if len(state["sections"][s["id"]]["covered_criteria"]) >= state["sections"][s["id"]]["total_criteria"]
     )
-    print(f"[OK] Tour enregistré sur '{args.section}' (entretien {interview_id}).")
+    print(f"{c('[OK]', 'green', 'bold')} Tour enregistré sur '{args.section}' (entretien {interview_id}).")
     print(f"     Couverture de cette section : {n_covered}/{n_total}")
-    print(f"     Avancement global : {global_pct}% ({n_sections_done}/{len(sections)} "
-          f"sections complètes, seuil PRD {threshold}%)")
+    print(f"     Avancement global : {c(f'{global_pct}%', 'cyan', 'bold')} "
+          f"({n_sections_done}/{len(sections)} sections complètes, seuil PRD {threshold}%)")
     print("     -> Partage ce chiffre avec le client à un moment naturel (ex. en "
-          "clôturant la section) pour qu'il voie l'avancement, comme le fait le PRD "
-          "Assistant de Timefold — voir reference/regles-entretien.md §2bis.")
+          "clôturant la section) pour qu'il voie l'avancement — voir "
+          "reference/regles-entretien.md §2bis.")
     if n_covered < n_total:
         missing = [
             sec_def["criteria"][i] for i in range(n_total)
@@ -211,7 +292,7 @@ def cmd_edit(args):
     sections, _ = load_sections()
     section_ids = {s["id"] for s in sections}
     if args.section not in section_ids:
-        print(f"[ERROR] Section inconnue : '{args.section}'. Sections valides : "
+        print(f"{c('[ERROR]', 'red', 'bold')} Section inconnue : '{args.section}'. Sections valides : "
               f"{', '.join(sorted(section_ids))}", file=sys.stderr)
         sys.exit(1)
 
@@ -220,7 +301,7 @@ def cmd_edit(args):
     sec_state = state["sections"][args.section]
     turns = sec_state["turns"]
     if not (0 <= args.turn_index < len(turns)):
-        print(f"[ERROR] Index de tour invalide pour '{args.section}' : {args.turn_index} "
+        print(f"{c('[ERROR]', 'red', 'bold')} Index de tour invalide pour '{args.section}' : {args.turn_index} "
               f"({len(turns)} tour(s) enregistré(s), 0-indexés). Utilise "
               f"'progress --verbose' pour voir les tours et leur index.", file=sys.stderr)
         sys.exit(1)
@@ -230,7 +311,7 @@ def cmd_edit(args):
     turns[args.turn_index]["edited_at"] = datetime.now(timezone.utc).isoformat()
     save_state(state)
 
-    print(f"[OK] Réponse corrigée sur '{args.section}' (tour {args.turn_index}).")
+    print(f"{c('[OK]', 'green', 'bold')} Réponse corrigée sur '{args.section}' (tour {args.turn_index}).")
     print(f"     Avant : {old_answer}")
     print(f"     Après : {args.answer}")
     print("     La couverture des critères n'a pas changé automatiquement — si cette "
@@ -240,10 +321,10 @@ def cmd_edit(args):
 
 def section_symbol(n_covered: int, n_turns: int, n_total: int) -> str:
     if n_covered >= n_total and n_total > 0:
-        return "●"
+        return c("●", "green", "bold")
     if n_turns > 0:
-        return "◐"
-    return "○"
+        return c("◐", "yellow", "bold")
+    return c("○", "dim")
 
 
 def compute_global_percent(state: dict, sections: list) -> float:
@@ -276,8 +357,11 @@ def cmd_progress(args):
 
     pct = compute_global_percent(state, sections)
     print("-" * 60)
-    status = "OK — PRD possible" if pct >= threshold else f"sous le seuil de {threshold}%"
-    print(f"  Couverture globale : {pct}% ({status})")
+    if pct >= threshold:
+        status = c("OK — PRD possible", "green", "bold")
+    else:
+        status = c(f"sous le seuil de {threshold}%", "yellow")
+    print(f"  Couverture globale : {c(f'{pct}%', 'cyan', 'bold')} ({status})")
 
 
 def render_prd_markdown(state: dict, sections: list, pct: float) -> str:
@@ -333,7 +417,7 @@ def cmd_prd(args):
     pct = compute_global_percent(state, sections)
 
     if pct < threshold and not args.force:
-        print(f"[ERROR] Couverture globale {pct}% < seuil {threshold}%. Le PRD n'est "
+        print(f"{c('[ERROR]', 'red', 'bold')} Couverture globale {pct}% < seuil {threshold}%. Le PRD n'est "
               f"généré qu'au-dessus du seuil, SAUF demande explicite de l'utilisateur "
               f"(relancer avec --force dans ce cas précis — jamais par défaut).",
               file=sys.stderr)
@@ -348,7 +432,7 @@ def cmd_prd(args):
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(md)
 
-    print(f"[OK] PRD écrit : {out_path}")
+    print(f"{c('[OK]', 'green', 'bold')} PRD écrit : {out_path}")
     print(f"     Couverture au moment de la génération : {pct}%"
           + (" (forcé sous le seuil)" if pct < threshold else ""))
 
@@ -361,9 +445,21 @@ def main():
     p_start.add_argument("--title", help="titre provisoire du besoin/client (peut être affiné plus tard)")
     p_start.set_defaults(func=cmd_start)
 
+    p_options = sub.add_parser("options", help="affiche le QCM d'une section (options numérotées à poser au client)")
+    p_options.add_argument("section", help="id de section (voir reference/sections.json)")
+    p_options.set_defaults(func=cmd_options)
+
     p_record = sub.add_parser("record", help="enregistre un tour sur une section")
     p_record.add_argument("section", help="id de section (voir reference/sections.json)")
-    p_record.add_argument("answer", help="réponse du client, reformulée fidèlement — jamais inventée")
+    p_record.add_argument("answer", nargs="?", default="",
+                           help="précision libre du client, en plus de --options (optionnel si "
+                                "--options suffit) — jamais inventée")
+    p_record.add_argument("--options", default=None,
+                           help="id des options choisies par le client (voir 'options <section>'), "
+                                "séparés par des virgules — ex. --options e1,e3 — marque "
+                                "automatiquement les critères liés. Une seule chaîne (pas "
+                                "plusieurs valeurs) pour ne jamais entrer en conflit avec le "
+                                "texte libre positionnel, quel que soit l'ordre des arguments.")
     p_record.add_argument("--interview", help="id de l'entretien (défaut : le plus récent)")
     p_record.add_argument("--mark-criterion", type=int, nargs="*", default=None,
                            help="index(es) 0-based des critères de cette section que CETTE réponse "

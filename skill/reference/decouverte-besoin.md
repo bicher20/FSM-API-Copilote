@@ -1,14 +1,12 @@
 # Découverte structurée du besoin — avant d'écrire le moindre payload
 
-**Pourquoi ce fichier.** Inspiré de l'analyse du "PRD Assistant" de Timefold
-(https://prd.timefold.ai, concurrent direct sur l'optimisation de tournées) : leur
-outil mène une conversation guidée sur 4 thèmes (entités, contraintes, objectifs,
-taille du problème), suit une "couverture" du besoin, puis ne génère le document de
-spec qu'une fois cette couverture complète. Ce fichier reprend cette méthode, mais
-l'adapte à ce qu'on sait réellement faire : contrairement à Timefold, ce skill peut
-**lire le code existant du client** (§0 Étape 1 de `SKILL.md`) avant même de poser une
-question, et doit trancher explicitement entre **deux offres Nomadia** (self-service
-vs complète) — chose que Timefold n'a pas à faire.
+**Pourquoi ce fichier.** Une conversation guidée sur 4 thèmes (entités, contraintes,
+objectifs, taille du problème), qui suit une "couverture" du besoin et ne génère le
+document de spec (le PRD) qu'une fois cette couverture suffisante — plutôt qu'un
+formulaire ou une liste de questions posées d'un bloc. Ce skill va plus loin que cette
+méthode générique : il peut **lire le code existant du client** (§0 Étape 1 de
+`SKILL.md`) avant même de poser une question, et doit trancher explicitement entre
+**deux offres Nomadia** (self-service vs complète).
 
 Ce fichier s'applique quel que soit l'agent qui exécute le skill (Claude Code, Cursor,
 Codex, ChatGPT avec accès fichiers, ou autre) — rien ici ne suppose un outil précis,
@@ -112,8 +110,8 @@ simples/moyens).
 
 ## Checklist de couverture — avant d'écrire le payload
 
-Reprend l'esprit du "coverage: X%" de Timefold, adapté à une checklist binaire plutôt
-qu'un pourcentage (plus simple à vérifier soi-même) :
+Un suivi de couverture adapté à une checklist binaire plutôt qu'un pourcentage (plus
+simple à vérifier soi-même) :
 
 - [ ] Entités identifiées (ressources, jobs, lieux) et mappées sur le modèle de données
       existant du client si un repo est ouvert

@@ -23,8 +23,8 @@ se fige dans le PRD.
 ## 2bis. Montrer l'avancement au client — jamais le laisser deviner où il en est
 
 Chaque `record` affiche désormais un **avancement global** (pourcentage + nombre de
-sections complètes sur le total), exactement ce qui alimente la barre "coverage: X%" du
-PRD Assistant de Timefold. Ne garde jamais ce chiffre pour toi seul : partage-le au
+sections complètes sur le total) — une barre de progression du besoin, pas juste une
+donnée interne. Ne garde jamais ce chiffre pour toi seul : partage-le au
 client à un moment naturel — typiquement dans la phrase de clôture d'une section ("Bien
 reçu, on tient le cadrage du planning — on est à environ 60% de l'ensemble, il reste la
 taille réelle et le type de clé API à voir") — pas après chaque phrase isolée, ce qui
@@ -94,4 +94,11 @@ Le PRD n'est pas la fin de la mission, c'est l'étape avant la construction (voi
 - si le code généré doit s'intégrer dans le projet du client (pas juste un payload
   JSON isolé), pars de `snippets/client.js`/`client.py` et du langage/stack déjà
   identifié à l'étape 1 — jamais une intégration générique déconnectée de ce qui existe
-  déjà chez le client.
+  déjà chez le client ;
+- **avant le premier appel réel**, reviens sur la section "niveau d'offre" du PRD :
+  confirme explicitement que la clé API utilisée appartient bien à CE client (jamais
+  une clé qui traîne d'un autre compte/session — voir `ONBOARDING.md` §2 et `SKILL.md`
+  §-1), et indique où suivre la consommation de crédits (portail Nomadia, dashboard) —
+  surtout si le client a choisi l'option "je veux savoir comment suivre ma
+  consommation" lors de l'entretien. Rappelle le coût d'un appel (`SKILL.md` §2 :
+  5 + ressources × jobs crédits) avant de lancer quoi que ce soit qui consomme.

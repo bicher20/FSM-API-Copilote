@@ -2,7 +2,7 @@
 """
 Comparateur de scénarios — exécutable en CLI, sans dépendance (urllib natif).
 
-Pourquoi ce script : les solveurs "scientifiques" (Timefold, OptaPlanner...) vendent le
+Pourquoi ce script : les solveurs "scientifiques" généralistes vendent souvent le
 benchmarking/l'analyse de score comme fonctionnalité avancée (souvent payante en
 édition Enterprise). Le Scheduler API de Nomadia n'expose pas de score détaillé par
 contrainte, mais on peut obtenir le même type de preuve empirique en comparant

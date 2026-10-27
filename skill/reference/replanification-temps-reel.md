@@ -1,7 +1,7 @@
 # Replanification temps réel et "pinning" — l'équivalent Nomadia des fonctions avancées des solveurs scientifiques
 
-Les solveurs généralistes (Timefold Solver, OptaPlanner...) documentent des
-fonctionnalités dédiées pour la planification continue/temps réel ("continuous
+Les solveurs généralistes documentent souvent des fonctionnalités dédiées pour la
+planification continue/temps réel ("continuous
 planning", "real-time planning", "non-disruptive replanning") et pour figer une
 affectation déjà engagée pendant que le solveur réoptimise le reste ("pinned planning
 variables"). Le Scheduler API de Nomadia n'a pas de nom marketing pour ça, mais les

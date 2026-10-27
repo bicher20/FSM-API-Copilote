@@ -1,11 +1,23 @@
 {
-  "_comment": "Sections de l'entretien guidé mené par scripts/interview_state.py, dans l'esprit du PRD Assistant de Timefold (prd.timefold.ai) : conversation par thèmes, couverture suivie explicitement, document de besoins généré seulement une fois la couverture suffisante. Reprend et formalise en JSON la méthode déjà décrite en prose dans reference/decouverte-besoin.md — ne pas dupliquer le texte ici, seulement la structure machine-lisible (questions, critères). Si ce fichier et decouverte-besoin.md se contredisent un jour, ce fichier est la source de vérité pour l'état/la couverture ; decouverte-besoin.md reste la source de vérité pour le ton et les exemples de formulation.",
+  "_comment": "Sections de l'entretien guidé mené par scripts/interview_state.py : conversation par thèmes, couverture suivie explicitement, document de besoins généré seulement une fois la couverture suffisante. Chaque section est posée au client en QCM (options numérotées, plusieurs choix possibles) + un champ libre optionnel pour préciser — jamais une question ouverte à rédiger de zéro, pour que répondre prenne 10 secondes. 'options[].criteria' liste les index (0-based) des critères de la section que CE choix couvre automatiquement si sélectionné — scripts/interview_state.py s'en sert pour marquer la couverture sans que l'agent ait à deviner. Si ce fichier et decouverte-besoin.md se contredisent un jour, ce fichier est la source de vérité pour l'état/la couverture ; decouverte-besoin.md reste la source de vérité pour le ton et les exemples de formulation.",
   "threshold_percent": 85,
   "sections": [
     {
       "id": "entites",
       "label": "Entités — qui/quoi est planifié",
-      "opening_question": "Avant tout, dis-moi concrètement ce qui doit être planifié chez toi : quelles interventions/jobs, quelles ressources (techniciens, véhicules, équipes), et sur quels lieux ? Si tu as déjà un système existant (une table \"interventions\", une liste de techniciens...), dis-le-moi aussi, je préfère partir de ce qui existe plutôt que de tout redemander.",
+      "opening_question": "Avant tout, dis-moi ce qui doit être planifié chez toi (plusieurs réponses possibles, et tu peux préciser en plus) :",
+      "allow_free_text": true,
+      "options": [
+        { "id": "e1", "label": "Des techniciens / employés terrain", "criteria": [0] },
+        { "id": "e2", "label": "Des véhicules (livraison, transport)", "criteria": [0] },
+        { "id": "e3", "label": "Des équipes (plusieurs personnes ensemble)", "criteria": [0] },
+        { "id": "e4", "label": "Plusieurs types d'intervention avec des durées différentes", "criteria": [1] },
+        { "id": "e5", "label": "Toutes mes interventions ont à peu près la même durée", "criteria": [1] },
+        { "id": "e6", "label": "Mes adresses sont déjà géocodées (lat/lng) dans mon système", "criteria": [2] },
+        { "id": "e7", "label": "Mes adresses sont en texte seulement (à géocoder)", "criteria": [2] },
+        { "id": "e8", "label": "J'ai déjà une base de données / un système existant à réutiliser", "criteria": [3] },
+        { "id": "e9", "label": "Je pars de zéro, rien n'existe encore côté données", "criteria": [3] }
+      ],
       "criteria": [
         "Les ressources à planifier sont identifiées (combien, à peu près, et s'il y a plusieurs profils/catégories)",
         "Les jobs/interventions à planifier sont identifiés (nature, et si leur durée varie selon le type)",
@@ -16,7 +28,21 @@
     {
       "id": "contraintes",
       "label": "Contraintes — dures vs souples",
-      "opening_question": "Qu'est-ce qui est non négociable dans ton planning (une compétence obligatoire, une ressource déjà engagée, une indisponibilité connue...), et qu'est-ce qui est plutôt une préférence qu'on peut arbitrer (finir tôt dans une fenêtre, regrouper par secteur, limiter le nombre de techniciens mobilisés...) ?",
+      "opening_question": "Qu'est-ce qui s'applique chez toi (plusieurs réponses possibles) ?",
+      "allow_free_text": true,
+      "options": [
+        { "id": "c1", "label": "Compétence/habilitation obligatoire sur certaines interventions", "criteria": [0] },
+        { "id": "c2", "label": "Une ressource est parfois déjà engagée/en route sur un job", "criteria": [0] },
+        { "id": "c3", "label": "Indisponibilités connues (congé, formation, panne)", "criteria": [0] },
+        { "id": "c4", "label": "Stock de pièces embarqué à suivre", "criteria": [0] },
+        { "id": "c5", "label": "Ordre obligatoire entre deux interventions (ex. installation avant contrôle)", "criteria": [0] },
+        { "id": "c6", "label": "Plusieurs techniciens en même temps sur un même job (binôme)", "criteria": [0] },
+        { "id": "c7", "label": "Aucune contrainte dure particulière", "criteria": [0] },
+        { "id": "c8", "label": "Je préfère regrouper les interventions par secteur géographique", "criteria": [1] },
+        { "id": "c9", "label": "Je préfère finir tôt dans la fenêtre horaire plutôt qu'au dernier moment", "criteria": [1] },
+        { "id": "c10", "label": "Je préfère limiter le nombre de techniciens mobilisés", "criteria": [1] },
+        { "id": "c11", "label": "Aucune préférence souple particulière", "criteria": [1] }
+      ],
       "criteria": [
         "Les contraintes dures (doivent toujours être respectées) sont listées explicitement",
         "Les contraintes souples (influencent le plan mais peuvent être arbitrées) sont listées explicitement",
@@ -27,7 +53,14 @@
     {
       "id": "objectifs",
       "label": "Objectifs — quels KPIs prioriser",
-      "opening_question": "Si tu devais choisir UNE chose qui compte le plus pour toi dans le résultat — ne perdre aucun job, minimiser les trajets/coûts, respecter strictement les rendez-vous, ou mobiliser le moins de ressources possible — ce serait laquelle, et pourquoi ?",
+      "opening_question": "Qu'est-ce qui compte le plus pour toi dans le résultat (choisis-en une ou plusieurs, par ordre d'importance si tu veux préciser) ?",
+      "allow_free_text": true,
+      "options": [
+        { "id": "o1", "label": "Ne perdre aucune intervention (taux d'allocation)", "criteria": [0] },
+        { "id": "o2", "label": "Minimiser les trajets / coûts", "criteria": [0] },
+        { "id": "o3", "label": "Respecter strictement les rendez-vous clients", "criteria": [0] },
+        { "id": "o4", "label": "Mobiliser le moins de techniciens possible", "criteria": [0] }
+      ],
       "criteria": [
         "Un objectif business prioritaire est identifié, dans les mots du client (pas juste un nom de champ technique)",
         "Les arbitrages/tensions entre cet objectif et d'autres leviers possibles ont été mentionnés si pertinents (ex. moins de ressources peut faire perdre des jobs)",
@@ -37,7 +70,19 @@
     {
       "id": "taille",
       "label": "Taille du problème — volume réel",
-      "opening_question": "Dans la réalité (pas juste pour un premier test), à peu près combien de jobs et combien de ressources par jour ou par semaine ?",
+      "opening_question": "Dans la réalité (pas juste pour un premier test), à peu près quel volume ?",
+      "allow_free_text": true,
+      "options": [
+        { "id": "t1", "label": "Moins de 10 interventions/jour", "criteria": [0] },
+        { "id": "t2", "label": "Entre 10 et 50 interventions/jour", "criteria": [0] },
+        { "id": "t3", "label": "Entre 50 et 200 interventions/jour", "criteria": [0] },
+        { "id": "t4", "label": "Plus de 200 interventions/jour", "criteria": [0] },
+        { "id": "t5", "label": "Moins de 5 ressources (techniciens/véhicules)", "criteria": [1] },
+        { "id": "t6", "label": "Entre 5 et 20 ressources", "criteria": [1] },
+        { "id": "t7", "label": "Plus de 20 ressources", "criteria": [1] },
+        { "id": "t8", "label": "Je veux d'abord un petit exemple à la main pour valider la logique", "criteria": [2] },
+        { "id": "t9", "label": "Je veux tester directement à l'échelle réelle (gros volume)", "criteria": [2] }
+      ],
       "criteria": [
         "Un ordre de grandeur du nombre de jobs réels est connu",
         "Un ordre de grandeur du nombre de ressources réelles est connu",
@@ -48,11 +93,23 @@
     {
       "id": "niveau_offre",
       "label": "Niveau d'offre — self-service ou complète",
-      "opening_question": "Une dernière chose avant qu'on avance : as-tu déjà une clé API Nomadia (essai ou abonnement), et sais-tu si c'est côté self-service ou si vous avez un projet avec leur équipe (offre complète) ?",
+      "opening_question": "Une dernière chose avant qu'on avance, où en es-tu côté accès et compte Nomadia ?",
+      "allow_free_text": true,
+      "options": [
+        { "id": "n1", "label": "J'ai une clé API de test (self-service)", "criteria": [0] },
+        { "id": "n2", "label": "J'ai un abonnement self-service actif", "criteria": [0] },
+        { "id": "n3", "label": "On a un projet avec l'équipe Nomadia (offre complète)", "criteria": [0] },
+        { "id": "n4", "label": "Je n'ai pas encore de clé API", "criteria": [0] },
+        { "id": "n5", "label": "Je ne sais pas / pas encore clarifié", "criteria": [0] },
+        { "id": "n6", "label": "La clé que j'utiliserai est bien la mienne (pas celle d'un autre compte/client)", "criteria": [3] },
+        { "id": "n7", "label": "Je veux savoir comment suivre ma consommation de crédits avant de lancer des appels réels", "criteria": [3] },
+        { "id": "n8", "label": "Je sais déjà où voir mon solde de crédits sur le portail Nomadia", "criteria": [3] }
+      ],
       "criteria": [
         "On sait si le client a déjà une clé API, et si oui laquelle (self-service vs offre complète)",
         "Si un besoin cité dans entités/contraintes correspond à un mécanisme offre-complète-only (multi-ressources, stock de pièces, ordre entre jobs, horizon borné, disponibilité récurrente, priorité de rdv dédiée), la question self-service vs offre complète a été posée explicitement au client, jamais supposée",
-        "Si aucun besoin de ce type n'a été évoqué, il est explicitement noté que le self-service suffit par défaut"
+        "Si aucun besoin de ce type n'a été évoqué, il est explicitement noté que le self-service suffit par défaut",
+        "La clé API qui sera utilisée a été explicitement confirmée comme appartenant à CE client (pas une clé qui traîne d'un autre compte/session), et le client sait où voir son solde/sa consommation de crédits sur le portail Nomadia (dashboard) avant le premier appel réel — voir ONBOARDING.md §2"
       ]
     }
   ]

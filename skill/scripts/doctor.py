@@ -2,9 +2,9 @@
 """
 Doctor — point d'entrée unique du skill, exécutable en CLI, sans dépendance.
 
-Pourquoi ce script : Timefold (et les solveurs généralistes en général) demandent
-d'écrire du code Java/Kotlin pour obtenir le moindre diagnostic sur un plan. Ici, une
-seule commande suffit pour tout faire sur un payload Nomadia : valider, diagnostiquer,
+Pourquoi ce script : les solveurs généralistes demandent souvent d'écrire du code
+Java/Kotlin pour obtenir le moindre diagnostic sur un plan. Ici, une seule commande
+suffit pour tout faire sur un payload Nomadia : valider, diagnostiquer,
 recommander — pas besoin de connaître les trois scripts séparés
 (validate_payload.py / recommend_improvements.py / compare_scenarios.py) ni leur ordre.
 

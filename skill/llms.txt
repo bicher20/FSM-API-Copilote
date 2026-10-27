@@ -15,9 +15,8 @@ parcourir le repo au hasard.
 ## Référence (ouvrir selon le besoin précis)
 - reference/decouverte-besoin.md — **à ouvrir en premier sur un besoin pas
   immédiatement évident**, avant d'écrire le moindre payload : découverte structurée
-  en 4 thèmes (entités, contraintes, objectifs, taille du problème — inspiré du PRD
-  Assistant de Timefold), et garde-fou pour trancher explicitement self-service vs
-  offre complète plutôt que de deviner.
+  en 4 thèmes (entités, contraintes, objectifs, taille du problème), et garde-fou pour
+  trancher explicitement self-service vs offre complète plutôt que de deviner.
 - reference/sections.json — structure machine-lisible de l'entretien (sections,
   questions d'ouverture, critères de couverture, seuil) pour scripts/interview_state.py.
 - reference/regles-entretien.md — conduite de l'entretien : une question à la fois,
@@ -57,11 +56,15 @@ parcourir le repo au hasard.
   — accord explicite de l'utilisateur requis avant ce mode.
 - scripts/test_validate_payload.py — tests de régression du validateur. Lancer avant
   tout commit qui touche validate_payload.py.
-- scripts/interview_state.py start|record|progress|prd|edit — entretien de découverte du
-  besoin avec état persistant (fichier, pas la mémoire de la conversation) : crée un
-  entretien, enregistre les réponses section par section, affiche la couverture, corrige
-  une réponse déjà enregistrée, génère le PRD final en Markdown une fois la couverture
-  suffisante (ou sur demande explicite). Voir SKILL.md §0ter et reference/regles-entretien.md.
+- scripts/interview_state.py start|options|record|progress|prd|edit — entretien de
+  découverte du besoin en QCM (options numérotées, plusieurs choix possibles, + précision
+  libre) avec état persistant (fichier, pas la mémoire de la conversation) : crée un
+  entretien, affiche le questionnaire d'une section (`options`), enregistre les choix du
+  client section par section (`record --options id1,id2,...`, marque automatiquement les
+  critères liés), affiche la couverture en couleur dans le terminal (désactivable via
+  NO_COLOR), corrige une réponse déjà enregistrée, génère le PRD final en Markdown une
+  fois la couverture suffisante (ou sur demande explicite). Voir SKILL.md §0ter et
+  reference/regles-entretien.md.
 
 ## Point de départ pour écrire du code
 - snippets/client.js / client.py — client HTTP minimal + retry/backoff, à adapter
