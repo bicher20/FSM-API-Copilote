@@ -1,5 +1,22 @@
 # Changelog du skill
 
+## 1.28 — 2026-10-27
+- **Jamais plus de 4 choix affichés au client en une fois** : `options <section>`
+  coupe maintenant automatiquement toute section ayant plus de
+  `MAX_CHOICES_PER_SCREEN` (4) choix visibles en plusieurs parties (`--page N`),
+  avec indication explicite "partie X/Y" et rappel de la commande pour la suite —
+  rien à découper soi-même.
+- **Relance renforcée (§4 de `regles-entretien.md`)** : quand un critère n'est pas
+  couvert, l'agent doit reformuler la question différemment et nommer précisément ce
+  qui manque, jamais répéter mot pour mot la question initiale.
+- **Nouveau : `scripts/interview_state.py score`** — système de scoring qui compare
+  les contraintes cochées correspondant à un mécanisme offre-complète-only
+  (`sections.json: options[].offre_complete_trigger` sur stock de pièces, ordre
+  entre jobs, binôme/multi-ressources) au niveau d'offre confirmé par le client en
+  section niveau_offre, et signale explicitement un `[MISMATCH]` (besoin détecté mais
+  self-service/pas de clé/pas clarifié) plutôt que de laisser l'agent le remarquer ou
+  pas. `reference/regles-entretien.md` §7 : à lancer avant tout appel réel.
+
 ## 1.27 — 2026-10-27
 - **Le thème "entités" était un mur de 9 choix mélangeant 4 sujets différents**
   (type de ressource, durée des interventions, géolocalisation, données existantes)

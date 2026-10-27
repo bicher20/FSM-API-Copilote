@@ -90,10 +90,13 @@ l'entretien sans raison.
 
 Après chaque `record`, le script affiche les critères encore non couverts de la
 section. Relance **spécifiquement sur ces points** (pas une question générique "dis-moi
-plus") avant de clore la section. Si le client ne sait vraiment pas répondre à un
-critère (ex. volume réel pas encore connu), note-le comme tel dans le PRD plutôt que de
-deviner une valeur à sa place — un "pas encore su" honnête vaut mieux qu'un chiffre
-inventé qui orientera mal la construction du payload ensuite.
+plus") avant de clore la section. **Reformule, ne répète jamais la même phrase mot pour
+mot** : dis précisément ce qui manque encore (le critère exact affiché par le script),
+pas juste "peux-tu préciser ?" — le client doit comprendre immédiatement quoi ajouter
+sans avoir à relire toute la question d'ouverture. Si le client ne sait vraiment pas
+répondre à un critère (ex. volume réel pas encore connu), note-le comme tel dans le PRD
+plutôt que de deviner une valeur à sa place — un "pas encore su" honnête vaut mieux
+qu'un chiffre inventé qui orientera mal la construction du payload ensuite.
 
 ## 4bis. Réponse qui ne correspond pas à la question posée
 
@@ -151,6 +154,10 @@ section, les points encore à clarifier — jamais caché.
 
 Le PRD n'est pas la fin de la mission, c'est l'étape avant la construction (voir §0 et
 §2bis de `SKILL.md`). Une fois généré :
+- lance `scripts/interview_state.py score` : si un `[MISMATCH]` apparaît (contraintes
+  citées qui dépassent le self-service, mais niveau d'offre non confirmé en offre
+  complète), remets-le explicitement devant le client avant de construire quoi que ce
+  soit qui en dépend — jamais avancer en silence sur une hypothèse ;
 - relis ce que l'étape 1 de §0 a trouvé dans le code existant du client (modèle de
   données, stack, clé API déjà présente) ;
 - construis le payload/code d'intégration à partir du PRD plutôt que de redemander au

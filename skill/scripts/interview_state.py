@@ -16,7 +16,7 @@ Usage :
     python3 scripts/interview_state.py start
         -> crée un nouvel entretien, affiche son interview_id
 
-    python3 scripts/interview_state.py options <section_id> [--interview ID]
+    python3 scripts/interview_state.py options <section_id> [--interview ID] [--page N]
         -> affiche le QCM de cette section (options numérotées + leur id), à poser au
            client tel quel : "plusieurs choix possibles, et tu peux préciser en plus".
            Un dernier numéro ("Autre chose à préciser") est TOUJOURS ajouté explicitement
@@ -25,7 +25,11 @@ Usage :
            d'après les réponses déjà enregistrées de cet entretien sont masquées
            automatiquement (ex. pas de question "binôme technicien" si aucun technicien
            n'a été identifié en section entités) — l'agent n'a jamais à décider lui-même
-           quoi cacher, le script le fait depuis l'état réel de l'entretien.
+           quoi cacher, le script le fait depuis l'état réel de l'entretien. Jamais plus
+           de MAX_CHOICES_PER_SCREEN (4) choix affichés en une fois : au-delà, la section
+           est automatiquement coupée en plusieurs parties ("partie 1/2", etc.) —
+           --page sélectionne laquelle, et la sortie indique explicitement s'il y a une
+           suite à rappeler une fois la réponse du client sur la partie courante notée.
 
     python3 scripts/interview_state.py record <section_id> ["<précision libre>"] [--options id1,id2,...] [--interview ID]
         -> enregistre un tour sur une section. --options prend les id choisis par le
@@ -64,6 +68,17 @@ Usage :
            have" qui agrège tous les thèmes (pas seulement 'contraintes') — sections.json:
            options[].hard, plus les objectifs (toujours classés "nice to have").
 
+    python3 scripts/interview_state.py score [--interview ID]
+        -> score de complétude self-service / offre complète : repère, parmi les
+           contraintes cochées, celles qui correspondent à un mécanisme offre-complète-
+           only documenté (sections.json: options[].offre_complete_trigger — stock de
+           pièces, ordre entre jobs, binôme/multi-ressources), compare au niveau d'offre
+           confirmé en section niveau_offre, et signale explicitement un décalage
+           (besoin détecté mais clé self-service/pas encore de clé/pas clarifié) au lieu
+           de laisser l'agent le remarquer ou pas. Ne couvre QUE ces 3 mécanismes-là —
+           horizon de planification, disponibilité récurrente et priorité de rdv dédiée
+           restent à vérifier soi-même (voir reference/offre-complete-nomadia.md).
+
 Évaluation de couverture — volontairement simple et vérifiable, PAS de NLP/LLM dans ce
 script : un critère d'une section est marqué couvert dès que le client a choisi une
 option liée à ce critère (voir `options <section>` et `sections.json: options[].criteria`),
@@ -92,6 +107,10 @@ SECTIONS_FILE = SKILL_ROOT / "reference" / "sections.json"
 STATE_DIR = SKILL_ROOT.parent / ".interview_state"  # hors du repo du skill lui-même,
 # jamais committé (voir .gitignore racine) : un état d'entretien est spécifique à un
 # client, pas au skill.
+
+MAX_CHOICES_PER_SCREEN = 4  # jamais plus de 3-4 choix présentés en une fois au client
+# (+ le numéro "autre chose à préciser") — une section avec plus d'options que ça est
+# automatiquement présentée en plusieurs parties plutôt que balancée d'un bloc.
 
 # Couleurs ANSI par défaut dans le terminal — désactivées automatiquement si
 # NO_COLOR est défini (convention standard, voir no-color.org) ou si la sortie n'est
@@ -230,11 +249,19 @@ def cmd_options(args):
     visible = [opt for opt in all_options if _option_visible(opt, state)]
     hidden_count = len(all_options) - len(visible)
 
+    total_pages = max(1, -(-len(visible) // MAX_CHOICES_PER_SCREEN))  # ceil division
+    page = max(1, min(getattr(args, "page", 1) or 1, total_pages))
+    start_idx = (page - 1) * MAX_CHOICES_PER_SCREEN
+    chunk = visible[start_idx:start_idx + MAX_CHOICES_PER_SCREEN]
+
     print(sec_def["opening_question"])
-    for i, opt in enumerate(visible, start=1):
+    if total_pages > 1:
+        print(c(f"(partie {page}/{total_pages} — jamais plus de {MAX_CHOICES_PER_SCREEN} choix "
+                f"à la fois pour rester lisible pour le client)", "dim"))
+    for i, opt in enumerate(chunk, start=1):
         id_tag = c(f"[id: {opt['id']}]", "dim")
         print(f"  {c(str(i), 'cyan', 'bold')}. {opt['label']}   {id_tag}")
-    free_text_num = len(visible) + 1
+    free_text_num = len(chunk) + 1
     if sec_def.get("allow_free_text", True):
         print(f"  {c(str(free_text_num), 'cyan', 'bold')}. Autre chose à préciser, pas dans la liste ci-dessus")
     print("\n-> plusieurs choix possibles. Présente cette liste numérotée au client "
@@ -245,6 +272,12 @@ def cmd_options(args):
           f"{free_text_num} ('Autre chose à préciser'), note ce qu'il dit comme texte "
           "libre positionnel de 'record' (pas dans --options, ce n'est pas une vraie "
           "option) — ex. record <section> \"ce que le client a précisé\" --options ...")
+    if page < total_pages:
+        print(c(f"-> d'autres choix existent pour cette même question : une fois la réponse "
+                f"du client sur cette partie enregistrée (record), rappelle "
+                f"'options {sec_def['id']} --page {page + 1}"
+                f"{f' --interview {interview_id}' if interview_id else ''}' pour lui proposer "
+                f"la suite dans la même conversation — jamais tout balancer d'un coup.", "yellow"))
     if hidden_count:
         print(c(f"({hidden_count} choix non pertinent(s) à ce stade ont été masqués "
                 f"automatiquement d'après les réponses déjà données — rien à filtrer "
@@ -346,8 +379,11 @@ def cmd_record(args):
         print("     Critères encore non couverts :")
         for crit in missing:
             print(f"       - {crit}")
-        print("     -> Relance sur ces points avant de passer à la section suivante "
-              "(voir SKILL.md, règles d'entretien).")
+        print("     -> Relance sur ces points avant de passer à la section suivante — "
+              "REFORMULE la question différemment (jamais un copier-coller de la même "
+              "phrase) et nomme précisément ce qui manque encore, pour que le client "
+              "comprenne tout de suite quoi préciser (voir SKILL.md, règles d'entretien "
+              "§4bis).")
 
 
 def cmd_edit(args):
@@ -615,6 +651,96 @@ def slugify(text: str) -> str:
     return re.sub(r"-+", "-", text).strip("-") or "besoin"
 
 
+_TIER_SELF_SERVICE = {"n1", "n2"}
+_TIER_OFFRE_COMPLETE = {"n3"}
+_TIER_NO_KEY = {"n4"}
+_TIER_UNKNOWN = {"n5"}
+
+
+def _collect_offre_complete_triggers(state: dict, sections: list) -> list[str]:
+    """Labels des choix du client qui correspondent à un mécanisme offre-complète-only
+    documenté (sections.json: options[].offre_complete_trigger) — jamais une déduction
+    du script sur la BASE du texte libre, seulement sur des choix QCM explicites."""
+    triggers = []
+    for s in sections:
+        sec_state = state["sections"].get(s["id"])
+        if sec_state is None:
+            continue
+        chosen = _selected_option_ids(sec_state)
+        for opt in s.get("options", []):
+            if opt.get("offre_complete_trigger") and opt["id"] in chosen:
+                triggers.append(opt["label"])
+    return triggers
+
+
+def cmd_score(args):
+    """Score de complétude : dit si l'entretien a rassemblé tout ce qu'il faut pour
+    construire le payload, ET si le niveau d'offre Nomadia confirmé par le client
+    (self-service / offre complète / pas encore de clé) correspond à ce que ses
+    contraintes citées impliquent réellement. Volontairement simple et vérifiable comme
+    le reste du script : compare des id choisis, ne devine jamais un besoin à partir du
+    texte libre."""
+    sections, threshold = load_sections()
+    interview_id = resolve_interview_id(args)
+    state = load_state(interview_id)
+    pct = compute_global_percent(state, sections)
+
+    print(f"Entretien {interview_id} — {state.get('title', '(sans titre)')}")
+    print("-" * 60)
+
+    if pct < threshold:
+        print(f"{c('[INCOMPLET]', 'yellow', 'bold')} Couverture globale {pct}% < seuil {threshold}%.")
+        print("     -> Le besoin n'est pas encore assez cadré pour juger du niveau d'offre "
+              "nécessaire avec certitude. Continue l'entretien (voir 'progress') avant de "
+              "te fier à ce score.")
+        print("-" * 60)
+
+    triggers = _collect_offre_complete_triggers(state, sections)
+    niveau_state = state["sections"].get("niveau_offre")
+    tier_ids = _selected_option_ids(niveau_state) if niveau_state else set()
+    has_self_service = bool(tier_ids & _TIER_SELF_SERVICE)
+    has_offre_complete = bool(tier_ids & _TIER_OFFRE_COMPLETE)
+    no_key_yet = bool(tier_ids & _TIER_NO_KEY)
+    tier_unknown = bool(tier_ids & _TIER_UNKNOWN) or not tier_ids
+
+    if triggers:
+        print(f"Mécanismes offre-complète-only détectés dans les contraintes citées ({len(triggers)}) :")
+        for t in triggers:
+            print(f"  - {t}")
+    else:
+        print("Aucun mécanisme offre-complète-only détecté dans les contraintes citées.")
+    print()
+
+    if triggers and has_offre_complete:
+        print(f"{c('[OK]', 'green', 'bold')} Cohérent : le client a déjà accès à l'offre complète, "
+              "qui couvre ces mécanismes.")
+    elif triggers and (has_self_service or no_key_yet or tier_unknown):
+        print(f"{c('[MISMATCH]', 'red', 'bold')} Décalage détecté : ces mécanismes ne sont PAS "
+              "couverts par une clé self-service (voir reference/offre-complete-nomadia.md) — "
+              "le client a besoin d'un projet avec l'équipe Nomadia (offre complète), mais a "
+              "répondu self-service / pas encore de clé / pas clarifié en section niveau_offre.")
+        print("     -> Ne construis pas un payload qui dépend de ces mécanismes sans avoir "
+              "explicitement remis ce décalage devant le client et obtenu sa décision (voir "
+              "reference/regles-entretien.md §7).")
+    elif not triggers and has_self_service:
+        print(f"{c('[OK]', 'green', 'bold')} Self-service suffit : aucun besoin cité ne dépasse "
+              "ce que couvre une clé self-service.")
+    elif not triggers and (no_key_yet or tier_unknown):
+        print(f"{c('[A CONFIRMER]', 'yellow', 'bold')} Aucun mécanisme offre-complète-only détecté, "
+              "mais le niveau d'accès du client (clé API) n'est pas encore confirmé en section "
+              "niveau_offre — à clarifier avant le premier appel réel.")
+    else:
+        print(f"{c('[A CONFIRMER]', 'yellow', 'bold')} Situation pas encore assez claire pour "
+              "trancher — reprends la section niveau_offre.")
+
+    print("-" * 60)
+    print("Rappel : ce score ne porte QUE sur les mécanismes repérables via les choix QCM de "
+          "'contraintes' (stock de pièces, ordre entre jobs, binôme/multi-ressources) — "
+          "l'horizon de planification, la disponibilité récurrente et la priorité de rdv "
+          "dédiée restent à vérifier toi-même avec le client si pertinent, voir "
+          "reference/offre-complete-nomadia.md.")
+
+
 def cmd_prd(args):
     sections, threshold = load_sections()
     interview_id = resolve_interview_id(args)
@@ -656,6 +782,10 @@ def main():
     p_options.add_argument("--interview", help="id de l'entretien (défaut : le plus récent) — sert à filtrer "
                                                  "les options déjà non pertinentes d'après les réponses "
                                                  "précédentes (voir options[].depends_on)")
+    p_options.add_argument("--page", type=int, default=1,
+                            help=f"partie à afficher si la section a plus de {MAX_CHOICES_PER_SCREEN} "
+                                 "choix visibles (défaut : 1) — jamais plus de "
+                                 f"{MAX_CHOICES_PER_SCREEN} choix présentés au client en une fois")
     p_options.set_defaults(func=cmd_options)
 
     p_record = sub.add_parser("record", help="enregistre un tour sur une section")
@@ -709,6 +839,11 @@ def main():
                              "disponibilités variables\". Rendue en liste structurée sous "
                              "\"Ce qui est planifié\", en plus du --summary en texte libre.")
     p_prd.set_defaults(func=cmd_prd)
+
+    p_score = sub.add_parser("score", help="score de complétude : self-service suffit, offre complète "
+                                            "nécessaire, ou décalage détecté")
+    p_score.add_argument("--interview", help="id de l'entretien (défaut : le plus récent)")
+    p_score.set_defaults(func=cmd_score)
 
     args = parser.parse_args()
     args.func(args)

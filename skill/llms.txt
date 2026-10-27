@@ -56,12 +56,13 @@ parcourir le repo au hasard.
   — accord explicite de l'utilisateur requis avant ce mode.
 - scripts/test_validate_payload.py — tests de régression du validateur. Lancer avant
   tout commit qui touche validate_payload.py.
-- scripts/interview_state.py start|options|record|progress|prd|edit — entretien de
-  découverte du besoin en QCM ton conversationnel (options numérotées, plusieurs choix
-  possibles, + un choix numéroté dédié "autre chose à préciser") avec état persistant
-  (fichier, pas la mémoire de la conversation) : crée un entretien, affiche le
-  questionnaire d'une section (`options <section> --interview ID`, options déjà non
-  pertinentes masquées automatiquement d'après les réponses précédentes via
+- scripts/interview_state.py start|options|record|progress|prd|edit|score — entretien
+  de découverte du besoin en QCM ton conversationnel (options numérotées, jamais plus
+  de 4 à la fois — pagination automatique sinon via `--page`, + un choix numéroté
+  dédié "autre chose à préciser") avec état persistant (fichier, pas la mémoire de la
+  conversation) : crée un entretien, affiche le questionnaire d'une section
+  (`options <section> --interview ID [--page N]`, options déjà non pertinentes
+  masquées automatiquement d'après les réponses précédentes via
   `sections.json: options[].depends_on`), enregistre les choix du client section par
   section (`record --options id1,id2,...`, marque automatiquement les critères liés),
   affiche la couverture en couleur dans le terminal (désactivable via
@@ -70,7 +71,10 @@ parcourir le repo au hasard.
   (`--summary`) et/ou liste d'entités structurée (`--entity "Nom|Statut|Description"`,
   répétable) sous "Ce qui est planifié", et un récapitulatif final "Non négociable"/
   "Nice to have" agrégé sur tous les thèmes (contraintes + objectifs), pas seulement par
-  section. Voir SKILL.md §0ter et reference/regles-entretien.md.
+  section ; et `score` compare les contraintes citées qui impliquent un mécanisme
+  offre-complète-only (`sections.json: options[].offre_complete_trigger`) au niveau
+  d'offre confirmé par le client, et signale explicitement un décalage. Voir SKILL.md
+  §0ter et reference/regles-entretien.md.
 
 ## Point de départ pour écrire du code
 - snippets/client.js / client.py — client HTTP minimal + retry/backoff, à adapter
