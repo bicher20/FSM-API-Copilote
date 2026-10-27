@@ -1,4 +1,4 @@
-# nomadia-scheduler-api — index pour agents IA
+# nomadia — index pour agents IA
 
 Skill copilote pour le Scheduler API de Nomadia (optimisation de tournées / field
 service). Ce fichier liste, par ordre de priorité de lecture, ce qu'un agent IA

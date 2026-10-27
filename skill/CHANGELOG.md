@@ -1,5 +1,13 @@
 # Changelog du skill
 
+## 1.22bis — 2026-10-27
+- **Renommé le skill `nomadia-scheduler-api` → `nomadia`**, nom plus simple à retenir
+  et à invoquer. Changé dans `SKILL.md` (`name:`), `llms.txt`, `ONBOARDING.md`,
+  `README.md`, et `scripts/package_for_client.py` (nom de package par défaut). Le
+  dossier du repo reste `skill/` (générique, n'a jamais porté l'ancien nom) — seul le
+  dossier local d'installation doit être renommé par chaque utilisateur existant :
+  `mv ~/.claude/skills/nomadia-scheduler-api ~/.claude/skills/nomadia`.
+
 ## 1.22 — 2026-10-27
 - **Entretien structuré avec état persistant et génération de PRD**, pour aller plus
   loin que `reference/decouverte-besoin.md` (découverte en prose) vers un vrai moteur

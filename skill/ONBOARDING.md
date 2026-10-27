@@ -32,7 +32,7 @@ Selon l'agent IA utilisé :
 **Claude Code :**
 ```bash
 mkdir -p ~/.claude/skills
-cp -r skill ~/.claude/skills/nomadia-scheduler-api
+cp -r skill ~/.claude/skills/nomadia
 ```
 Le skill n'est visible qu'au **prochain démarrage** de l'agent — pas dans la session
 en cours au moment de la copie.

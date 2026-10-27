@@ -29,7 +29,7 @@ que de renvoyer un extrait de doc.
 - `CHANGELOG.md` — historique des versions du skill
 
 À installer comme skill (ex. dans Claude Code : copier le dossier `skill/` dans
-`~/.claude/skills/nomadia-scheduler-api/`). Agent-agnostique : fonctionne avec tout
+`~/.claude/skills/nomadia/`). Agent-agnostique : fonctionne avec tout
 agent IA ayant accès à des fichiers + un shell, pas seulement Claude.
 
 **Un client peut recevoir ce repo complet, tel quel** (clone brut, pas seulement un

@@ -39,7 +39,7 @@ EXCLUDE_SUFFIXES = {".pyc"}
 
 def slugify(name: str) -> str:
     slug = re.sub(r"[^a-zA-Z0-9]+", "-", name.strip().lower()).strip("-")
-    return slug or "nomadia-scheduler-api"
+    return slug or "nomadia"
 
 
 def read_skill_version() -> str:
@@ -93,7 +93,7 @@ def main():
     args = parser.parse_args()
 
     version = read_skill_version()
-    base_name = slugify(args.client) if args.client else "nomadia-scheduler-api"
+    base_name = slugify(args.client) if args.client else "nomadia"
     pkg_name = f"{base_name}-v{version}"
 
     out_dir = Path(args.out)
