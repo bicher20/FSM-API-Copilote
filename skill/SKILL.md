@@ -1,7 +1,7 @@
 ---
 name: nomadia
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.23
+version: 1.24
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -113,8 +113,11 @@ définir le besoin") — une seule phrase du client suffit, jamais une suite de 
    d'une section, **possibilité pour le client de corriger toute réponse suggérée**
    via `interview_state.py edit`, seuil avant PRD) : voir `reference/regles-entretien.md`
    — à lire avant le premier entretien mené, pas à redéduire à chaque fois.
-4. `progress` à tout moment pour voir où en est la couverture ; `prd` une fois au-dessus
-   du seuil (`reference/sections.json: threshold_percent`) ou sur demande explicite.
+4. `progress` à tout moment pour voir où en est la couverture ; `prd --summary "..."`
+   une fois au-dessus du seuil (`reference/sections.json: threshold_percent`) ou sur
+   demande explicite — le `--summary` (1-2 phrases, écrites par toi) s'affiche en tête
+   du PRD sous "Ce qui est planifié" ; la section contraintes y distingue déjà
+   automatiquement non-négociable / souple.
 5. **Chaque `record` affiche un avancement global (%, sections complètes/total)** —
    partage-le au client à chaque changement de section (pas après chaque phrase) pour
    qu'il voie une progression naturelle et mesurable, jamais qu'il se demande où il en

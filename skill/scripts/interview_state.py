@@ -41,10 +41,14 @@ Usage :
            suggérée/paraphrasée par l'agent) — ne recrée jamais un nouveau tour, remplace
            le tour existant pour que le PRD final reflète la version corrigée, pas les deux
 
-    python3 scripts/interview_state.py prd [--interview ID] [--force] [--output-dir DIR]
+    python3 scripts/interview_state.py prd [--interview ID] [--force] [--output-dir DIR] [--summary "<texte>"]
         -> génère le PRD en Markdown depuis l'état. Refuse si couverture globale < seuil
            (reference/sections.json: threshold_percent) sauf --force (demande explicite
            de l'utilisateur à transmettre depuis l'agent, jamais à activer par défaut).
+           --summary (optionnel) : un court récap écrit par l'agent ("ce qui est
+           planifié"), inséré en tête du PRD. La section 'contraintes' distingue
+           automatiquement non négociable / souple dans le rendu (sections.json:
+           options[].hard), sans rien à passer de plus.
 
 Évaluation de couverture — volontairement simple et vérifiable, PAS de NLP/LLM dans ce
 script : un critère d'une section est marqué couvert dès que le client a choisi une
@@ -364,7 +368,26 @@ def cmd_progress(args):
     print(f"  Couverture globale : {c(f'{pct}%', 'cyan', 'bold')} ({status})")
 
 
-def render_prd_markdown(state: dict, sections: list, pct: float) -> str:
+def _classify_turn_by_hardness(sec_def: dict, turn: dict) -> str:
+    """Pour une section dont au moins une option porte un flag 'hard' (ex.
+    'contraintes') : dit si CE tour est plutôt non négociable, souple, ou mixte/texte
+    libre seul. Ne classe rien pour une section sans flag 'hard' défini (retourne
+    None) — jamais une classification devinée sur une section qui ne s'y prête pas."""
+    by_id = {opt["id"]: opt for opt in sec_def.get("options", [])}
+    if not any("hard" in opt for opt in by_id.values()):
+        return None
+    option_ids = turn.get("option_ids") or []
+    hards = [by_id[oid]["hard"] for oid in option_ids if oid in by_id and "hard" in by_id[oid]]
+    if not hards:
+        return "texte_libre"
+    if all(hards):
+        return "dur"
+    if not any(hards):
+        return "souple"
+    return "mixte"
+
+
+def render_prd_markdown(state: dict, sections: list, pct: float, summary: str | None = None) -> str:
     lines = []
     title = state.get("title") or "Besoin client"
     lines.append(f"# PRD — {title}")
@@ -377,6 +400,11 @@ def render_prd_markdown(state: dict, sections: list, pct: float) -> str:
                  "Aucune réponse n'est inventée — une section marquée incomplète ci-dessous "
                  "doit être reprise avec le client avant de construire le payload final.")
     lines.append("")
+    if summary:
+        lines.append("## Ce qui est planifié")
+        lines.append("")
+        lines.append(summary.strip())
+        lines.append("")
     for s in sections:
         sec_state = state["sections"][s["id"]]
         n_covered = len(sec_state["covered_criteria"])
@@ -386,11 +414,40 @@ def render_prd_markdown(state: dict, sections: list, pct: float) -> str:
         lines.append(f"**Couverture : {n_covered}/{n_total} critères.**")
         lines.append("")
         if sec_state["turns"]:
+            # Section avec distinction dur/souple (ex. contraintes) : deux groupes
+            # séparés plutôt qu'un paragraphe mélangé — plus net pour le client qui
+            # relit le PRD et pour l'agent qui enchaîne vers le payload.
+            buckets: dict[str, list[str]] = {"dur": [], "souple": [], "mixte": [], "texte_libre": []}
+            any_classified = False
             for turn in sec_state["turns"]:
-                lines.append(f"- {turn['answer']}")
+                kind = _classify_turn_by_hardness(s, turn)
+                if kind is None:
+                    buckets.setdefault("_flat", []).append(turn["answer"])
+                else:
+                    any_classified = True
+                    buckets[kind].append(turn["answer"])
+            if any_classified:
+                if buckets["dur"]:
+                    lines.append("**Non négociable :**")
+                    for a in buckets["dur"]:
+                        lines.append(f"- {a}")
+                    lines.append("")
+                if buckets["souple"]:
+                    lines.append("**Souple (arbitrable) :**")
+                    for a in buckets["souple"]:
+                        lines.append(f"- {a}")
+                    lines.append("")
+                for a in buckets["mixte"] + buckets["texte_libre"]:
+                    lines.append(f"- {a}")
+                if buckets["mixte"] or buckets["texte_libre"]:
+                    lines.append("")
+            else:
+                for a in buckets.get("_flat", []):
+                    lines.append(f"- {a}")
+                lines.append("")
         else:
             lines.append("*(aucune réponse enregistrée sur cette section)*")
-        lines.append("")
+            lines.append("")
         uncovered = [
             s["criteria"][i] for i in range(n_total)
             if i not in sec_state["covered_criteria"]
@@ -423,7 +480,7 @@ def cmd_prd(args):
               file=sys.stderr)
         sys.exit(1)
 
-    md = render_prd_markdown(state, sections, pct)
+    md = render_prd_markdown(state, sections, pct, summary=args.summary)
     out_dir = Path(args.output_dir) if args.output_dir else (SKILL_ROOT / "output")
     out_dir.mkdir(parents=True, exist_ok=True)
     slug = slugify(state.get("title", "besoin"))
@@ -489,6 +546,10 @@ def main():
                         help="génère même sous le seuil — uniquement sur demande EXPLICITE de "
                              "l'utilisateur, jamais par défaut ni sur initiative de l'agent")
     p_prd.add_argument("--output-dir", help="dossier de sortie (défaut : skill/output/)")
+    p_prd.add_argument("--summary", default=None,
+                        help="un ou deux phrases écrites par l'agent, résumant ce qui est "
+                             "planifié (quoi/qui) — insérées en tête du PRD sous \"Ce qui "
+                             "est planifié\", avant le détail par section. Optionnel.")
     p_prd.set_defaults(func=cmd_prd)
 
     args = parser.parse_args()

@@ -1,5 +1,5 @@
 {
-  "_comment": "Sections de l'entretien guidé mené par scripts/interview_state.py : conversation par thèmes, couverture suivie explicitement, document de besoins généré seulement une fois la couverture suffisante. Chaque section est posée au client en QCM (options numérotées, plusieurs choix possibles) + un champ libre optionnel pour préciser — jamais une question ouverte à rédiger de zéro, pour que répondre prenne 10 secondes. 'options[].criteria' liste les index (0-based) des critères de la section que CE choix couvre automatiquement si sélectionné — scripts/interview_state.py s'en sert pour marquer la couverture sans que l'agent ait à deviner. Si ce fichier et decouverte-besoin.md se contredisent un jour, ce fichier est la source de vérité pour l'état/la couverture ; decouverte-besoin.md reste la source de vérité pour le ton et les exemples de formulation.",
+  "_comment": "Sections de l'entretien guidé mené par scripts/interview_state.py : conversation par thèmes, couverture suivie explicitement, document de besoins généré seulement une fois la couverture suffisante. Chaque section est posée au client en QCM (options numérotées, plusieurs choix possibles) + un champ libre optionnel pour préciser — jamais une question ouverte à rédiger de zéro, pour que répondre prenne 10 secondes. 'options[].criteria' liste les index (0-based) des critères de la section que CE choix couvre automatiquement si sélectionné — scripts/interview_state.py s'en sert pour marquer la couverture sans que l'agent ait à deviner. 'options[].hard' (section 'contraintes' uniquement) marque si ce choix est une contrainte non négociable (true) ou une préférence arbitrable (false) — scripts/interview_state.py l'utilise pour afficher ces deux catégories séparément dans progress/le PRD, au lieu de tout mélanger dans un seul paragraphe. Si ce fichier et decouverte-besoin.md se contredisent un jour, ce fichier est la source de vérité pour l'état/la couverture ; decouverte-besoin.md reste la source de vérité pour le ton et les exemples de formulation.",
   "threshold_percent": 85,
   "sections": [
     {
@@ -31,17 +31,17 @@
       "opening_question": "Qu'est-ce qui s'applique chez toi (plusieurs réponses possibles) ?",
       "allow_free_text": true,
       "options": [
-        { "id": "c1", "label": "Compétence/habilitation obligatoire sur certaines interventions", "criteria": [0] },
-        { "id": "c2", "label": "Une ressource est parfois déjà engagée/en route sur un job", "criteria": [0] },
-        { "id": "c3", "label": "Indisponibilités connues (congé, formation, panne)", "criteria": [0] },
-        { "id": "c4", "label": "Stock de pièces embarqué à suivre", "criteria": [0] },
-        { "id": "c5", "label": "Ordre obligatoire entre deux interventions (ex. installation avant contrôle)", "criteria": [0] },
-        { "id": "c6", "label": "Plusieurs techniciens en même temps sur un même job (binôme)", "criteria": [0] },
-        { "id": "c7", "label": "Aucune contrainte dure particulière", "criteria": [0] },
-        { "id": "c8", "label": "Je préfère regrouper les interventions par secteur géographique", "criteria": [1] },
-        { "id": "c9", "label": "Je préfère finir tôt dans la fenêtre horaire plutôt qu'au dernier moment", "criteria": [1] },
-        { "id": "c10", "label": "Je préfère limiter le nombre de techniciens mobilisés", "criteria": [1] },
-        { "id": "c11", "label": "Aucune préférence souple particulière", "criteria": [1] }
+        { "id": "c1", "label": "Compétence/habilitation obligatoire sur certaines interventions", "criteria": [0], "hard": true },
+        { "id": "c2", "label": "Une ressource est parfois déjà engagée/en route sur un job", "criteria": [0], "hard": true },
+        { "id": "c3", "label": "Indisponibilités connues (congé, formation, panne)", "criteria": [0], "hard": true },
+        { "id": "c4", "label": "Stock de pièces embarqué à suivre", "criteria": [0], "hard": true },
+        { "id": "c5", "label": "Ordre obligatoire entre deux interventions (ex. installation avant contrôle)", "criteria": [0], "hard": true },
+        { "id": "c6", "label": "Plusieurs techniciens en même temps sur un même job (binôme)", "criteria": [0], "hard": true },
+        { "id": "c7", "label": "Aucune contrainte dure particulière", "criteria": [0], "hard": true },
+        { "id": "c8", "label": "Je préfère regrouper les interventions par secteur géographique", "criteria": [1], "hard": false },
+        { "id": "c9", "label": "Je préfère finir tôt dans la fenêtre horaire plutôt qu'au dernier moment", "criteria": [1], "hard": false },
+        { "id": "c10", "label": "Je préfère limiter le nombre de techniciens mobilisés", "criteria": [1], "hard": false },
+        { "id": "c11", "label": "Aucune préférence souple particulière", "criteria": [1], "hard": false }
       ],
       "criteria": [
         "Les contraintes dures (doivent toujours être respectées) sont listées explicitement",

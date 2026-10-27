@@ -70,6 +70,15 @@ revenir sur [section] plus tard si besoin"). Pour rouvrir : `record` normalement
 cette section (ça ajoute un tour), et si la nouvelle réponse invalide un critère déjà
 marqué couvert, `--unmark-criterion` avant de re-couvrir avec la bonne info.
 
+## 5bis. "Ce qui est planifié" et la séparation non-négociable/souple
+
+Au moment de `prd`, passe `--summary "<une ou deux phrases>"` résumant QUOI est
+planifié et QUI exécute (ex. "les visites client, affectées à un technicien, un ordre
+et un horaire ; les techniciens, dont la disponibilité varie") — ça s'affiche en tête
+du PRD, avant le détail section par section, pour que le client retrouve l'essentiel
+en un coup d'œil. La section "contraintes" distingue déjà automatiquement non-négociable
+/ souple dans le rendu (grâce aux choix QCM), rien à faire de plus de ce côté.
+
 ## 6. Le PRD ne s'écrit qu'au-dessus du seuil, ou sur demande explicite
 
 `threshold_percent` dans `sections.json` (85% par défaut) est la barrière par défaut.

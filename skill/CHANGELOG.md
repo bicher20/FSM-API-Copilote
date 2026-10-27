@@ -1,5 +1,15 @@
 # Changelog du skill
 
+## 1.24 — 2026-10-27
+- **PRD : récap "Ce qui est planifié" en tête**, via `scripts/interview_state.py prd
+  --summary "<1-2 phrases>"` écrites par l'agent — affiché avant le détail
+  section par section, pour que le client retrouve l'essentiel en un coup d'œil.
+- **Section "contraintes" : séparation automatique non-négociable / souple** dans le
+  rendu du PRD, plutôt qu'un seul paragraphe mélangé. `reference/sections.json` gagne
+  un flag `options[].hard` (section contraintes uniquement) ; `interview_state.py`
+  classe chaque tour enregistré en conséquence (`_classify_turn_by_hardness`) sans
+  rien à faire de plus côté agent — les choix QCM portent déjà cette information.
+
 ## 1.23 — 2026-10-27
 - **L'entretien de découverte (v1.22) passe en QCM** : chaque section de
   `reference/sections.json` a maintenant une liste d'options numérotées
