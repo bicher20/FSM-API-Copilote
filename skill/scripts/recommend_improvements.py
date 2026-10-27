@@ -116,6 +116,33 @@ def recommend_from_payload(payload: dict) -> list[dict]:
                       "direct de planning inexploitable commercialement, voir reference/kpis-metier.md §3",
         })
 
+    # 4bis. SLA avec pénalité mais value_per_hour absent -> la pénalité risque de ne
+    # servir à rien. Confirmé par test réel le 27/10/2026 : value_per_hour n'a aucune
+    # valeur par défaut déclarée côté self-service (voir reference/entities.md) ; sans
+    # elle, un job a été planifié 6h30 après sa fenêtre SLA malgré
+    # base_jeopardy_penalty=500 et une ressource qualifiée libre dans la fenêtre — en
+    # fixant value_per_hour explicitement, la fenêtre a été respectée au test suivant.
+    jobs_with_sla_penalty_no_value = [
+        j.get("id", "<sans id>") for j in jobs
+        if j.get("value_per_hour") is None
+        and any(
+            isinstance(j.get(k), dict) and (j[k].get("penalty_per_hour") or j[k].get("base_jeopardy_penalty"))
+            for k in ("sla", "appointment_sla")
+        )
+    ]
+    if jobs_with_sla_penalty_no_value:
+        recs.append({
+            "priority": "HIGH",
+            "finding": f"{len(jobs_with_sla_penalty_no_value)} job(s) avec une pénalité SLA "
+                       f"(penalty_per_hour/base_jeopardy_penalty) mais sans value_per_hour explicite : "
+                       f"{', '.join(jobs_with_sla_penalty_no_value)}",
+            "action": "fixer value_per_hour explicitement sur ces jobs — sans lui, confirmé par test réel, "
+                      "le solveur peut juger le job trop peu rentable pour justifier le coût de respecter "
+                      "sa fenêtre SLA, et préférer payer la pénalité plutôt que la fenêtre",
+            "impact": "évite un rendez-vous/SLA raté malgré une pénalité fixée qui semblait pourtant "
+                      "dissuasive — voir troubleshooting.md §3bis",
+        })
+
     # 5. Pas de plafond de jobs par shift -> risque de surcharge d'une ressource
     has_job_cap = any(rt.get("maximum_jobs_per_shift") for rt in resource_types) or \
                   any(r.get("maximum_jobs_per_shift") for r in resources)

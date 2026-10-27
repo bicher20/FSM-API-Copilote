@@ -1,5 +1,25 @@
 # Changelog du skill
 
+## 1.18 — 2026-10-27
+- **Lacune confirmée par test réel, corrigée** : `value_per_hour` n'a aucune valeur
+  par défaut déclarée côté self-service (vérifié directement dans le schéma OpenAPI
+  réel — `nullable`, pas de `default`), contrairement à l'ancienne doc du skill
+  (issue du PDF offre complète) qui affirmait un défaut de `10000`. Conséquence
+  démontrée par deux tests contrôlés (`examples/11_scenario_complexe.json` puis
+  `examples/12_test_controle_sla_value.json`) : un job sans `value_per_hour`
+  explicite a été planifié 6h30 après sa fenêtre SLA malgré une `base_jeopardy_penalty`
+  de 500 et une ressource qualifiée disponible dans la fenêtre ; en fixant
+  `value_per_hour` explicitement (toutes choses égales par ailleurs), la fenêtre a
+  été respectée.
+- `reference/entities.md` et `SKILL.md` §2bis mis à jour avec cet avertissement.
+  Nouvelle section `troubleshooting.md` §3bis. `scripts/recommend_improvements.py`
+  détecte maintenant automatiquement ce cas (HIGH) : un job avec une pénalité SLA
+  mais sans `value_per_hour` explicite.
+- Nouveaux exemples `examples/11_scenario_complexe.json` (scénario combiné réaliste,
+  8 jobs/3 ressources, pour challenger l'API sur plusieurs mécanismes self-service à
+  la fois) et `examples/12_test_controle_sla_value.json` (payload de test minimal et
+  isolé ayant permis de confirmer la cause ci-dessus).
+
 ## 1.17 — 2026-10-27
 - **Correction majeure, honnête : le skill documentait la mauvaise API.** Nomadia a
   deux offres : une offre complète (PDF interne "Scheduler Schema Documentation", 33

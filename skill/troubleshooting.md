@@ -65,6 +65,28 @@ Dans l'ordre, vérifier :
 - Vérifier `shift_penalty` — une valeur trop haute pousse à tout concentrer sur une
   seule ressource/shift même si ce n'est pas souhaité métier.
 
+## 3bis. Un job est planifié bien en dehors de sa fenêtre SLA, malgré une pénalité fixée
+
+**Confirmé par test réel le 27/10/2026.** Symptôme : un job avec `sla.penalty_per_hour`
+et `sla.base_jeopardy_penalty` > 0 est quand même planifié des heures après
+`latest_start_date_time`, alors qu'une ressource qualifiée était disponible dans la
+fenêtre. Observé concrètement : fenêtre 09:00-11:00, job planifié à 15:30, avec
+`base_jeopardy_penalty: 500` et une ressource habilitée libre entre 08:00 et 10:00.
+
+**Cause confirmée : absence de `job.value_per_hour` explicite.** Ce champ n'a **aucune
+valeur par défaut déclarée côté self-service** (voir `reference/entities.md`) — un job
+sans valeur explicite est jugé "peu rentable" par le solveur, qui préfère payer la
+pénalité de fenêtre ratée plutôt que le coût (trajet, `shift_penalty`, ouverture d'un
+shift) de la respecter. En fixant `value_per_hour` à une valeur haute et explicite sur
+le même job (toutes choses égales par ailleurs), la fenêtre a été respectée au test
+suivant.
+
+**Action** : pour tout job dont le respect d'une fenêtre SLA ou d'un rendez-vous compte
+réellement pour le client, toujours fixer `value_per_hour` explicitement — ne jamais
+compter sur un défaut implicite. `scripts/recommend_improvements.py` ne détecte pas
+encore ce cas précis (seulement `value_per_hour == 0`, pas son absence) ; à vérifier
+manuellement en attendant.
+
 ## 4bis. Un job multi-ressources (`job_resources`, `resource_index`) n'est planifié qu'avec une seule ressource
 
 **Statut au 27/10/2026 : cause définitivement confirmée — ce n'est pas un bug, pas

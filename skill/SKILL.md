@@ -1,7 +1,7 @@
 ---
 name: nomadia-scheduler-api
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.17
+version: 1.18
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -115,12 +115,23 @@ activer — ne laisse jamais l'utilisateur deviner quelle case cocher :
 
 | Objectif client | Mécanisme self-service à activer | Pourquoi (ROI) |
 |---|---|---|
-| Respecter des rendez-vous/fenêtres client stricts | `job.sla` avec `penalty_per_hour`/`base_jeopardy_penalty` > 0 | évite le risque réputationnel d'un rdv raté — kpis-metier.md §3 |
+| Respecter des rendez-vous/fenêtres client stricts | `job.sla` avec `penalty_per_hour`/`base_jeopardy_penalty` > 0 **ET `job.value_per_hour` fixé explicitement** (voir l'avertissement ci-dessous) | évite le risque réputationnel d'un rdv raté — kpis-metier.md §3 |
 | Rendez-vous client avec sa propre tolérance, en plus du SLA général | `job.appointment_sla` (2e objet SLA imbriqué) | couvre le besoin "rdv prioritaire" sans le champ `appointment_priority` dédié (offre complète) |
 | Technicien avec habilitation/compétence obligatoire | `requirements: ["..."]` (liste de chaînes) sur le `job` et sur la/les `resource(s)` habilitée(s) | évite d'envoyer la mauvaise ressource — kpis-metier.md §1 |
 | Réduire les km/le temps de trajet | `locality` sur les `Location` + revoir `start_location_id`/`end_location_id` | argument ROI le plus direct — kpis-metier.md §2 |
 | Limiter le nombre de véhicules/techniciens mobilisés | `shift_penalty` > 0 | baisse du coût fixe journalier — kpis-metier.md §4 |
 | Technicien déjà engagé/en route sur un job | `fixed_resource_id` directement sur le `job` | empêche l'API de réaffecter un job déjà pris en charge |
+
+**⚠️ `value_per_hour` n'a aucune valeur par défaut fiable côté self-service — confirmé
+par test réel le 27/10/2026.** Un job sans `value_per_hour` explicite a été planifié
+6h30 après sa fenêtre SLA (09:00-11:00) malgré une `base_jeopardy_penalty` de 500 et
+une ressource habilitée disponible dans la fenêtre — le solveur a jugé le job trop
+peu "valorisé" pour justifier le coût de respecter la fenêtre. En fixant
+`value_per_hour` à une valeur haute (et explicite) sur ce même job, la fenêtre a été
+respectée au test suivant, toutes choses égales par ailleurs. **Toujours fixer
+`value_per_hour` explicitement sur tout job dont le respect d'une fenêtre SLA/rendez-vous
+compte réellement pour le client** — ne jamais compter sur un défaut implicite (voir
+`reference/entities.md`).
 
 Si l'objectif correspond plutôt à un mécanisme de l'**offre complète** (job
 multi-ressources/binôme, stock de pièces embarqué, ordre obligatoire entre deux
