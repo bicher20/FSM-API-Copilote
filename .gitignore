@@ -1,3 +1,9 @@
 __pycache__/
 *.pyc
 /dist/
+
+# PRD générés par scripts/interview_state.py — documents de besoins spécifiques à un
+# client, jamais à committer dans le repo public du skill. Voir skill/SKILL.md §0ter.
+skill/output/*
+!skill/output/.gitkeep
+.interview_state/

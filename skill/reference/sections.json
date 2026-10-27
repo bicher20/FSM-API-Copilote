@@ -1,0 +1,59 @@
+{
+  "_comment": "Sections de l'entretien guidé mené par scripts/interview_state.py, dans l'esprit du PRD Assistant de Timefold (prd.timefold.ai) : conversation par thèmes, couverture suivie explicitement, document de besoins généré seulement une fois la couverture suffisante. Reprend et formalise en JSON la méthode déjà décrite en prose dans reference/decouverte-besoin.md — ne pas dupliquer le texte ici, seulement la structure machine-lisible (questions, critères). Si ce fichier et decouverte-besoin.md se contredisent un jour, ce fichier est la source de vérité pour l'état/la couverture ; decouverte-besoin.md reste la source de vérité pour le ton et les exemples de formulation.",
+  "threshold_percent": 85,
+  "sections": [
+    {
+      "id": "entites",
+      "label": "Entités — qui/quoi est planifié",
+      "opening_question": "Avant tout, dis-moi concrètement ce qui doit être planifié chez toi : quelles interventions/jobs, quelles ressources (techniciens, véhicules, équipes), et sur quels lieux ? Si tu as déjà un système existant (une table \"interventions\", une liste de techniciens...), dis-le-moi aussi, je préfère partir de ce qui existe plutôt que de tout redemander.",
+      "criteria": [
+        "Les ressources à planifier sont identifiées (combien, à peu près, et s'il y a plusieurs profils/catégories)",
+        "Les jobs/interventions à planifier sont identifiés (nature, et si leur durée varie selon le type)",
+        "Les lieux sont identifiés, et on sait s'ils sont déjà géocodés (lat/lng) ou s'il faudra géocoder",
+        "Si un modèle de données existant a été mentionné ou lu dans le code, le mapping vers Job/Resource/Location a été proposé et confirmé avec le client — jamais juste supposé"
+      ]
+    },
+    {
+      "id": "contraintes",
+      "label": "Contraintes — dures vs souples",
+      "opening_question": "Qu'est-ce qui est non négociable dans ton planning (une compétence obligatoire, une ressource déjà engagée, une indisponibilité connue...), et qu'est-ce qui est plutôt une préférence qu'on peut arbitrer (finir tôt dans une fenêtre, regrouper par secteur, limiter le nombre de techniciens mobilisés...) ?",
+      "criteria": [
+        "Les contraintes dures (doivent toujours être respectées) sont listées explicitement",
+        "Les contraintes souples (influencent le plan mais peuvent être arbitrées) sont listées explicitement",
+        "Chaque contrainte dure citée a été confirmée comme couverte en self-service, ou identifiée comme relevant de l'offre complète (voir section niveau_offre)",
+        "Aucune contrainte mentionnée par le client n'a été ignorée ou reformulée sans qu'il la confirme"
+      ]
+    },
+    {
+      "id": "objectifs",
+      "label": "Objectifs — quels KPIs prioriser",
+      "opening_question": "Si tu devais choisir UNE chose qui compte le plus pour toi dans le résultat — ne perdre aucun job, minimiser les trajets/coûts, respecter strictement les rendez-vous, ou mobiliser le moins de ressources possible — ce serait laquelle, et pourquoi ?",
+      "criteria": [
+        "Un objectif business prioritaire est identifié, dans les mots du client (pas juste un nom de champ technique)",
+        "Les arbitrages/tensions entre cet objectif et d'autres leviers possibles ont été mentionnés si pertinents (ex. moins de ressources peut faire perdre des jobs)",
+        "L'objectif est traçable vers un mécanisme concret du skill (voir kpis-metier.md), pas juste une intention vague"
+      ]
+    },
+    {
+      "id": "taille",
+      "label": "Taille du problème — volume réel",
+      "opening_question": "Dans la réalité (pas juste pour un premier test), à peu près combien de jobs et combien de ressources par jour ou par semaine ?",
+      "criteria": [
+        "Un ordre de grandeur du nombre de jobs réels est connu",
+        "Un ordre de grandeur du nombre de ressources réelles est connu",
+        "Il a été dit explicitement si on part d'un exemple à la main (petit volume) ou de scripts/generate_load_test.py (gros volume), avec le coût maximum annoncé avant toute génération si gros volume",
+        "Le client a été prévenu si le volume de test envisagé est trop petit pour être représentatif d'un vrai cas de production"
+      ]
+    },
+    {
+      "id": "niveau_offre",
+      "label": "Niveau d'offre — self-service ou complète",
+      "opening_question": "Une dernière chose avant qu'on avance : as-tu déjà une clé API Nomadia (essai ou abonnement), et sais-tu si c'est côté self-service ou si vous avez un projet avec leur équipe (offre complète) ?",
+      "criteria": [
+        "On sait si le client a déjà une clé API, et si oui laquelle (self-service vs offre complète)",
+        "Si un besoin cité dans entités/contraintes correspond à un mécanisme offre-complète-only (multi-ressources, stock de pièces, ordre entre jobs, horizon borné, disponibilité récurrente, priorité de rdv dédiée), la question self-service vs offre complète a été posée explicitement au client, jamais supposée",
+        "Si aucun besoin de ce type n'a été évoqué, il est explicitement noté que le self-service suffit par défaut"
+      ]
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 ---
 name: nomadia-scheduler-api
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.21
+version: 1.22
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -86,6 +86,34 @@ contraintes, objectifs, taille du problème — inspirée du PRD Assistant de Ti
 adaptée pour exploiter la lecture du code existant et trancher explicitement entre les
 deux offres Nomadia). Ouvre ce fichier pour un besoin qui n'est pas immédiatement
 évident ; les résumés ci-dessous suffisent pour un besoin simple et déjà clair.
+
+## 0ter. Entretien avec état persistant et PRD (besoin pas immédiatement évident)
+
+Pour un besoin ambigu ou un client qui préfère être guidé plutôt que de tout formuler
+d'un coup, mène l'entretien en t'appuyant sur `reference/sections.json` (5 sections,
+chacune avec une question d'ouverture et des critères de couverture) et
+`scripts/interview_state.py` — **l'état vit dans un fichier, jamais seulement dans la
+conversation**, pour survivre à une coupure/reprise. Déclenche-le dès que le client
+exprime un besoin de cadrage ("je ne sais pas trop par où commencer", "aide-moi à
+définir le besoin") — une seule phrase du client suffit, jamais une suite de commandes
+à lui faire taper :
+
+1. `python3 scripts/interview_state.py start` → récupère l'`interview_id`, pose la
+   première question d'ouverture **dans les mots du métier du client, jamais de jargon
+   technique** (ne jamais dire "job" ou "resource" à ce stade — dire "intervention",
+   "technicien").
+2. Une question à la fois. Après chaque réponse, `record <section> "<réponse>"` (+
+   `--mark-criterion` pour les critères que cette réponse couvre, à ton jugement).
+3. Règles complètes de conduite d'entretien (reformulation, relance ciblée, réouverture
+   d'une section, **possibilité pour le client de corriger toute réponse suggérée**
+   via `interview_state.py edit`, seuil avant PRD) : voir `reference/regles-entretien.md`
+   — à lire avant le premier entretien mené, pas à redéduire à chaque fois.
+4. `progress` à tout moment pour voir où en est la couverture ; `prd` une fois au-dessus
+   du seuil (`reference/sections.json: threshold_percent`) ou sur demande explicite.
+5. **Chaque `record` affiche un avancement global (%, sections complètes/total)** —
+   partage-le au client à chaque changement de section (pas après chaque phrase) pour
+   qu'il voie une progression naturelle et mesurable, jamais qu'il se demande où il en
+   est (voir `reference/regles-entretien.md` §2bis).
 
 **Étape 1 — Regarder avant de demander.** Si le skill tourne dans un contexte de code
 (repo ouvert, fichiers accessibles), inspecte d'abord ce qui existe déjà avant de poser
@@ -431,6 +459,9 @@ doivent être ouverts selon le besoin — ne pas essayer de tout retenir de mém
 | `reference/entities.md` | tu écris un payload/code et as besoin du nom exact d'un champ, son type, ou sa valeur par défaut — transcription fiable du schéma OpenAPI self-service réel (pas la doc PDF de l'offre complète) |
 | `reference/offre-complete-nomadia.md` | le besoin correspond à un mécanisme absent du self-service (multi-ressources, stock, ordre entre jobs, horizon borné, récurrence, priorité de rdv dédiée) — exemple à montrer + comment orienter vers un contact Nomadia |
 | `reference/decouverte-besoin.md` | au tout début d'une mission, pour mener la découverte du besoin en 4 thèmes (entités, contraintes, objectifs, taille) et trancher explicitement self-service vs offre complète — surtout utile sur un besoin pas immédiatement évident |
+| `reference/sections.json` | structure machine-lisible de l'entretien (sections, questions d'ouverture, critères de couverture, seuil) — lu par `scripts/interview_state.py`, jamais à dupliquer de mémoire |
+| `reference/regles-entretien.md` | avant de mener un entretien structuré — reformulation, relance, réouverture de section, règle du jamais-inventé, seuil avant PRD |
+| `scripts/interview_state.py start\|record\|progress\|prd` | entretien de découverte du besoin avec état persistant (fichier, pas la mémoire de la conversation) et génération du PRD final — voir §0ter |
 | `troubleshooting.md` | un appel échoue, un job n'est pas planifié, ou le plan ne correspond pas à l'attendu — diagnostic par symptôme, à suivre avant de modifier du code au hasard |
 | `snippets/client.js` et `snippets/client.py` | tu démarres une intégration dans un projet JS/Node ou Python — client HTTP minimal + validation locale du payload (détecte les `id` qui ne se référencent pas entre eux, les dates de shift incohérentes, etc. avant de consommer des crédits) |
 | `reference/kpis-metier.md` | tu dois argumenter en rendez-vous commercial ou traduire un résultat technique (taux d'allocation, trajet, SLA) en impact business |

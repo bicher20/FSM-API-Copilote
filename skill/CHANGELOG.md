@@ -1,5 +1,39 @@
 # Changelog du skill
 
+## 1.22 — 2026-10-27
+- **Entretien structuré avec état persistant et génération de PRD**, pour aller plus
+  loin que `reference/decouverte-besoin.md` (découverte en prose) vers un vrai moteur
+  comme le PRD Assistant de Timefold :
+  - `reference/sections.json` : les 5 sections de l'entretien (entités, contraintes,
+    objectifs, taille, niveau d'offre) en JSON machine-lisible, chacune avec sa
+    question d'ouverture et ses critères de couverture, + le seuil global
+    (`threshold_percent`, 85% par défaut) avant génération du PRD.
+  - `scripts/interview_state.py` (stdlib uniquement) : `start` / `record` / `progress`
+    / `prd` / `edit`. L'état vit dans un fichier JSON (`.interview_state/` à la racine
+    du repo, jamais committé), pas dans la mémoire de la conversation, pour survivre à
+    une coupure/reprise. `progress` affiche la couverture par section (○/◐/●) et le
+    pourcentage global. `prd` refuse de générer sous le seuil sans `--force` (réservé à
+    une demande explicite du client) et liste toujours les points encore à clarifier
+    plutôt que de les cacher.
+  - **`edit <section> <turn_index> "<réponse corrigée>"`** : le client peut à tout
+    moment corriger une réponse déjà enregistrée ou une suggestion que l'agent lui a
+    proposée — remplace le tour existant plutôt que d'en ajouter un, pour que le PRD
+    final ne contienne jamais deux versions contradictoires.
+  - `reference/regles-entretien.md` : règles de conduite (une question à la fois dans
+    les mots du client, reformulation avant de clore une section, relance ciblée sur
+    les critères manquants, réouverture d'une section déjà couverte, et l'enchaînement
+    du PRD généré vers la construction du payload/code — pas une fin en soi).
+  - **Avancement affiché à chaque `record`** (pourcentage global + sections
+    complètes/total), sur le modèle du "coverage: X%" de Timefold — à partager au
+    client à chaque changement de section (`regles-entretien.md` §2bis) pour qu'il voie
+    une progression naturelle et mesurable plutôt que de deviner où en est l'entretien.
+  - PRD écrit dans `skill/output/<slug-titre>-PRD-<6 hex>.md` (dossier gitignored : un
+    PRD est spécifique à un client, jamais à committer dans le repo public du skill).
+  - `SKILL.md` §0ter et §10, et `llms.txt`, mis à jour pour pointer vers ce nouveau
+    système. Testé de bout en bout (entretien complet avec correction de réponse +
+    refus/forçage du PRD sous le seuil) sans régression sur `doctor.py` ni
+    `test_validate_payload.py`.
+
 ## 1.21 — 2026-10-27
 - **Nouveau `reference/decouverte-besoin.md`** : découverte structurée du besoin en 4
   thèmes (entités, contraintes, objectifs, taille du problème), inspirée de l'analyse
