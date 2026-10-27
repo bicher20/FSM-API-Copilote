@@ -25,6 +25,9 @@ silencieusement ignoré (HTTP 200 trompeur).
 | `08_indisponibilite_ressource.json` | `unavailabilities` imbriqué sous `resources[].unavailabilities[]` : ressource indisponible en milieu de shift | ✅ oui |
 | `09_rendez_vous_client.json` | `job.appointment_sla` : deuxième objet SLA imbriqué pour un rendez-vous avec sa propre tolérance | ✅ oui |
 | `10_job_multi_ressources.json` | job nécessitant 2 ressources simultanément (binôme) | ❌ offre complète uniquement, **confirmé par test réel** — voir `troubleshooting.md` §4bis et `reference/offre-complete-nomadia.md` §1 |
+| `11_scenario_complexe.json` | scénario combiné réaliste (8 jobs, 3 ressources) : compétence, SLA+pénalités, rendez-vous, ressource engagée, indisponibilité, pauses, locality, job splittable, disponibilité limitée | ✅ oui |
+| `12_test_controle_sla_value.json` | payload de test minimal ayant permis de confirmer l'absence de défaut de `value_per_hour` (voir `troubleshooting.md` §3bis) — pas un exemple de référence, un test contrôlé | ✅ oui |
+| `13_charge_100_jobs.json` | payload de charge (100 jobs, 10 ressources) généré par `scripts/generate_load_test.py`, pour challenger l'API sur le volume. **Coût maximum ≈ 1005 crédits** si tous les jobs sont alloués — ne jamais lancer l'appel réel sans avoir accepté ce coût | ✅ oui |
 
 Les fichiers self-service contiennent une clé `_comment` (ignorée par l'API, à
 retirer avant un vrai appel) qui explique le pattern démontré. Les fichiers "offre

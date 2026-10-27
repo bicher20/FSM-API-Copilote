@@ -1,5 +1,17 @@
 # Changelog du skill
 
+## 1.19 — 2026-10-27
+- **Nouveau `scripts/generate_load_test.py`** : génère un payload self-service à
+  grande échelle (N jobs / M ressources configurables), combinant à l'échelle
+  plusieurs mécanismes confirmés (locality, requirements, SLA avec `value_per_hour`
+  explicite — voir §1.18 —, appointment_sla, fixed_resource_id, breaks,
+  shift_penalty, maximum_jobs_per_shift). Affiche le coût **maximum** estimé
+  (5 + ressources × jobs) avant d'écrire le fichier, puisque ce script ne fait lui-même
+  aucun appel réel.
+- Nouvel exemple `examples/13_charge_100_jobs.json` (100 jobs, 10 ressources, généré
+  par le script ci-dessus, seed=42 pour reproductibilité) — coût maximum ≈ 1005
+  crédits si tous les jobs sont alloués. `examples/README.md` et `llms.txt` mis à jour.
+
 ## 1.18 — 2026-10-27
 - **Lacune confirmée par test réel, corrigée** : `value_per_hour` n'a aucune valeur
   par défaut déclarée côté self-service (vérifié directement dans le schéma OpenAPI

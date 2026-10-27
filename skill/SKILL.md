@@ -1,7 +1,7 @@
 ---
 name: nomadia-scheduler-api
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.18
+version: 1.19
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -424,6 +424,7 @@ doivent être ouverts selon le besoin — ne pas essayer de tout retenir de mém
 | `scripts/compare_scenarios.py` | pour prouver un gain avant/après entre deux configs (sans clé API : diff de config ; avec clé API : vrai avant/après chiffré — **consomme des crédits**, ne lancer qu'avec l'accord explicite de l'utilisateur) |
 | `reference/replanification-temps-reel.md` | dès qu'il est question de replanification en continu, de suivi temps réel, de figer une affectation déjà engagée, ou qu'on te compare à un solveur type Timefold/OptaPlanner |
 | `scripts/test_validate_payload.py` | tu modifies `validate_payload.py` — lance ces tests pour vérifier que tu n'as rien cassé avant de committer |
+| `scripts/generate_load_test.py` | pour générer un payload de charge à grande échelle (N jobs/M ressources) et challenger l'API sur le volume — **affiche le coût maximum estimé avant d'écrire le fichier, ne jamais lancer l'appel réel sans l'avoir accepté explicitement** |
 
 **Portabilité.** Rien ici ne suppose un agent ou un éditeur précis : `scripts/` sont des
 scripts Python autonomes exécutables en CLI (`python3 chemin/script.py`), `examples/` et

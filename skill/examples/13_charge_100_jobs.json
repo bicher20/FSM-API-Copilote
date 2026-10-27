@@ -1,0 +1,2047 @@
+{
+  "_comment": "Payload de charge généré par scripts/generate_load_test.py (jobs=100, resources=10, seed=42) pour challenger l'API self-service sur le volume. Combine locality, requirements, SLA+value_per_hour, appointment_sla, fixed_resource_id, breaks, shift_penalty et maximum_jobs_per_shift à l'échelle. ⚠️ Toujours lancer scripts/doctor.py sur ce fichier (gratuit) avant d'envisager un appel réel, et estimer le coût avec --jobs/--resources avant d'accepter.",
+  "locations": [
+    {
+      "id": "DEPOT",
+      "latitude": 48.8566,
+      "longitude": 2.3522
+    },
+    {
+      "id": "LOC-1",
+      "latitude": 48.8156,
+      "longitude": 2.331,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-2",
+      "latitude": 48.847,
+      "longitude": 2.4089,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-3",
+      "latitude": 48.8655,
+      "longitude": 2.2871,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-4",
+      "latitude": 48.8723,
+      "longitude": 2.3357,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-5",
+      "latitude": 48.8969,
+      "longitude": 2.3312,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-6",
+      "latitude": 48.7987,
+      "longitude": 2.3502,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-7",
+      "latitude": 48.8371,
+      "longitude": 2.408,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-8",
+      "latitude": 48.862,
+      "longitude": 2.2818,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-9",
+      "latitude": 48.8454,
+      "longitude": 2.3558,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-10",
+      "latitude": 48.9124,
+      "longitude": 2.3303,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-11",
+      "latitude": 48.8222,
+      "longitude": 2.3579,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-12",
+      "latitude": 48.8496,
+      "longitude": 2.4062,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-13",
+      "latitude": 48.8743,
+      "longitude": 2.2735,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-14",
+      "latitude": 48.8403,
+      "longitude": 2.3361,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-15",
+      "latitude": 48.9139,
+      "longitude": 2.3541,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-16",
+      "latitude": 48.8223,
+      "longitude": 2.3592,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-17",
+      "latitude": 48.8574,
+      "longitude": 2.4389,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-18",
+      "latitude": 48.8511,
+      "longitude": 2.2821,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-19",
+      "latitude": 48.8698,
+      "longitude": 2.3569,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-20",
+      "latitude": 48.9145,
+      "longitude": 2.3531,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-21",
+      "latitude": 48.8182,
+      "longitude": 2.3318,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-22",
+      "latitude": 48.8451,
+      "longitude": 2.4116,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-23",
+      "latitude": 48.8392,
+      "longitude": 2.2693,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-24",
+      "latitude": 48.8406,
+      "longitude": 2.3433,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-25",
+      "latitude": 48.9054,
+      "longitude": 2.3446,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-26",
+      "latitude": 48.8048,
+      "longitude": 2.3384,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-27",
+      "latitude": 48.8467,
+      "longitude": 2.4375,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-28",
+      "latitude": 48.8619,
+      "longitude": 2.2844,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-29",
+      "latitude": 48.8434,
+      "longitude": 2.3614,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-30",
+      "latitude": 48.8865,
+      "longitude": 2.3452,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-31",
+      "latitude": 48.8296,
+      "longitude": 2.3556,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-32",
+      "latitude": 48.8583,
+      "longitude": 2.4274,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-33",
+      "latitude": 48.8697,
+      "longitude": 2.291,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-34",
+      "latitude": 48.8458,
+      "longitude": 2.3335,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-35",
+      "latitude": 48.8926,
+      "longitude": 2.3407,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-36",
+      "latitude": 48.7984,
+      "longitude": 2.3677,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-37",
+      "latitude": 48.8711,
+      "longitude": 2.4126,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-38",
+      "latitude": 48.8622,
+      "longitude": 2.2758,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-39",
+      "latitude": 48.8732,
+      "longitude": 2.3506,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-40",
+      "latitude": 48.8906,
+      "longitude": 2.3399,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-41",
+      "latitude": 48.8125,
+      "longitude": 2.3405,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-42",
+      "latitude": 48.8594,
+      "longitude": 2.4359,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-43",
+      "latitude": 48.852,
+      "longitude": 2.2688,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-44",
+      "latitude": 48.8765,
+      "longitude": 2.3526,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-45",
+      "latitude": 48.8836,
+      "longitude": 2.3319,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-46",
+      "latitude": 48.7944,
+      "longitude": 2.3551,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-47",
+      "latitude": 48.8677,
+      "longitude": 2.4169,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-48",
+      "latitude": 48.8385,
+      "longitude": 2.2753,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-49",
+      "latitude": 48.8764,
+      "longitude": 2.3534,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-50",
+      "latitude": 48.9188,
+      "longitude": 2.3644,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-51",
+      "latitude": 48.7905,
+      "longitude": 2.3588,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-52",
+      "latitude": 48.8633,
+      "longitude": 2.4215,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-53",
+      "latitude": 48.8467,
+      "longitude": 2.2856,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-54",
+      "latitude": 48.8411,
+      "longitude": 2.3496,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-55",
+      "latitude": 48.8981,
+      "longitude": 2.3682,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-56",
+      "latitude": 48.825,
+      "longitude": 2.3405,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-57",
+      "latitude": 48.856,
+      "longitude": 2.4071,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-58",
+      "latitude": 48.8725,
+      "longitude": 2.2948,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-59",
+      "latitude": 48.8485,
+      "longitude": 2.3578,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-60",
+      "latitude": 48.9044,
+      "longitude": 2.3361,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-61",
+      "latitude": 48.8205,
+      "longitude": 2.3516,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-62",
+      "latitude": 48.8671,
+      "longitude": 2.4212,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-63",
+      "latitude": 48.836,
+      "longitude": 2.273,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-64",
+      "latitude": 48.8374,
+      "longitude": 2.3694,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-65",
+      "latitude": 48.9151,
+      "longitude": 2.3633,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-66",
+      "latitude": 48.8023,
+      "longitude": 2.3323,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-67",
+      "latitude": 48.8711,
+      "longitude": 2.4379,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-68",
+      "latitude": 48.8394,
+      "longitude": 2.2794,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-69",
+      "latitude": 48.8394,
+      "longitude": 2.3626,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-70",
+      "latitude": 48.9106,
+      "longitude": 2.3351,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-71",
+      "latitude": 48.809,
+      "longitude": 2.352,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-72",
+      "latitude": 48.8466,
+      "longitude": 2.4349,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-73",
+      "latitude": 48.8529,
+      "longitude": 2.2685,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-74",
+      "latitude": 48.8582,
+      "longitude": 2.3614,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-75",
+      "latitude": 48.888,
+      "longitude": 2.3425,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-76",
+      "latitude": 48.8298,
+      "longitude": 2.356,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-77",
+      "latitude": 48.8535,
+      "longitude": 2.4207,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-78",
+      "latitude": 48.8408,
+      "longitude": 2.269,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-79",
+      "latitude": 48.8501,
+      "longitude": 2.3557,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-80",
+      "latitude": 48.8892,
+      "longitude": 2.3388,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-81",
+      "latitude": 48.7928,
+      "longitude": 2.3552,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-82",
+      "latitude": 48.8452,
+      "longitude": 2.4362,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-83",
+      "latitude": 48.8704,
+      "longitude": 2.2628,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-84",
+      "latitude": 48.8461,
+      "longitude": 2.359,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-85",
+      "latitude": 48.8886,
+      "longitude": 2.3353,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-86",
+      "latitude": 48.8274,
+      "longitude": 2.3528,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-87",
+      "latitude": 48.8549,
+      "longitude": 2.4314,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-88",
+      "latitude": 48.8683,
+      "longitude": 2.2676,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-89",
+      "latitude": 48.8405,
+      "longitude": 2.3494,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-90",
+      "latitude": 48.8969,
+      "longitude": 2.3487,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-91",
+      "latitude": 48.8192,
+      "longitude": 2.3569,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-92",
+      "latitude": 48.8754,
+      "longitude": 2.4039,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-93",
+      "latitude": 48.8521,
+      "longitude": 2.2736,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-94",
+      "latitude": 48.8711,
+      "longitude": 2.3421,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-95",
+      "latitude": 48.8876,
+      "longitude": 2.3479,
+      "locality": "NORD"
+    },
+    {
+      "id": "LOC-96",
+      "latitude": 48.8069,
+      "longitude": 2.3411,
+      "locality": "SUD"
+    },
+    {
+      "id": "LOC-97",
+      "latitude": 48.846,
+      "longitude": 2.4369,
+      "locality": "EST"
+    },
+    {
+      "id": "LOC-98",
+      "latitude": 48.8537,
+      "longitude": 2.2945,
+      "locality": "OUEST"
+    },
+    {
+      "id": "LOC-99",
+      "latitude": 48.8586,
+      "longitude": 2.3342,
+      "locality": "CENTRE"
+    },
+    {
+      "id": "LOC-100",
+      "latitude": 48.92,
+      "longitude": 2.3634,
+      "locality": "NORD"
+    }
+  ],
+  "job_types": [
+    {
+      "id": "DEFAULT",
+      "custom_duration": "PT30M"
+    },
+    {
+      "id": "INSTALLATION",
+      "custom_duration": "PT1H"
+    }
+  ],
+  "resource_types": [
+    {
+      "id": "TECH_STD",
+      "start_location_id": "DEPOT",
+      "end_location_id": "DEPOT",
+      "cost_per_kilometre": 0.4,
+      "cost_per_hour": 15,
+      "shift_penalty": 50,
+      "maximum_jobs_per_shift": 15
+    },
+    {
+      "id": "TECH_ELEC",
+      "start_location_id": "DEPOT",
+      "end_location_id": "DEPOT",
+      "cost_per_kilometre": 0.5,
+      "cost_per_hour": 20,
+      "shift_penalty": 50,
+      "maximum_jobs_per_shift": 15
+    }
+  ],
+  "jobs": [
+    {
+      "id": "JOB-1",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-1",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-2",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-2",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-3",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-3",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-4",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-4",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-5",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-5",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
+    },
+    {
+      "id": "JOB-6",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-6",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-7",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-7",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-8",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-8",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-9",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-9",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-10",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-10",
+      "value_per_hour": 200,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ],
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T10:00:00",
+        "latest_start_date_time": "2026-11-02T10:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
+      }
+    },
+    {
+      "id": "JOB-11",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-11",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-12",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-12",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-13",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-13",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-14",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-14",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-15",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-15",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
+    },
+    {
+      "id": "JOB-16",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-16",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-17",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-17",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-18",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-18",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-19",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-19",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-20",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-20",
+      "value_per_hour": 200,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ],
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T11:00:00",
+        "latest_start_date_time": "2026-11-02T11:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
+      }
+    },
+    {
+      "id": "JOB-21",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-21",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-22",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-22",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-23",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-23",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-24",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-24",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-25",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-25",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ],
+      "fixed_resource_id": "RES-6"
+    },
+    {
+      "id": "JOB-26",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-26",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-27",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-27",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-28",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-28",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-29",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-29",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-30",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-30",
+      "value_per_hour": 200,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ],
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T12:00:00",
+        "latest_start_date_time": "2026-11-02T12:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
+      }
+    },
+    {
+      "id": "JOB-31",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-31",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-32",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-32",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-33",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-33",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-34",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-34",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-35",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-35",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
+    },
+    {
+      "id": "JOB-36",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-36",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-37",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-37",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-38",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-38",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-39",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-39",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-40",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-40",
+      "value_per_hour": 200,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ],
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T13:00:00",
+        "latest_start_date_time": "2026-11-02T13:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
+      }
+    },
+    {
+      "id": "JOB-41",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-41",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-42",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-42",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-43",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-43",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-44",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-44",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-45",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-45",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
+    },
+    {
+      "id": "JOB-46",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-46",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-47",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-47",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-48",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-48",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-49",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-49",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-50",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-50",
+      "value_per_hour": 200,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ],
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T14:00:00",
+        "latest_start_date_time": "2026-11-02T14:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
+      },
+      "fixed_resource_id": "RES-1"
+    },
+    {
+      "id": "JOB-51",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-51",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-52",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-52",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-53",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-53",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-54",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-54",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-55",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-55",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
+    },
+    {
+      "id": "JOB-56",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-56",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-57",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-57",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-58",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-58",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-59",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-59",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-60",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-60",
+      "value_per_hour": 200,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ],
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T15:00:00",
+        "latest_start_date_time": "2026-11-02T15:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
+      }
+    },
+    {
+      "id": "JOB-61",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-61",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-62",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-62",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-63",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-63",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-64",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-64",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-65",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-65",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
+    },
+    {
+      "id": "JOB-66",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-66",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-67",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-67",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-68",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-68",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-69",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-69",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-70",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-70",
+      "value_per_hour": 200,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ],
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T16:00:00",
+        "latest_start_date_time": "2026-11-02T16:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
+      }
+    },
+    {
+      "id": "JOB-71",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-71",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-72",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-72",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-73",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-73",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-74",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-74",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-75",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-75",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ],
+      "fixed_resource_id": "RES-6"
+    },
+    {
+      "id": "JOB-76",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-76",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-77",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-77",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-78",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-78",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-79",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-79",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-80",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-80",
+      "value_per_hour": 200,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ],
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T09:00:00",
+        "latest_start_date_time": "2026-11-02T09:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
+      }
+    },
+    {
+      "id": "JOB-81",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-81",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-82",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-82",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-83",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-83",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-84",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-84",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-85",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-85",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
+    },
+    {
+      "id": "JOB-86",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-86",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-87",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-87",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-88",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-88",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-89",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-89",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-90",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-90",
+      "value_per_hour": 200,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ],
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T10:00:00",
+        "latest_start_date_time": "2026-11-02T10:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
+      }
+    },
+    {
+      "id": "JOB-91",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-91",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-92",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-92",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-93",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-93",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-94",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-94",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-95",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-95",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
+    },
+    {
+      "id": "JOB-96",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-96",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-97",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-97",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-98",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-98",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-99",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-99",
+      "value_per_hour": 50,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      }
+    },
+    {
+      "id": "JOB-100",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-100",
+      "value_per_hour": 200,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 5
+      },
+      "requirements": [
+        "HABILITATION_ELEC"
+      ],
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T11:00:00",
+        "latest_start_date_time": "2026-11-02T11:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
+      },
+      "fixed_resource_id": "RES-1"
+    }
+  ],
+  "resources": [
+    {
+      "id": "RES-1",
+      "resource_type_id": "TECH_ELEC",
+      "shifts": [
+        {
+          "start_date_time": "2026-11-02T08:00:00",
+          "end_date_time": "2026-11-02T18:00:00",
+          "breaks": [
+            {
+              "earliest_start_date_time": "2026-11-02T12:00:00",
+              "latest_start_date_time": "2026-11-02T13:30:00",
+              "duration": "PT45M"
+            }
+          ]
+        }
+      ],
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
+    },
+    {
+      "id": "RES-2",
+      "resource_type_id": "TECH_ELEC",
+      "shifts": [
+        {
+          "start_date_time": "2026-11-02T08:00:00",
+          "end_date_time": "2026-11-02T18:00:00",
+          "breaks": [
+            {
+              "earliest_start_date_time": "2026-11-02T12:00:00",
+              "latest_start_date_time": "2026-11-02T13:30:00",
+              "duration": "PT45M"
+            }
+          ]
+        }
+      ],
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
+    },
+    {
+      "id": "RES-3",
+      "resource_type_id": "TECH_ELEC",
+      "shifts": [
+        {
+          "start_date_time": "2026-11-02T08:00:00",
+          "end_date_time": "2026-11-02T18:00:00",
+          "breaks": [
+            {
+              "earliest_start_date_time": "2026-11-02T12:00:00",
+              "latest_start_date_time": "2026-11-02T13:30:00",
+              "duration": "PT45M"
+            }
+          ]
+        }
+      ],
+      "requirements": [
+        "HABILITATION_ELEC"
+      ]
+    },
+    {
+      "id": "RES-4",
+      "resource_type_id": "TECH_STD",
+      "shifts": [
+        {
+          "start_date_time": "2026-11-02T08:00:00",
+          "end_date_time": "2026-11-02T18:00:00",
+          "breaks": [
+            {
+              "earliest_start_date_time": "2026-11-02T12:00:00",
+              "latest_start_date_time": "2026-11-02T13:30:00",
+              "duration": "PT45M"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RES-5",
+      "resource_type_id": "TECH_STD",
+      "shifts": [
+        {
+          "start_date_time": "2026-11-02T08:00:00",
+          "end_date_time": "2026-11-02T18:00:00",
+          "breaks": [
+            {
+              "earliest_start_date_time": "2026-11-02T12:00:00",
+              "latest_start_date_time": "2026-11-02T13:30:00",
+              "duration": "PT45M"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RES-6",
+      "resource_type_id": "TECH_STD",
+      "shifts": [
+        {
+          "start_date_time": "2026-11-02T08:00:00",
+          "end_date_time": "2026-11-02T18:00:00",
+          "breaks": [
+            {
+              "earliest_start_date_time": "2026-11-02T12:00:00",
+              "latest_start_date_time": "2026-11-02T13:30:00",
+              "duration": "PT45M"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RES-7",
+      "resource_type_id": "TECH_STD",
+      "shifts": [
+        {
+          "start_date_time": "2026-11-02T08:00:00",
+          "end_date_time": "2026-11-02T18:00:00",
+          "breaks": [
+            {
+              "earliest_start_date_time": "2026-11-02T12:00:00",
+              "latest_start_date_time": "2026-11-02T13:30:00",
+              "duration": "PT45M"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RES-8",
+      "resource_type_id": "TECH_STD",
+      "shifts": [
+        {
+          "start_date_time": "2026-11-02T08:00:00",
+          "end_date_time": "2026-11-02T18:00:00",
+          "breaks": [
+            {
+              "earliest_start_date_time": "2026-11-02T12:00:00",
+              "latest_start_date_time": "2026-11-02T13:30:00",
+              "duration": "PT45M"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RES-9",
+      "resource_type_id": "TECH_STD",
+      "shifts": [
+        {
+          "start_date_time": "2026-11-02T08:00:00",
+          "end_date_time": "2026-11-02T18:00:00",
+          "breaks": [
+            {
+              "earliest_start_date_time": "2026-11-02T12:00:00",
+              "latest_start_date_time": "2026-11-02T13:30:00",
+              "duration": "PT45M"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RES-10",
+      "resource_type_id": "TECH_STD",
+      "shifts": [
+        {
+          "start_date_time": "2026-11-02T08:00:00",
+          "end_date_time": "2026-11-02T18:00:00",
+          "breaks": [
+            {
+              "earliest_start_date_time": "2026-11-02T12:00:00",
+              "latest_start_date_time": "2026-11-02T13:30:00",
+              "duration": "PT45M"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

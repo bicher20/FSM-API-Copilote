@@ -37,6 +37,10 @@ parcourir le repo au hasard.
   place de doctor.py seulement si besoin d'automatiser juste la validation (ex: CI).
 - scripts/recommend_improvements.py payload.json [--response reponse.json] —
   recommandations ROI seules, même logique.
+- scripts/generate_load_test.py --jobs N --resources M -o payload.json — génère un
+  payload de charge à grande échelle pour challenger l'API sur le volume. Affiche le
+  coût maximum estimé (5 + ressources × jobs) avant d'écrire le fichier — ne jamais
+  lancer l'appel réel sans l'avoir accepté explicitement.
 - scripts/compare_scenarios.py --scenario LABEL payload.json ... [--api-key KEY] —
   comparaison avant/après entre configs. Consomme de vrais crédits si --api-key fourni
   — accord explicite de l'utilisateur requis avant ce mode.
