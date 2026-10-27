@@ -1,7 +1,7 @@
 ---
 name: nomadia
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.26
+version: 1.27
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -90,8 +90,11 @@ pour un besoin simple et déjà clair.
 ## 0ter. Entretien avec état persistant et PRD (besoin pas immédiatement évident)
 
 Pour un besoin ambigu ou un client qui préfère être guidé plutôt que de tout formuler
-d'un coup, mène l'entretien en t'appuyant sur `reference/sections.json` (5 sections,
-chacune avec une question d'ouverture et des critères de couverture) et
+d'un coup, mène l'entretien en t'appuyant sur `reference/sections.json` (8 petites
+sections à un seul sujet chacune — le thème "entités" est volontairement scindé en 4
+questions successives : ressources, puis durée des interventions, puis géoloc, puis
+données existantes, plutôt qu'un seul mur de choix mélangés — chacune avec sa question
+d'ouverture et ses critères de couverture) et
 `scripts/interview_state.py` — **l'état vit dans un fichier, jamais seulement dans la
 conversation**, pour survivre à une coupure/reprise. Déclenche-le dès que le client
 exprime un besoin de cadrage ("je ne sais pas trop par où commencer", "aide-moi à

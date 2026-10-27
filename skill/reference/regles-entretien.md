@@ -20,6 +20,14 @@ TOUJOURS un dernier numéro explicite "Autre chose à préciser" en plus des cho
 présente-le comme un vrai choix de la liste au client (pas une note en petit en bas),
 c'est littéralement une case à cocher pour "je veux ajouter du contexte".
 
+Chaque section ne porte qu'UN seul sujet : le thème "entités" est volontairement scindé
+en 4 sections successives (`entites_ressources`, `entites_interventions`,
+`entites_lieux`, `entites_donnees`) plutôt qu'un seul QCM de 9 choix mélangeant qui est
+planifié, combien de temps ça dure, où c'est, et quelles données existent déjà — ça
+évite au client de se retrouver devant un mur de cases sans rapport entre elles. Garde
+ce principe si tu ajoutes un jour une nouvelle question : une section = un sujet, pas
+un fourre-tout.
+
 ## 1bis. Les choix non pertinents se masquent seuls — ne les redemande pas, n'en invente pas
 
 `scripts/interview_state.py options <section>` filtre déjà automatiquement les options

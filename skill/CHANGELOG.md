@@ -1,5 +1,18 @@
 # Changelog du skill
 
+## 1.27 — 2026-10-27
+- **Le thème "entités" était un mur de 9 choix mélangeant 4 sujets différents**
+  (type de ressource, durée des interventions, géolocalisation, données existantes)
+  dans un seul QCM — scindé en 4 sections successives à un seul sujet chacune
+  (`entites_ressources`, `entites_interventions`, `entites_lieux`, `entites_donnees`),
+  chacune avec sa propre question d'ouverture conversationnelle. L'entretien compte
+  maintenant 8 sections au lieu de 5 ; les `depends_on` référençant l'ancienne section
+  `entites` (pour "binôme technicien" et "mobiliser moins de techniciens") pointent
+  désormais vers `entites_ressources`.
+- Rupture pour un entretien déjà en cours au moment de la mise à jour (état dans
+  `.interview_state/`, jamais committé/livré) : relancer `start` plutôt que de
+  reprendre un entretien entamé sous l'ancien découpage à 5 sections.
+
 ## 1.26 — 2026-10-27
 - **Ton des questions plus conversationnel** : toutes les `opening_question` de
   `reference/sections.json` reformulées (moins "formulaire", plus une vraie
