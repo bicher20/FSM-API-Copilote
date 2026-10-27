@@ -1,0 +1,170 @@
+{
+  "_comment": "Scénario combiné pour challenger l'API en conditions réalistes : 8 jobs, 3 ressources, 2 types de ressources, compétence obligatoire, SLA avec pénalités, rendez-vous avec appointment_sla, ressource engagée (fixed_resource_id), indisponibilité ressource (formation), pauses, locality NORD/SUD, shift_penalty, job splittable, disponibilité limitée. Coût estimé si tout est planifié : 5 + (3 ressources × jusqu'à 8 jobs) = jusqu'à ~29 crédits selon ce qui est effectivement alloué — vérifier avec doctor.py avant de lancer, et accepter explicitement le coût avant l'appel réel.",
+  "locations": [
+    { "id": "DEPOT", "latitude": 48.8566, "longitude": 2.3522 },
+    { "id": "LOC-1", "latitude": 48.8738, "longitude": 2.2950, "locality": "NORD" },
+    { "id": "LOC-2", "latitude": 48.8800, "longitude": 2.3400, "locality": "NORD" },
+    { "id": "LOC-3", "latitude": 48.8900, "longitude": 2.3100, "locality": "NORD" },
+    { "id": "LOC-4", "latitude": 48.8462, "longitude": 2.3372, "locality": "SUD" },
+    { "id": "LOC-5", "latitude": 48.8300, "longitude": 2.3600, "locality": "SUD" },
+    { "id": "LOC-6", "latitude": 48.8200, "longitude": 2.3700, "locality": "SUD" }
+  ],
+  "job_types": [
+    { "id": "DEFAULT", "custom_duration": "PT30M" },
+    { "id": "INSTALLATION", "custom_duration": "PT1H30M" }
+  ],
+  "resource_types": [
+    {
+      "id": "TECH_ELEC",
+      "start_location_id": "DEPOT",
+      "end_location_id": "DEPOT",
+      "cost_per_kilometre": 0.5,
+      "cost_per_hour": 20,
+      "shift_penalty": 50,
+      "maximum_jobs_per_shift": 6
+    },
+    {
+      "id": "TECH_STD",
+      "start_location_id": "DEPOT",
+      "end_location_id": "DEPOT",
+      "cost_per_kilometre": 0.4,
+      "cost_per_hour": 15,
+      "shift_penalty": 50,
+      "maximum_jobs_per_shift": 8
+    }
+  ],
+  "jobs": [
+    {
+      "id": "JOB-ELEC-1",
+      "job_type_id": "INSTALLATION",
+      "location_id": "LOC-1",
+      "requirements": ["HABILITATION_ELEC"],
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00",
+        "penalty_per_hour": 20
+      }
+    },
+    {
+      "id": "JOB-ELEC-2",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-4",
+      "requirements": ["HABILITATION_ELEC"],
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T09:00:00",
+        "latest_start_date_time": "2026-11-02T11:00:00",
+        "penalty_per_hour": 30,
+        "base_jeopardy_penalty": 500
+      }
+    },
+    {
+      "id": "JOB-STD-1",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-2",
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00"
+      }
+    },
+    {
+      "id": "JOB-STD-2",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-5",
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00"
+      }
+    },
+    {
+      "id": "JOB-RDV-CLIENT",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-3",
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00"
+      },
+      "appointment_sla": {
+        "earliest_start_date_time": "2026-11-02T14:00:00",
+        "latest_start_date_time": "2026-11-02T14:30:00",
+        "penalty_per_hour": 50,
+        "base_jeopardy_penalty": 1000
+      }
+    },
+    {
+      "id": "JOB-FIXE-RES2",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-6",
+      "fixed_resource_id": "RES-2",
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00"
+      }
+    },
+    {
+      "id": "JOB-SPLITTABLE",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-1",
+      "custom_duration": "PT3H",
+      "split_allowed": true,
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00"
+      }
+    },
+    {
+      "id": "JOB-DISPO-LIMITEE",
+      "job_type_id": "DEFAULT",
+      "location_id": "LOC-4",
+      "availabilities": [
+        { "start_date_time": "2026-11-02T15:00:00", "end_date_time": "2026-11-02T17:00:00" }
+      ],
+      "sla": {
+        "earliest_start_date_time": "2026-11-02T08:00:00",
+        "latest_start_date_time": "2026-11-02T18:00:00"
+      }
+    }
+  ],
+  "resources": [
+    {
+      "id": "RES-1",
+      "resource_type_id": "TECH_ELEC",
+      "requirements": ["HABILITATION_ELEC"],
+      "shifts": [
+        {
+          "start_date_time": "2026-11-02T08:00:00",
+          "end_date_time": "2026-11-02T18:00:00",
+          "breaks": [
+            { "earliest_start_date_time": "2026-11-02T12:00:00", "latest_start_date_time": "2026-11-02T13:30:00", "duration": "PT45M" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RES-2",
+      "resource_type_id": "TECH_STD",
+      "shifts": [
+        {
+          "start_date_time": "2026-11-02T08:00:00",
+          "end_date_time": "2026-11-02T18:00:00",
+          "breaks": [
+            { "earliest_start_date_time": "2026-11-02T12:00:00", "latest_start_date_time": "2026-11-02T13:30:00", "duration": "PT45M" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RES-3",
+      "resource_type_id": "TECH_ELEC",
+      "requirements": ["HABILITATION_ELEC"],
+      "shifts": [
+        {
+          "start_date_time": "2026-11-02T08:00:00",
+          "end_date_time": "2026-11-02T18:00:00"
+        }
+      ],
+      "unavailabilities": [
+        { "id": "FORMATION-RES3", "start_date_time": "2026-11-02T10:00:00", "end_date_time": "2026-11-02T11:30:00" }
+      ]
+    }
+  ]
+}
