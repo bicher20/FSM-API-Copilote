@@ -62,6 +62,16 @@ critère (ex. volume réel pas encore connu), note-le comme tel dans le PRD plut
 deviner une valeur à sa place — un "pas encore su" honnête vaut mieux qu'un chiffre
 inventé qui orientera mal la construction du payload ensuite.
 
+## 4bis. Réponse qui ne correspond pas à la question posée
+
+Si la réponse du client ne répond manifestement pas à ce qui a été demandé (ex. un
+chiffre de durée alors que la question portait sur un volume, un numéro de QCM hors de
+la plage affichée), ne l'enregistre pas comme si elle couvrait le critère visé. Dis
+explicitement que cette réponse ne correspond pas à la question (jamais en silence,
+jamais en la forçant dans le critère le plus proche), répète la question sous une autre
+forme si besoin, puis passe au point suivant si le client ne peut vraiment pas préciser
+— voir §4 ci-dessus pour noter honnêtement un point resté sans réponse.
+
 ## 5. "Parler de cette section" — rouvrir une section déjà couverte
 
 Le client peut à tout moment demander à revenir sur une section déjà marquée ● : propose
@@ -76,8 +86,24 @@ Au moment de `prd`, passe `--summary "<une ou deux phrases>"` résumant QUOI est
 planifié et QUI exécute (ex. "les visites client, affectées à un technicien, un ordre
 et un horaire ; les techniciens, dont la disponibilité varie") — ça s'affiche en tête
 du PRD, avant le détail section par section, pour que le client retrouve l'essentiel
-en un coup d'œil. La section "contraintes" distingue déjà automatiquement non-négociable
-/ souple dans le rendu (grâce aux choix QCM), rien à faire de plus de ce côté.
+en un coup d'œil.
+
+En plus (ou à la place) du `--summary` en texte libre, utilise `--entity "Nom|Statut|
+Description"` (répétable, une fois par entité) pour une liste structurée par entité —
+ex. `--entity "Interventions client|Planifiées|affectées à un technicien, un ordre et
+un horaire" --entity "Techniciens|Disponibilité|réalisent les interventions, avec
+compétences, secteur et indisponibilités variables"`. N'invente jamais le statut ou la
+description d'une entité à partir des seuls labels QCM — écris-les toi-même d'après ce
+que le client a réellement confirmé pendant l'entretien (section "entités" en premier
+lieu, affinée par les contraintes/objectifs qui s'y rattachent).
+
+La section "contraintes" distingue déjà automatiquement non-négociable / souple dans le
+rendu de sa propre section (grâce aux choix QCM). Le PRD se termine en plus par un
+**récapitulatif global** "Non négociable" / "Nice to have" qui agrège ces choix
+("contraintes") avec les objectifs priorisés (section "objectifs", toujours classés
+nice-to-have — un KPI n'est jamais une contrainte dure) en deux listes uniques, tous
+thèmes confondus — rien à construire à la main pour ça, le script le fait depuis les
+options QCM déjà enregistrées.
 
 ## 6. Le PRD ne s'écrit qu'au-dessus du seuil, ou sur demande explicite
 

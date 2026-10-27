@@ -63,8 +63,11 @@ parcourir le repo au hasard.
   client section par section (`record --options id1,id2,...`, marque automatiquement les
   critères liés), affiche la couverture en couleur dans le terminal (désactivable via
   NO_COLOR), corrige une réponse déjà enregistrée, génère le PRD final en Markdown une
-  fois la couverture suffisante (ou sur demande explicite). Voir SKILL.md §0ter et
-  reference/regles-entretien.md.
+  fois la couverture suffisante (ou sur demande explicite) — avec résumé libre
+  (`--summary`) et/ou liste d'entités structurée (`--entity "Nom|Statut|Description"`,
+  répétable) sous "Ce qui est planifié", et un récapitulatif final "Non négociable"/
+  "Nice to have" agrégé sur tous les thèmes (contraintes + objectifs), pas seulement par
+  section. Voir SKILL.md §0ter et reference/regles-entretien.md.
 
 ## Point de départ pour écrire du code
 - snippets/client.js / client.py — client HTTP minimal + retry/backoff, à adapter

@@ -41,14 +41,21 @@ Usage :
            suggérée/paraphrasée par l'agent) — ne recrée jamais un nouveau tour, remplace
            le tour existant pour que le PRD final reflète la version corrigée, pas les deux
 
-    python3 scripts/interview_state.py prd [--interview ID] [--force] [--output-dir DIR] [--summary "<texte>"]
+    python3 scripts/interview_state.py prd [--interview ID] [--force] [--output-dir DIR]
+                                            [--summary "<texte>"] [--entity "Nom|Statut|Description" ...]
         -> génère le PRD en Markdown depuis l'état. Refuse si couverture globale < seuil
            (reference/sections.json: threshold_percent) sauf --force (demande explicite
            de l'utilisateur à transmettre depuis l'agent, jamais à activer par défaut).
            --summary (optionnel) : un court récap écrit par l'agent ("ce qui est
-           planifié"), inséré en tête du PRD. La section 'contraintes' distingue
-           automatiquement non négociable / souple dans le rendu (sections.json:
-           options[].hard), sans rien à passer de plus.
+           planifié"), inséré en tête du PRD. --entity (optionnel, répétable) : une
+           entité du besoin au format "Nom|Statut|Description" (ex. "Interventions
+           client|Planifiées|affectées à un technicien, un ordre et un horaire") —
+           rendue en liste structurée sous "Ce qui est planifié", en plus ou à la place
+           du --summary en texte libre ; jamais déduite automatiquement des labels QCM,
+           c'est à l'agent de l'écrire d'après ce que le client a réellement dit. Le PRD
+           se termine aussi par un récapitulatif global "Non négociable" / "Nice to
+           have" qui agrège tous les thèmes (pas seulement 'contraintes') — sections.json:
+           options[].hard, plus les objectifs (toujours classés "nice to have").
 
 Évaluation de couverture — volontairement simple et vérifiable, PAS de NLP/LLM dans ce
 script : un critère d'une section est marqué couvert dès que le client a choisi une
@@ -387,7 +394,73 @@ def _classify_turn_by_hardness(sec_def: dict, turn: dict) -> str:
     return "mixte"
 
 
-def render_prd_markdown(state: dict, sections: list, pct: float, summary: str | None = None) -> str:
+def _parse_entities(raw: list[str] | None) -> list[dict]:
+    """Parse les --entity "Nom|Statut|Description" en triplets. Erreur explicite si le
+    format ne respecte pas les 3 champs séparés par '|' — jamais une entité tronquée ou
+    mal coupée silencieusement."""
+    entities = []
+    for item in raw or []:
+        parts = [p.strip() for p in item.split("|")]
+        if len(parts) != 3 or not all(parts):
+            print(f"{c('[ERROR]', 'red', 'bold')} --entity attend le format "
+                  f"\"Nom|Statut|Description\" (3 champs non vides séparés par '|'), reçu : "
+                  f"'{item}'", file=sys.stderr)
+            sys.exit(1)
+        name, status, desc = parts
+        entities.append({"name": name, "status": status, "description": desc})
+    return entities
+
+
+def _build_global_roundup(state: dict, sections: list) -> tuple[list[str], list[str]]:
+    """Agrège, sur TOUS les thèmes (pas seulement 'contraintes'), deux listes uniques :
+    non-négociable et nice-to-have — inspiré de la structure d'un rapport de besoin qui
+    pose ces deux catégories une seule fois en fin de document plutôt que section par
+    section. Classement fait OPTION par OPTION (jamais tour par tour), pour qu'un tour
+    "mixte" (ex. deux contraintes dures + une préférence souple cochées ensemble) ne
+    duplique pas toute la phrase composée dans les deux listes — chaque item choisi va
+    dans sa seule bonne liste, sans mélange :
+    - 'contraintes' : chaque option cochée au moins une fois est classée via son flag
+      options[].hard (dur -> non négociable, souple -> nice to have) ;
+    - 'objectifs' : chaque option cochée est un objectif à optimiser, donc classée
+      nice-to-have par nature (jamais non-négociable — un KPI priorisé n'est pas une
+      contrainte dure) ;
+    - le texte libre (sans option associée) et les autres sections (entités, taille,
+      niveau_offre) ne portent pas de notion de négociabilité et n'alimentent pas ce
+      récapitulatif — ils restent visibles dans le détail par section ci-dessus."""
+    non_negociable: list[str] = []
+    nice_to_have: list[str] = []
+
+    contraintes_def = next((s for s in sections if s["id"] == "contraintes"), None)
+    if contraintes_def is not None:
+        by_id = {opt["id"]: opt for opt in contraintes_def.get("options", [])}
+        seen_hard, seen_soft = set(), set()
+        for turn in state["sections"]["contraintes"]["turns"]:
+            for oid in turn.get("option_ids") or []:
+                opt = by_id.get(oid)
+                if opt is None or "hard" not in opt:
+                    continue
+                if opt["hard"] and opt["id"] not in seen_hard:
+                    seen_hard.add(opt["id"])
+                    non_negociable.append(opt["label"])
+                elif not opt["hard"] and opt["id"] not in seen_soft:
+                    seen_soft.add(opt["id"])
+                    nice_to_have.append(opt["label"])
+
+    objectifs_def = next((s for s in sections if s["id"] == "objectifs"), None)
+    if objectifs_def is not None:
+        by_id = {opt["id"]: opt for opt in objectifs_def.get("options", [])}
+        seen = set()
+        for turn in state["sections"]["objectifs"]["turns"]:
+            for oid in turn.get("option_ids") or []:
+                if oid in by_id and oid not in seen:
+                    seen.add(oid)
+                    nice_to_have.append(by_id[oid]["label"])
+
+    return non_negociable, nice_to_have
+
+
+def render_prd_markdown(state: dict, sections: list, pct: float, summary: str | None = None,
+                         entities: list[dict] | None = None) -> str:
     lines = []
     title = state.get("title") or "Besoin client"
     lines.append(f"# PRD — {title}")
@@ -400,11 +473,16 @@ def render_prd_markdown(state: dict, sections: list, pct: float, summary: str | 
                  "Aucune réponse n'est inventée — une section marquée incomplète ci-dessous "
                  "doit être reprise avec le client avant de construire le payload final.")
     lines.append("")
-    if summary:
+    if summary or entities:
         lines.append("## Ce qui est planifié")
         lines.append("")
-        lines.append(summary.strip())
-        lines.append("")
+        if summary:
+            lines.append(summary.strip())
+            lines.append("")
+        if entities:
+            for ent in entities:
+                lines.append(f"- **{ent['name']}** — *{ent['status']}* : {ent['description']}")
+            lines.append("")
     for s in sections:
         sec_state = state["sections"][s["id"]]
         n_covered = len(sec_state["covered_criteria"])
@@ -457,6 +535,25 @@ def render_prd_markdown(state: dict, sections: list, pct: float, summary: str | 
             for crit in uncovered:
                 lines.append(f"- {crit}")
             lines.append("")
+
+    non_negociable, nice_to_have = _build_global_roundup(state, sections)
+    if non_negociable or nice_to_have:
+        lines.append("## Récapitulatif global — tous thèmes confondus")
+        lines.append("")
+        lines.append("*Reprend en un seul endroit ce qui est non négociable et ce qui est "
+                     "nice to have, toutes sections mélangées — le détail par thème ci-dessus "
+                     "reste la référence si un point précis doit être retracé.*")
+        lines.append("")
+        if non_negociable:
+            lines.append("**Non négociable :**")
+            for a in non_negociable:
+                lines.append(f"- {a}")
+            lines.append("")
+        if nice_to_have:
+            lines.append("**Nice to have :**")
+            for a in nice_to_have:
+                lines.append(f"- {a}")
+            lines.append("")
     return "\n".join(lines)
 
 
@@ -480,7 +577,8 @@ def cmd_prd(args):
               file=sys.stderr)
         sys.exit(1)
 
-    md = render_prd_markdown(state, sections, pct, summary=args.summary)
+    entities = _parse_entities(args.entity)
+    md = render_prd_markdown(state, sections, pct, summary=args.summary, entities=entities)
     out_dir = Path(args.output_dir) if args.output_dir else (SKILL_ROOT / "output")
     out_dir.mkdir(parents=True, exist_ok=True)
     slug = slugify(state.get("title", "besoin"))
@@ -550,6 +648,12 @@ def main():
                         help="un ou deux phrases écrites par l'agent, résumant ce qui est "
                              "planifié (quoi/qui) — insérées en tête du PRD sous \"Ce qui "
                              "est planifié\", avant le détail par section. Optionnel.")
+    p_prd.add_argument("--entity", action="append", default=None,
+                        help="une entité du besoin au format \"Nom|Statut|Description\" "
+                             "(répétable, une fois par entité) — ex. --entity \"Techniciens|"
+                             "Disponibilité|réalisent les interventions, avec compétences et "
+                             "disponibilités variables\". Rendue en liste structurée sous "
+                             "\"Ce qui est planifié\", en plus du --summary en texte libre.")
     p_prd.set_defaults(func=cmd_prd)
 
     args = parser.parse_args()

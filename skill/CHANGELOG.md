@@ -1,5 +1,19 @@
 # Changelog du skill
 
+## 1.25 — 2026-10-27
+- **PRD : "Ce qui est planifié" accepte une liste structurée par entité**, via
+  `scripts/interview_state.py prd --entity "Nom|Statut|Description"` (répétable), en
+  plus ou à la place du `--summary` en texte libre — rendue en liste à puces
+  (`**Nom** — *Statut* : description`), jamais déduite automatiquement des labels QCM.
+- **Nouveau "Récapitulatif global" en fin de PRD** : agrège, sur **tous les thèmes**
+  (pas seulement la section "contraintes"), deux listes uniques "Non négociable" /
+  "Nice to have" — construites option par option (jamais tour par tour, pour éviter
+  qu'une réponse mixte dure+souple duplique toute la phrase dans les deux listes). Les
+  objectifs priorisés (section "objectifs") y entrent systématiquement côté nice-to-have.
+- **Règle d'entretien formalisée (§4bis)** : que faire quand la réponse du client ne
+  correspond manifestement pas à la question posée — le dire explicitement plutôt que
+  de forcer la réponse dans le critère le plus proche.
+
 ## 1.24 — 2026-10-27
 - **PRD : récap "Ce qui est planifié" en tête**, via `scripts/interview_state.py prd
   --summary "<1-2 phrases>"` écrites par l'agent — affiché avant le détail
