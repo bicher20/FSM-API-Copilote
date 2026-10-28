@@ -1,7 +1,7 @@
 ---
 name: nomadia
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.30
+version: 1.31
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -114,7 +114,10 @@ définir le besoin") — une seule phrase du client suffit, jamais une suite de 
    numéroté dédié au texte libre, pas une note en petit sous la liste. Enregistre avec
    `record <section> ["<précision>"] --options id1,id2,...` (virgules, pas d'espace
    entre les id) — ça marque automatiquement les critères liés, sans que tu aies à
-   deviner. Une seule section à la fois.
+   deviner. Une seule section à la fois. **Avant de poser la question suivante, dis
+   d'abord en une phrase ce que la réponse qui vient d'arriver décide pour le plan de
+   CE client** (voir `reference/regles-entretien.md` §0) — jamais "merci, question
+   suivante" à la chaîne.
 3. Règles complètes de conduite d'entretien (reformulation, relance ciblée, réouverture
    d'une section, **possibilité pour le client de corriger toute réponse suggérée**
    via `interview_state.py edit`, seuil avant PRD) : voir `reference/regles-entretien.md`

@@ -4,6 +4,40 @@ Ce fichier détaille ce que `SKILL.md` §0ter résume. S'applique à tout entret
 via `reference/sections.json` + `scripts/interview_state.py`, quel que soit l'agent qui
 l'exécute (Claude Code, Cursor, Codex, ChatGPT, ou autre).
 
+## 0. Relier chaque question à ce que la réponse précédente vient de décider — jamais une question posée seule
+
+Un comparatif direct avec l'assistant PRD d'un concurrent a montré une différence de
+ton nette, même si le fond (QCM filtrés, PRD final, non-négociable/nice to have) est
+désormais équivalent : leur assistant **ne pose jamais une question sans
+dire d'abord, en une phrase, ce que la réponse précédente du client vient de décider
+pour SON plan** — jamais "merci, question suivante", toujours "comme tu m'as dit X,
+ton plan va [conséquence concrète] — maintenant, [question suivante]". Ça donne
+l'impression de parler à quelqu'un qui réfléchit avec toi en temps réel, pas à un
+formulaire qui empile des cases. Exemple tiré de leur propre fil : "le modèle compte
+les heures sup comme un coût à réduire, donc le plan n'en utilisera que si ça permet de
+caser plus d'interventions. Le plan doit aussi minimiser le temps de trajet de chaque
+technicien ?" — la conséquence vient AVANT la question, jamais après.
+
+**Applique ce même principe à chaque transition entre deux réponses**, y compris (et
+surtout) quand la transition touche l'offre complète/le contact nommé : n'affiche
+jamais ce point comme un encart détaché ou une formule plaquée ("ça, on sait le
+gérer, contacte Marouane Bicher...") — intègre-le dans la même phrase de conséquence
+que les autres, comme une conclusion naturelle de ce que le client vient de dire, pas
+comme un script qui se déclenche. Par ex., si le client vient de décrire un besoin de
+binôme : "Ok donc deux techniciens en même temps sur ce type d'intervention — ça,
+Nomadia sait le faire nativement, mais ça sort du strict self-service : je te mettrai
+en contact avec Marouane Bicher (marouane.bicher@nomadia.com) pour l'activer, et on
+continue sur le reste du besoin dans la foulée." Une seule voix, un seul raisonnement
+qui avance — jamais deux registres (le "toi, l'assistant qui raisonne" puis "le
+script commercial qui s'insère").
+
+Varie aussi les formules de transition et de clôture (reformulation de section,
+partage d'avancement, relance) — ne reproduis jamais mot pour mot la même tournure sur
+plusieurs sections de suite ("Bien reçu, on tient le cadrage...", encore, encore) :
+c'est précisément ce qui transforme une conversation en formulaire récité. Garde le
+FOND de chaque règle ci-dessous (ce qu'il faut dire), change la FORME d'une section à
+l'autre (comment tu le dis).
+
 ## 1. Une question à la fois, dans les mots du client, sur un ton naturel
 
 Jamais de jargon technique à ce stade ("job", "resource", "payload", `requirements`) —

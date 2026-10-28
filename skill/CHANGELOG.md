@@ -1,5 +1,17 @@
 # Changelog du skill
 
+## 1.31 — 2026-10-28
+- **Ton "raisonnement en direct" plutôt que formulaire** (`regles-entretien.md` §0,
+  nouveau) : comparatif direct avec l'assistant PRD d'un concurrent — leur fil ne pose
+  jamais une question sans dire d'abord, en une phrase, ce que la réponse
+  précédente vient de décider pour le plan du client ("comme tu m'as dit X, ton plan
+  va Y — maintenant, Z ?"). Le skill applique maintenant ce même principe à chaque
+  transition, y compris quand elle touche l'offre complète/le contact nommé : ce
+  point s'intègre dans la même phrase de conséquence que le reste, jamais comme un
+  encart ou une formule plaquée séparée du raisonnement. Demande aussi de varier les
+  formules de clôture/relance d'une section à l'autre plutôt que de répéter mot pour
+  mot la même tournure.
+
 ## 1.30 — 2026-10-28
 - **Contact offre complète nommé** : partout où le skill oriente le client vers
   l'équipe Nomadia pour l'offre complète (`reference/offre-complete-nomadia.md`,
