@@ -1,5 +1,23 @@
 # Changelog du skill
 
+## 1.34 — 2026-10-28
+- **Nouvelle commande `interview_state.py handoff`** : génère un message prêt à
+  relire/adapter (jamais envoyé automatiquement) pour mettre le client en relation
+  avec le contact nommé (Marouane Bicher, marouane.bicher@nomadia.com) dès qu'il
+  confirme vouloir passer par le compte pro/l'offre complète — reprend les mécanismes
+  détectés par `score` si `--summary` n'est pas fourni. Réduit la friction de
+  rédaction manuelle à chaque fois que ce moment arrive.
+- **Support multilingue de la conversation** (`reference/regles-entretien.md` §0ter,
+  nouveau) : tout le texte interne du skill (sections.json, les sorties du script, la
+  doc) reste en français — c'est la langue de travail interne, jamais une contrainte
+  sur la langue parlée avec le client. Règle explicite ajoutée : dès que le client
+  écrit dans une autre langue (anglais, etc.), continuer toute la conversation dans
+  cette langue sans qu'il ait à le demander, en traduisant à la volée les questions/
+  labels que le script affiche (supports internes pour l'agent, jamais un texte à
+  réciter mot pour mot) ; et pour tout livrable transmis au client (PRD, `handoff`),
+  le retraduire soi-même avant remise plutôt que de livrer un document à moitié en
+  français.
+
 ## 1.33 — 2026-10-28
 - **Nouvelle commande `interview_state.py list`** : liste tous les entretiens en
   cours (id, titre, % de couverture), triés du plus récent au plus ancien. Comblait

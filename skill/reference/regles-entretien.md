@@ -74,6 +74,29 @@ choisir le bon avec `--interview ID` plutôt que de supposer. Toujours démarrer
 nouvel entretien avec `start --title "<nom du client>"` pour que `list` reste lisible —
 un id hexadécimal seul ne dit rien de qui est qui.
 
+## 0ter. Parler, et livrer, dans la langue du client — jamais imposer le français
+
+Tout le texte interne du skill (`sections.json`, les messages imprimés par
+`interview_state.py`, cette documentation) est écrit en français — c'est la langue de
+travail du skill, jamais une contrainte sur la langue parlée AVEC le client. **Dès que
+le client écrit dans une autre langue (anglais, etc.), détecte-le et continue toute la
+conversation dans cette langue-là, sans qu'il ait à le demander.** Les
+`opening_question` et les labels d'options que le script affiche sont des points
+d'appui pour TOI, jamais un texte à réciter mot pour mot à quelqu'un qui ne lit pas le
+français — traduis-les à la volée, dans le même esprit que la reformulation déjà
+demandée en §1. Les commandes CLI elles-mêmes (`options`, `record`, `score`...)
+restent invoquées normalement, en français, dans leur sortie technique interne — ça,
+le client ne le voit jamais, c'est ton outil de travail, pas le sien.
+
+**Pour un livrable qui sort du skill** (PRD, message de `handoff`) : le fichier
+généré reste un document de travail en français (labels de section, "Non
+négociable"/"Nice to have", réponses QCM composées depuis les labels de
+`sections.json`). Si ce document doit être remis à un client qui ne parle pas
+français, **ne le transmets jamais tel quel** — relis-le et réécris toi-même la
+version qu'il reçoit dans sa langue (un document aussi court et structuré se traduit
+sans perte) plutôt que de livrer un PRD à moitié en français à quelqu'un qui ne le
+lit pas.
+
 ## 1bis. Les choix non pertinents se masquent seuls — ne les redemande pas, n'en invente pas
 
 `scripts/interview_state.py options <section>` filtre déjà automatiquement les options

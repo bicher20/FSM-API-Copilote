@@ -94,6 +94,13 @@ Usage :
            disponibilité récurrente et priorité de rdv dédiée restent à vérifier
            soi-même (voir reference/offre-complete-nomadia.md).
 
+    python3 scripts/interview_state.py handoff [--interview ID] [--summary "<texte>"]
+        -> génère un message prêt à adapter (jamais envoyé automatiquement) pour mettre
+           le client en relation avec le contact nommé (Marouane Bicher,
+           marouane.bicher@nomadia.com), dès qu'il confirme vouloir passer par le
+           compte pro/l'offre complète — reprend les mécanismes détectés par 'score'
+           si --summary n'est pas fourni. À relire et adapter avant tout envoi réel.
+
 Évaluation de couverture — volontairement simple et vérifiable, PAS de NLP/LLM dans ce
 script : un critère d'une section est marqué couvert dès que le client a choisi une
 option liée à ce critère (voir `options <section>` et `sections.json: options[].criteria`),
@@ -725,6 +732,9 @@ def slugify(text: str) -> str:
     return re.sub(r"-+", "-", text).strip("-") or "besoin"
 
 
+NOMADIA_EXPERT_NAME = "Marouane Bicher"
+NOMADIA_EXPERT_EMAIL = "marouane.bicher@nomadia.com"
+
 _TIER_SELF_SERVICE = {"n1", "n2"}
 _TIER_OFFRE_COMPLETE = {"n3"}
 _TIER_NO_KEY = {"n4"}
@@ -797,11 +807,12 @@ def cmd_score(args):
               "exactement comme si tu visais l'offre complète (ne réduis jamais le périmètre des "
               "questions à cause du niveau d'offre détecté). Présente ça positivement au client, "
               "jamais comme un blocage : \"ça, on sait le gérer — il te suffira de me mettre en "
-              "contact avec l'équipe Nomadia (Marouane Bicher, expert Nomadia sur ce périmètre — "
-              "marouane.bicher@nomadia.com).\" Donne toujours ce contact nommément si le client "
-              "veut passer par le compte pro, jamais un \"équipe Nomadia\" anonyme. Note-le dans "
-              "le PRD (section niveau_offre) pour que ce soit visible au moment de construire — "
-              "voir reference/regles-entretien.md §7.")
+              f"contact avec l'équipe Nomadia ({NOMADIA_EXPERT_NAME}, expert Nomadia sur ce "
+              f"périmètre — {NOMADIA_EXPERT_EMAIL}).\" Donne toujours ce contact nommément si le "
+              "client veut passer par le compte pro, jamais un \"équipe Nomadia\" anonyme. Note-le "
+              "dans le PRD (section niveau_offre) pour que ce soit visible au moment de "
+              "construire, ou génère directement un message prêt à envoyer avec 'handoff' — voir "
+              "reference/regles-entretien.md §7.")
     elif not triggers and has_self_service:
         print(f"{c('[OK]', 'green', 'bold')} Self-service suffit : aucun besoin cité ne dépasse "
               "ce que couvre une clé self-service.")
@@ -819,6 +830,50 @@ def cmd_score(args):
           "l'horizon de planification, la disponibilité récurrente et la priorité de rdv "
           "dédiée restent à vérifier toi-même avec le client si pertinent, voir "
           "reference/offre-complete-nomadia.md.")
+
+
+def cmd_handoff(args):
+    """Génère un message prêt à copier-coller pour mettre le client en relation avec
+    le contact nommé, dès qu'il confirme vouloir passer par le compte pro/l'offre
+    complète — pour ne pas avoir à le rédiger à la main chaque fois. Ce script
+    n'ENVOIE jamais rien lui-même : c'est un brouillon à relire/adapter avant envoi,
+    jamais un message automatique."""
+    sections, _ = load_sections()
+    interview_id = resolve_interview_id(args)
+    state = load_state(interview_id)
+    title = state.get("title") or "votre besoin"
+
+    triggers = _collect_offre_complete_triggers(state, sections)
+
+    if args.summary:
+        need_line = args.summary
+    elif triggers:
+        need_line = ("votre besoin touche à " + ", ".join(t.lower() for t in triggers) +
+                     " — des mécanismes que l'offre self-service ne couvre pas")
+    else:
+        need_line = f"votre besoin ({title})"
+
+    print(f"{c('[OK]', 'green', 'bold')} Brouillon généré — à relire et adapter avant tout envoi, "
+          "ce script n'envoie rien lui-même :\n")
+    print("-" * 60)
+    print(f"Objet : {title} — mise en relation avec Nomadia\n")
+    print("Bonjour,\n")
+    print(f"Pour la suite de {need_line}, je vous mets en relation avec notre expert sur ce "
+          "périmètre :\n")
+    print(f"{NOMADIA_EXPERT_NAME}")
+    print("Expert Nomadia")
+    print(f"{NOMADIA_EXPERT_EMAIL}\n")
+    if triggers:
+        print("Il pourra vous accompagner sur l'activation et la configuration de ces points "
+              "côté offre complète. On continue en parallèle sur le reste du besoin de notre "
+              "côté.\n")
+    else:
+        print("Il pourra répondre à vos questions sur ce périmètre.\n")
+    print("Cordialement,")
+    print("-" * 60)
+    print(f"\nRappel : {NOMADIA_EXPERT_NAME} est TOUJOURS le contact donné nommément si le "
+          "client veut passer par le compte pro — jamais un \"équipe Nomadia\" anonyme (voir "
+          "reference/offre-complete-nomadia.md).")
 
 
 def cmd_prd(args):
@@ -927,6 +982,14 @@ def main():
                                             "nécessaire, ou décalage détecté")
     p_score.add_argument("--interview", help="id de l'entretien (défaut : le plus récent)")
     p_score.set_defaults(func=cmd_score)
+
+    p_handoff = sub.add_parser("handoff", help="génère un message prêt à adapter pour mettre le "
+                                                "client en relation avec le contact nommé")
+    p_handoff.add_argument("--interview", help="id de l'entretien (défaut : le plus récent)")
+    p_handoff.add_argument("--summary", help="recap du besoin en texte libre à insérer dans le "
+                                              "message (sinon déduit des mécanismes offre-complète "
+                                              "détectés, ou du titre de l'entretien)")
+    p_handoff.set_defaults(func=cmd_handoff)
 
     args = parser.parse_args()
     args.func(args)

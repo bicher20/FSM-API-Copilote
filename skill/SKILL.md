@@ -1,7 +1,7 @@
 ---
 name: nomadia
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.33
+version: 1.34
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -127,7 +127,12 @@ définir le besoin") — une seule phrase du client suffit, jamais une suite de 
 3. Règles complètes de conduite d'entretien (reformulation, relance ciblée, réouverture
    d'une section, **possibilité pour le client de corriger toute réponse suggérée**
    via `interview_state.py edit`, seuil avant PRD) : voir `reference/regles-entretien.md`
-   — à lire avant le premier entretien mené, pas à redéduire à chaque fois.
+   — à lire avant le premier entretien mené, pas à redéduire à chaque fois. **Tout ce
+   fichier (sections.json compris) est écrit en français, mais ça ne contraint jamais
+   la langue parlée avec le client** : s'il écrit en anglais (ou autre), continue toute
+   la conversation dans sa langue sans qu'il ait à le demander, et si un livrable (PRD,
+   `handoff`) doit lui être remis, retraduis-le toi-même avant de le transmettre — voir
+   `reference/regles-entretien.md` §0ter.
 4. `progress` à tout moment pour voir où en est la couverture ; `prd --summary "..."`
    une fois au-dessus du seuil (`reference/sections.json: threshold_percent`) ou sur
    demande explicite — le `--summary` (1-2 phrases, écrites par toi) s'affiche en tête
@@ -523,7 +528,7 @@ doivent être ouverts selon le besoin — ne pas essayer de tout retenir de mém
 | `reference/regles-entretien.md` | avant de mener un entretien structuré — reformulation, relance, réouverture de section, règle du jamais-inventé, seuil avant PRD |
 | `reference/cerveau-matching.md` | avant/pendant l'Étape 1 — comment exploiter les outils de lecture de code de l'agent pour rapprocher systématiquement le code client du modèle Nomadia (`scripts/match_data_model.py`), et règle stricte anti-promesse (jamais de gain chiffré sans payload réel exécuté) |
 | `scripts/match_data_model.py match --input <fichier.json>` | rapproche une liste de noms de champs/tables trouvés dans le code client du vocabulaire métier Nomadia (synonymes FR/EN), avec un niveau de confiance par champ — pour ne demander au client que ce qui reste réellement ambigu |
-| `scripts/interview_state.py start\|list\|options\|record\|progress\|prd\|edit\|score` | entretien de découverte du besoin en QCM ton conversationnel (options numérotées + un choix numéroté dédié "autre chose à préciser", jamais plus de 4 choix affichés à la fois — pagination automatique sinon), options non pertinentes masquées automatiquement d'après les réponses déjà données (`sections.json: options[].depends_on`), état persistant (fichier, pas la mémoire de la conversation) — `list` affiche TOUS les entretiens en cours (id, titre, % couverture) dès que plusieurs clients sont suivis en parallèle, pour ne jamais compter sur "le plus récent" par défaut si ce n'est pas le bon —, avancement affiché en couleur à chaque réponse, score de complétude self-service/offre complète (`score`), et génération du PRD final (résumé libre et/ou liste d'entités structurée, récapitulatif global non-négociable/nice-to-have tous thèmes confondus) — voir §0ter |
+| `scripts/interview_state.py start\|list\|options\|record\|progress\|prd\|edit\|score\|handoff` | entretien de découverte du besoin en QCM ton conversationnel (options numérotées + un choix numéroté dédié "autre chose à préciser", jamais plus de 4 choix affichés à la fois — pagination automatique sinon), options non pertinentes masquées automatiquement d'après les réponses déjà données (`sections.json: options[].depends_on`), état persistant (fichier, pas la mémoire de la conversation) — `list` affiche TOUS les entretiens en cours (id, titre, % couverture) dès que plusieurs clients sont suivis en parallèle, pour ne jamais compter sur "le plus récent" par défaut si ce n'est pas le bon —, avancement affiché en couleur à chaque réponse, score de complétude self-service/offre complète (`score`), `handoff` pour un message prêt à adapter mettant le client en relation avec le contact nommé, et génération du PRD final (résumé libre et/ou liste d'entités structurée, récapitulatif global non-négociable/nice-to-have tous thèmes confondus) — voir §0ter |
 | `troubleshooting.md` | un appel échoue, un job n'est pas planifié, ou le plan ne correspond pas à l'attendu — diagnostic par symptôme, à suivre avant de modifier du code au hasard |
 | `snippets/client.js` et `snippets/client.py` | tu démarres une intégration dans un projet JS/Node ou Python — client HTTP minimal + validation locale du payload (détecte les `id` qui ne se référencent pas entre eux, les dates de shift incohérentes, etc. avant de consommer des crédits) |
 | `reference/kpis-metier.md` | tu dois argumenter en rendez-vous commercial ou traduire un résultat technique (taux d'allocation, trajet, SLA) en impact business |

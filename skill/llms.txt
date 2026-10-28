@@ -69,8 +69,8 @@ parcourir le repo au hasard.
   par champ — voir reference/cerveau-matching.md §1.
 - scripts/test_validate_payload.py — tests de régression du validateur. Lancer avant
   tout commit qui touche validate_payload.py.
-- scripts/interview_state.py start|list|options|record|progress|prd|edit|score —
-  entretien de découverte du besoin en QCM ton conversationnel (options numérotées, jamais plus
+- scripts/interview_state.py start|list|options|record|progress|prd|edit|score|handoff
+  — entretien de découverte du besoin en QCM ton conversationnel (options numérotées, jamais plus
   de 4 à la fois — pagination automatique sinon via `--page`, + un choix numéroté
   dédié "autre chose à préciser") avec état persistant (fichier, pas la mémoire de la
   conversation) : crée un entretien, affiche le questionnaire d'une section
@@ -91,7 +91,19 @@ parcourir le repo au hasard.
   complète, et le self-service se présente au client positivement ("on gère ça, il faut
   nous contacter"), pas comme une limite. Le contact donné est toujours nommé —
   Marouane Bicher, expert Nomadia, marouane.bicher@nomadia.com — jamais une "équipe
-  Nomadia" anonyme. Voir SKILL.md §0ter et reference/regles-entretien.md.
+  Nomadia" anonyme ; `handoff` génère un message prêt à adapter pour cette mise en
+  relation (jamais envoyé automatiquement). Voir SKILL.md §0ter et
+  reference/regles-entretien.md.
+
+## Langue du client
+Tout le texte interne du skill (sections.json, ce fichier, la doc) est écrit en
+français — ça ne contraint jamais la langue PARLÉE avec le client. S'il écrit en
+anglais (ou autre), continue toute la conversation dans sa langue sans qu'il ait à le
+demander (traduis à la volée les opening_question/labels d'options que le script
+affiche — c'est un support pour l'agent, jamais un texte à réciter mot pour mot), et
+si un livrable (PRD, `handoff`) doit lui être remis, retraduis-le toi-même avant de le
+transmettre plutôt que de livrer un document à moitié en français. Voir
+reference/regles-entretien.md §0ter.
 
 ## Point de départ pour écrire du code
 - snippets/client.js / client.py — client HTTP minimal + retry/backoff, à adapter
