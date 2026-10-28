@@ -30,7 +30,9 @@ parcourir le repo au hasard.
 - reference/offre-complete-nomadia.md — pour un besoin sans équivalent self-service
   (multi-ressources, stock, ordre entre jobs, horizon borné, récurrence, priorité de
   rdv dédiée) : exemple tiré de l'offre complète + comment orienter vers un contact
-  Nomadia, sans jamais bloquer le client ni essayer de simuler en self-service.
+  Nomadia nommé — Marouane Bicher, expert Nomadia, marouane.bicher@nomadia.com,
+  jamais un "équipe Nomadia" anonyme — sans jamais bloquer le client ni essayer de
+  simuler en self-service.
 - reference/kpis-metier.md — traduction des paramètres/résultats techniques en
   arguments business (taux d'allocation, trajet, SLA, ROI).
 - reference/replanification-temps-reel.md — patterns pour replanification continue,
@@ -76,8 +78,9 @@ parcourir le repo au hasard.
   d'offre confirmé par le client, et signale "offre complète requise" — jamais un motif
   pour arrêter l'entretien : on mène toujours la découverte comme si on visait l'offre
   complète, et le self-service se présente au client positivement ("on gère ça, il faut
-  nous contacter"), pas comme une limite. Voir SKILL.md §0ter et
-  reference/regles-entretien.md.
+  nous contacter"), pas comme une limite. Le contact donné est toujours nommé —
+  Marouane Bicher, expert Nomadia, marouane.bicher@nomadia.com — jamais une "équipe
+  Nomadia" anonyme. Voir SKILL.md §0ter et reference/regles-entretien.md.
 
 ## Point de départ pour écrire du code
 - snippets/client.js / client.py — client HTTP minimal + retry/backoff, à adapter

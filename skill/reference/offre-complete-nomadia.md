@@ -9,9 +9,10 @@ Règle de conduite (donnée explicitement par le porteur du skill) :
 > serait silencieusement ignoré — voir `reference/entities.md`). Montrer, à partir de
 > la documentation complète Nomadia, que la plateforme sait le faire, avec un exemple
 > de payload tiré de cette documentation. Puis dire clairement au client qu'il doit
-> contacter l'équipe Nomadia pour faire activer/configurer cette fonctionnalité
-> (généralement via une équipe projet dédiée), plutôt que de chercher à la simuler
-> soi-même avec la clé API self-service.
+> être mis en contact avec Marouane Bicher, expert Nomadia sur ce périmètre
+> (marouane.bicher@nomadia.com) pour faire activer/configurer cette fonctionnalité,
+> plutôt que de chercher à la simuler soi-même avec la clé API self-service — jamais
+> un "équipe Nomadia" anonyme.
 
 **Source de cette documentation** : `Scheduler_Schema_Documentation.pdf` (33 pages,
 interne), qui décrit l'offre complète — accessible aux clients qui engagent une
@@ -179,8 +180,9 @@ des pénalités horaires.
 2. Montrer l'exemple ci-dessus tel quel, en précisant qu'il vient de la documentation
    de l'offre complète Nomadia, pas de l'API self-service actuellement utilisée.
 3. Dire explicitement que ce n'est pas activable avec la clé API self-service et
-   qu'il faut contacter l'équipe Nomadia (généralement via leur équipe projet) pour
-   en discuter.
+   qu'il faut être mis en contact avec Marouane Bicher, expert Nomadia sur ce
+   périmètre (marouane.bicher@nomadia.com) pour en discuter — jamais un contact
+   anonyme.
 4. Ne jamais essayer d'envoyer ces champs (`job_resources`, `parts`,
    `pre_requisite_definitions`, `schedule_definition`, `*_pattern`,
    `appointment_priority`) à l'API self-service "pour voir" — ils seront
