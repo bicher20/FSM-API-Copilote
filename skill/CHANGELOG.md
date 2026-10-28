@@ -1,5 +1,24 @@
 # Changelog du skill
 
+## 1.36 — 2026-10-28 — `match_data_model.py` validé contre un vrai schéma FSM open source
+- **Deux faux positifs réels corrigés dans le rapprochement de champs.** En testant
+  `match_data_model.py` contre les noms de champs réels d'`OCA/field-service` (module
+  Odoo Community Association, AGPLv3) : `scheduled_date_start`/`scheduled_date_end`
+  matchaient faussement "Resource.shifts" (`"schedule"` est une sous-chaîne littérale
+  de `"scheduled"`), et `require_signature` matchait faussement "JobType"
+  (`"nature"` est une sous-chaîne littérale de `"signature"`, dans "si-**natur**-e").
+  La règle de correspondance par sous-chaîne brute (`norm_syn in norm_field`) a été
+  remplacée par une comparaison par **token complet** (`_tokens()`, découpage sur
+  `_`, relation de sous-ensemble entre les jeux de tokens) — un token entier qui
+  matche reste un score fort, mais plus jamais une sous-chaîne au milieu d'un autre
+  mot.
+- **Lacune de vocabulaire corrigée.** `person_id` (terme FSM très standard, voir
+  `fsm_person` dans `OCA/field-service`) ne matchait rien ("aucune confiance").
+  Ajout de `"person", "personnel"` aux synonymes de `"Resource (table/entité)"`.
+- Ces trois corrections ont été trouvées en utilisant un vrai dépôt FSM open source
+  comme corpus de test, pas en relisant le code à froid — exactement la démarche
+  demandée pour rendre le skill "solide niveau compréhension du code".
+
 ## 1.35 — 2026-10-28 — Durcissement du code (audit demandé)
 - **Bug réel corrigé : KeyError latent si `sections.json` évolue.** `interview_state.py`
   indexait directement `state["sections"][id]` à plusieurs endroits

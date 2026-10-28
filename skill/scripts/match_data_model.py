@@ -80,7 +80,7 @@ VOCABULARY = {
         "salaries", "agent", "agents", "ouvrier", "ouvriers", "livreur",
         "livreurs", "chauffeur", "chauffeurs", "vehicule", "vehicules",
         "camion", "camions", "equipe", "equipes", "ressource", "ressources",
-        "resource", "staff", "worker", "driver",
+        "resource", "staff", "worker", "driver", "person", "personnel",
     ],
     "Resource.requirements (compétences de la ressource)": [
         "competence_technicien", "habilitation_technicien", "qualification",
@@ -121,6 +121,12 @@ def _similarity(a: str, b: str) -> float:
     return SequenceMatcher(None, a, b).ratio()
 
 
+def _tokens(s: str) -> set[str]:
+    """Découpe en tokens sur '_' après normalisation — un token vide (séparateurs
+    collés) est ignoré."""
+    return {t for t in s.split("_") if t}
+
+
 def _confidence_label(score: float) -> str:
     if score >= 0.85:
         return "haute"
@@ -133,16 +139,27 @@ def match_fields(client_fields: list[str]) -> list[dict]:
     results = []
     for raw_field in client_fields:
         norm_field = _normalize(raw_field)
+        field_tokens = _tokens(norm_field)
         best_entity = None
         best_score = 0.0
         best_synonym = None
         for entity_key, synonyms in VOCABULARY.items():
             for syn in synonyms:
                 norm_syn = _normalize(syn)
-                # correspondance exacte ou l'un contient l'autre -> score fort direct
+                syn_tokens = _tokens(norm_syn)
                 if norm_field == norm_syn:
+                    # correspondance exacte -> score maximal direct
                     score = 1.0
-                elif norm_syn in norm_field or norm_field in norm_syn:
+                elif syn_tokens and (syn_tokens <= field_tokens or field_tokens <= syn_tokens):
+                    # correspondance par TOKEN complet (découpage sur '_'), jamais une
+                    # sous-chaîne brute : "technicien_id" contient le token entier
+                    # "technicien" -> vrai match ; "require_signature" ne contient PAS
+                    # le token "nature" même si la sous-chaîne "signature" le contient
+                    # littéralement ("si-NATUR-e") — une comparaison sur sous-chaînes
+                    # brutes confondait les deux (repéré en testant contre un vrai
+                    # schéma FSM open source, voir CHANGELOG). Un token complet qui
+                    # matche un token complet reste un score fort, mais jamais aussi
+                    # trompeur qu'une sous-chaîne au milieu d'un autre mot.
                     score = 0.9
                 else:
                     score = _similarity(norm_field, norm_syn)
