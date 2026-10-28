@@ -69,8 +69,8 @@ parcourir le repo au hasard.
   par champ — voir reference/cerveau-matching.md §1.
 - scripts/test_validate_payload.py — tests de régression du validateur. Lancer avant
   tout commit qui touche validate_payload.py.
-- scripts/interview_state.py start|options|record|progress|prd|edit|score — entretien
-  de découverte du besoin en QCM ton conversationnel (options numérotées, jamais plus
+- scripts/interview_state.py start|list|options|record|progress|prd|edit|score —
+  entretien de découverte du besoin en QCM ton conversationnel (options numérotées, jamais plus
   de 4 à la fois — pagination automatique sinon via `--page`, + un choix numéroté
   dédié "autre chose à préciser") avec état persistant (fichier, pas la mémoire de la
   conversation) : crée un entretien, affiche le questionnaire d'une section

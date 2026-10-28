@@ -13,8 +13,18 @@ reference/sections.json — ce script ne contient aucun texte métier en dur, po
 sections.json reste la seule source de vérité sur CE qui est demandé.
 
 Usage :
-    python3 scripts/interview_state.py start
-        -> crée un nouvel entretien, affiche son interview_id
+    python3 scripts/interview_state.py start [--title "<client/besoin>"]
+        -> crée un nouvel entretien, affiche son interview_id. Passer --title avec un
+           repère reconnaissable (nom du client) : c'est ce que 'list' affiche pour
+           retrouver cet entretien, un id hexadécimal seul ne dit rien.
+
+    python3 scripts/interview_state.py list
+        -> liste TOUS les entretiens en cours (id, titre, % de couverture), triés du
+           plus récent au plus ancien. Indispensable dès que plusieurs clients sont
+           suivis en parallèle : sans --interview explicite, les autres commandes
+           prennent par défaut le plus récemment modifié, ce qui n'est PAS forcément
+           le bon client si une conversation a été reprise entre-temps sur un autre
+           dossier.
 
     python3 scripts/interview_state.py options <section_id> [--interview ID] [--page N]
         -> affiche le QCM de cette section (options numérotées + leur id), à poser au
@@ -470,6 +480,33 @@ def compute_global_percent(state: dict, sections: list) -> float:
     return round(100 * covered / total_criteria, 1)
 
 
+def cmd_list(args):
+    """Liste tous les entretiens en cours (fichiers dans STATE_DIR), triés du plus
+    récent au plus ancien — indispensable dès qu'on suit plusieurs clients en
+    parallèle : 'latest_interview_id()' ne suffit plus à lui seul pour retrouver un
+    entretien précis, et personne ne doit avoir à mémoriser un id hexadécimal."""
+    sections, threshold = load_sections()
+    if not STATE_DIR.exists():
+        print("Aucun entretien en cours.")
+        return
+    files = sorted(STATE_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+    if not files:
+        print("Aucun entretien en cours.")
+        return
+    print(f"{len(files)} entretien(s) :\n")
+    for path in files:
+        with open(path, "r", encoding="utf-8") as f:
+            state = json.load(f)
+        pct = compute_global_percent(state, sections)
+        status_text = "PRD possible" if pct >= threshold else f"sous le seuil ({threshold}%)"
+        status = c(f"{status_text:<22}", "green", "bold") if pct >= threshold else c(f"{status_text:<22}", "yellow")
+        created = state.get("created_at", "date inconnue")
+        print(f"  {state['interview_id']}  {c(f'{pct:>5}%', 'cyan')}  {status}  "
+              f"{state.get('title', '(sans titre)')}  — créé {created}")
+    print(f"\nPasse --interview ID à n'importe quelle commande pour reprendre un "
+          f"entretien précis plutôt que le plus récent par défaut.")
+
+
 def cmd_progress(args):
     sections, threshold = load_sections()
     interview_id = resolve_interview_id(args)
@@ -819,6 +856,9 @@ def main():
     p_start = sub.add_parser("start", help="crée un nouvel entretien")
     p_start.add_argument("--title", help="titre provisoire du besoin/client (peut être affiné plus tard)")
     p_start.set_defaults(func=cmd_start)
+
+    p_list = sub.add_parser("list", help="liste tous les entretiens en cours (plusieurs clients en parallèle)")
+    p_list.set_defaults(func=cmd_list)
 
     p_options = sub.add_parser("options", help="affiche le QCM d'une section (options numérotées à poser au client)")
     p_options.add_argument("section", help="id de section (voir reference/sections.json)")

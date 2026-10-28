@@ -1,7 +1,7 @@
 ---
 name: nomadia
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.32
+version: 1.33
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -102,10 +102,16 @@ exprime un besoin de cadrage ("je ne sais pas trop par où commencer", "aide-moi
 définir le besoin") — une seule phrase du client suffit, jamais une suite de commandes
 à lui faire taper :
 
-1. `python3 scripts/interview_state.py start` → récupère l'`interview_id`, pose la
-   première question d'ouverture **dans les mots du métier du client, jamais de jargon
-   technique** (ne jamais dire "job" ou "resource" à ce stade — dire "intervention",
-   "technicien").
+1. `python3 scripts/interview_state.py start --title "<nom du client/besoin>"` →
+   récupère l'`interview_id`, pose la première question d'ouverture **dans les mots du
+   métier du client, jamais de jargon technique** (ne jamais dire "job" ou "resource"
+   à ce stade — dire "intervention", "technicien"). **Toujours passer `--title`** avec
+   un repère reconnaissable (nom du client, nom du projet) : c'est ce que `list`
+   affichera pour retrouver cet entretien plus tard, un id hexadécimal seul ne dit
+   rien. Si tu reprends un échange déjà en cours avec un client, lance d'abord
+   `scripts/interview_state.py list` pour retrouver son `interview_id` plutôt que de
+   supposer que c'est "le plus récent" (vrai seulement si un seul client est suivi à
+   la fois) — indispensable dès que plusieurs prospects sont menés en parallèle.
 2. **Pose chaque question en QCM, avec un ton de conversation, jamais de formulaire**
    (`scripts/interview_state.py options <section> --interview ID` affiche les choix
    numérotés déjà filtrés pour ce client — voir point 5) : le client répond en cochant
@@ -517,7 +523,7 @@ doivent être ouverts selon le besoin — ne pas essayer de tout retenir de mém
 | `reference/regles-entretien.md` | avant de mener un entretien structuré — reformulation, relance, réouverture de section, règle du jamais-inventé, seuil avant PRD |
 | `reference/cerveau-matching.md` | avant/pendant l'Étape 1 — comment exploiter les outils de lecture de code de l'agent pour rapprocher systématiquement le code client du modèle Nomadia (`scripts/match_data_model.py`), et règle stricte anti-promesse (jamais de gain chiffré sans payload réel exécuté) |
 | `scripts/match_data_model.py match --input <fichier.json>` | rapproche une liste de noms de champs/tables trouvés dans le code client du vocabulaire métier Nomadia (synonymes FR/EN), avec un niveau de confiance par champ — pour ne demander au client que ce qui reste réellement ambigu |
-| `scripts/interview_state.py start\|options\|record\|progress\|prd\|edit\|score` | entretien de découverte du besoin en QCM ton conversationnel (options numérotées + un choix numéroté dédié "autre chose à préciser", jamais plus de 4 choix affichés à la fois — pagination automatique sinon), options non pertinentes masquées automatiquement d'après les réponses déjà données (`sections.json: options[].depends_on`), état persistant (fichier, pas la mémoire de la conversation), avancement affiché en couleur à chaque réponse, score de complétude self-service/offre complète (`score`), et génération du PRD final (résumé libre et/ou liste d'entités structurée, récapitulatif global non-négociable/nice-to-have tous thèmes confondus) — voir §0ter |
+| `scripts/interview_state.py start\|list\|options\|record\|progress\|prd\|edit\|score` | entretien de découverte du besoin en QCM ton conversationnel (options numérotées + un choix numéroté dédié "autre chose à préciser", jamais plus de 4 choix affichés à la fois — pagination automatique sinon), options non pertinentes masquées automatiquement d'après les réponses déjà données (`sections.json: options[].depends_on`), état persistant (fichier, pas la mémoire de la conversation) — `list` affiche TOUS les entretiens en cours (id, titre, % couverture) dès que plusieurs clients sont suivis en parallèle, pour ne jamais compter sur "le plus récent" par défaut si ce n'est pas le bon —, avancement affiché en couleur à chaque réponse, score de complétude self-service/offre complète (`score`), et génération du PRD final (résumé libre et/ou liste d'entités structurée, récapitulatif global non-négociable/nice-to-have tous thèmes confondus) — voir §0ter |
 | `troubleshooting.md` | un appel échoue, un job n'est pas planifié, ou le plan ne correspond pas à l'attendu — diagnostic par symptôme, à suivre avant de modifier du code au hasard |
 | `snippets/client.js` et `snippets/client.py` | tu démarres une intégration dans un projet JS/Node ou Python — client HTTP minimal + validation locale du payload (détecte les `id` qui ne se référencent pas entre eux, les dates de shift incohérentes, etc. avant de consommer des crédits) |
 | `reference/kpis-metier.md` | tu dois argumenter en rendez-vous commercial ou traduire un résultat technique (taux d'allocation, trajet, SLA) en impact business |

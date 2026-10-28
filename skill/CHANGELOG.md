@@ -1,5 +1,19 @@
 # Changelog du skill
 
+## 1.33 — 2026-10-28
+- **Nouvelle commande `interview_state.py list`** : liste tous les entretiens en
+  cours (id, titre, % de couverture), triés du plus récent au plus ancien. Comblait
+  un vrai manque : sans `--interview` explicite, les autres commandes prenaient par
+  défaut l'entretien le plus récemment modifié — correct pour un seul client à la
+  fois, risqué dès que plusieurs prospects sont suivis en parallèle (reprise d'une
+  conversation sur un autre dossier entre deux sessions pouvait faire travailler sur
+  le mauvais entretien sans le savoir).
+- `start` prend maintenant explicitement `--title "<nom du client>"` en exemple
+  partout (déjà supporté avant, mais pas mis en avant) — c'est ce que `list` affiche
+  pour qu'un entretien reste identifiable sans avoir à retenir un id hexadécimal.
+- `regles-entretien.md` §0bis (nouveau) : réflexe à avoir — lancer `list` dès qu'on
+  reprend un échange déjà en cours, plutôt que de supposer "le plus récent".
+
 ## 1.32 — 2026-10-28
 - **Nouveau : `reference/cerveau-matching.md` + `scripts/match_data_model.py`.**
   Rapprochement systématique entre le code/schéma du client et le modèle Nomadia :

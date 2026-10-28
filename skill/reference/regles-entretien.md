@@ -62,6 +62,18 @@ planifié, combien de temps ça dure, où c'est, et quelles données existent d�
 ce principe si tu ajoutes un jour une nouvelle question : une section = un sujet, pas
 un fourre-tout.
 
+## 0bis. Plusieurs clients en parallèle : `list` avant de supposer "le plus récent"
+
+`scripts/interview_state.py` retient l'entretien le plus récemment modifié par défaut
+si `--interview` est omis — pratique pour un seul client à la fois, dangereux dès que
+plusieurs prospects sont suivis en parallèle (reprise d'une conversation sur un autre
+dossier entre deux sessions). **Dès que tu reprends un échange déjà en cours, ou que tu
+ne sais pas avec certitude si c'est le seul entretien ouvert, lance `scripts/
+interview_state.py list`** pour voir tous les entretiens (id, titre, % de couverture) et
+choisir le bon avec `--interview ID` plutôt que de supposer. Toujours démarrer un
+nouvel entretien avec `start --title "<nom du client>"` pour que `list` reste lisible —
+un id hexadécimal seul ne dit rien de qui est qui.
+
 ## 1bis. Les choix non pertinents se masquent seuls — ne les redemande pas, n'en invente pas
 
 `scripts/interview_state.py options <section>` filtre déjà automatiquement les options
