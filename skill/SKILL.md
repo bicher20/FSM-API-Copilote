@@ -1,7 +1,7 @@
 ---
 name: nomadia
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.31
+version: 1.32
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -169,7 +169,11 @@ la moindre question :
 - identifie le stack (package.json / requirements.txt / composer.json / etc.) pour écrire
   du code dans le bon langage/framework dès le départ
 - repère le modèle de données déjà en place côté utilisateur (sa table "interventions",
-  ses "techniciens", etc.) pour savoir comment ça va se mapper sur Job/Resource/Shift
+  ses "techniciens", etc.) pour savoir comment ça va se mapper sur Job/Resource/Shift —
+  passe les noms de champs/tables trouvés à `scripts/match_data_model.py match` pour un
+  rapprochement systématique avec un niveau de confiance par champ, plutôt que de
+  deviner à l'œil ou de redemander ce que le code dit déjà (voir `reference/
+  cerveau-matching.md` §1)
 
 **Étape 2 — Ne poser QUE les questions dont la réponse n'est pas déductible.** Une seule
 série groupée de questions (pas un interrogatoire pas à pas), et seulement sur ce que
@@ -511,6 +515,8 @@ doivent être ouverts selon le besoin — ne pas essayer de tout retenir de mém
 | `reference/decouverte-besoin.md` | au tout début d'une mission, pour mener la découverte du besoin en 4 thèmes (entités, contraintes, objectifs, taille) et trancher explicitement self-service vs offre complète — surtout utile sur un besoin pas immédiatement évident |
 | `reference/sections.json` | structure machine-lisible de l'entretien (sections, questions d'ouverture, critères de couverture, seuil) — lu par `scripts/interview_state.py`, jamais à dupliquer de mémoire |
 | `reference/regles-entretien.md` | avant de mener un entretien structuré — reformulation, relance, réouverture de section, règle du jamais-inventé, seuil avant PRD |
+| `reference/cerveau-matching.md` | avant/pendant l'Étape 1 — comment exploiter les outils de lecture de code de l'agent pour rapprocher systématiquement le code client du modèle Nomadia (`scripts/match_data_model.py`), et règle stricte anti-promesse (jamais de gain chiffré sans payload réel exécuté) |
+| `scripts/match_data_model.py match --input <fichier.json>` | rapproche une liste de noms de champs/tables trouvés dans le code client du vocabulaire métier Nomadia (synonymes FR/EN), avec un niveau de confiance par champ — pour ne demander au client que ce qui reste réellement ambigu |
 | `scripts/interview_state.py start\|options\|record\|progress\|prd\|edit\|score` | entretien de découverte du besoin en QCM ton conversationnel (options numérotées + un choix numéroté dédié "autre chose à préciser", jamais plus de 4 choix affichés à la fois — pagination automatique sinon), options non pertinentes masquées automatiquement d'après les réponses déjà données (`sections.json: options[].depends_on`), état persistant (fichier, pas la mémoire de la conversation), avancement affiché en couleur à chaque réponse, score de complétude self-service/offre complète (`score`), et génération du PRD final (résumé libre et/ou liste d'entités structurée, récapitulatif global non-négociable/nice-to-have tous thèmes confondus) — voir §0ter |
 | `troubleshooting.md` | un appel échoue, un job n'est pas planifié, ou le plan ne correspond pas à l'attendu — diagnostic par symptôme, à suivre avant de modifier du code au hasard |
 | `snippets/client.js` et `snippets/client.py` | tu démarres une intégration dans un projet JS/Node ou Python — client HTTP minimal + validation locale du payload (détecte les `id` qui ne se référencent pas entre eux, les dates de shift incohérentes, etc. avant de consommer des crédits) |

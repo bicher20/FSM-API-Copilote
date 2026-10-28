@@ -35,6 +35,11 @@ parcourir le repo au hasard.
   simuler en self-service.
 - reference/kpis-metier.md — traduction des paramètres/résultats techniques en
   arguments business (taux d'allocation, trajet, SLA, ROI).
+- reference/cerveau-matching.md — comment exploiter les outils de lecture de code de
+  l'agent (grep/lecture de fichiers) pour rapprocher systématiquement le modèle de
+  données du client du modèle Nomadia (`scripts/match_data_model.py`), et règle
+  stricte anti-promesse : jamais de gain chiffré/ROI affiché sans payload réel exécuté
+  pour ce client (via `scripts/compare_scenarios.py` avec clé API).
 - reference/replanification-temps-reel.md — patterns pour replanification continue,
   suivi temps réel, figer une affectation déjà engagée.
 
@@ -55,7 +60,13 @@ parcourir le repo au hasard.
   lancer l'appel réel sans l'avoir accepté explicitement.
 - scripts/compare_scenarios.py --scenario LABEL payload.json ... [--api-key KEY] —
   comparaison avant/après entre configs. Consomme de vrais crédits si --api-key fourni
-  — accord explicite de l'utilisateur requis avant ce mode.
+  — accord explicite de l'utilisateur requis avant ce mode. C'est la seule source
+  autorisée pour afficher un gain chiffré au client — voir reference/
+  cerveau-matching.md §2 : jamais de ROI/pourcentage sans ce résultat mesuré.
+- scripts/match_data_model.py match --input fichier.json — rapproche une liste de
+  noms de champs/tables extraits du code client (fournie par l'agent, pas lue par le
+  script) du vocabulaire métier Nomadia (synonymes FR/EN), avec un niveau de confiance
+  par champ — voir reference/cerveau-matching.md §1.
 - scripts/test_validate_payload.py — tests de régression du validateur. Lancer avant
   tout commit qui touche validate_payload.py.
 - scripts/interview_state.py start|options|record|progress|prd|edit|score — entretien

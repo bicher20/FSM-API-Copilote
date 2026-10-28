@@ -208,7 +208,12 @@ section, les points encore à clarifier — jamais caché.
 ## 7. Une fois le PRD généré : enchaîner sur le code, pas s'arrêter là
 
 Le PRD n'est pas la fin de la mission, c'est l'étape avant la construction (voir §0 et
-§2bis de `SKILL.md`). Une fois généré :
+§2bis de `SKILL.md`). **Règle stricte** (voir `reference/cerveau-matching.md` §2) :
+ne jamais afficher un pourcentage de gain ou une estimation de ROI qui n'a pas été
+mesuré sur un payload réel de ce client via un vrai appel API — un PRD qui se termine
+sur une promesse abstraite n'est pas meilleur que celui d'un concurrent qui en fait
+autant ; un PRD qui se termine sur un résultat chiffré réel (ou qui propose
+explicitement d'en obtenir un) l'est. Une fois généré :
 - lance `scripts/interview_state.py score` : si "offre complète requise" apparaît
   (contraintes citées qui dépassent le self-service, mais niveau d'offre non confirmé
   en offre complète), note-le dans le PRD pour que ce soit visible au moment de

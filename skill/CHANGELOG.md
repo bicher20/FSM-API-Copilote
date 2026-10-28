@@ -1,5 +1,27 @@
 # Changelog du skill
 
+## 1.32 — 2026-10-28
+- **Nouveau : `reference/cerveau-matching.md` + `scripts/match_data_model.py`.**
+  Rapprochement systématique entre le code/schéma du client et le modèle Nomadia :
+  l'agent extrait les noms de champs/tables trouvés dans le repo client (grep/lecture
+  de fichiers, déjà demandé par §0 Étape 1 de `SKILL.md`) et les passe au script, qui
+  compare contre un dictionnaire de synonymes FR/EN par entité Nomadia (Job, Resource,
+  Location, ResourceType, JobType + champs clés) et renvoie un niveau de confiance par
+  champ (haute : mappe directement sans redemander ; moyenne : propose et fait
+  confirmer ; aucune : pose la question). Objectif : ne questionner le client que sur
+  ce qui est réellement ambigu, jamais sur ce que son propre code dit déjà.
+- **Règle stricte anti-promesse** (`reference/cerveau-matching.md` §2,
+  `reference/regles-entretien.md` §7) : plus aucun pourcentage de gain/ROI affiché au
+  client sans l'avoir mesuré sur un payload réel exécuté pour CE client — via
+  `scripts/compare_scenarios.py` en mode avec clé API (déjà existant), jamais une
+  moyenne sectorielle ou une estimation générique. Le PRD doit si possible enchaîner
+  sur un vrai appel plutôt que de rester une promesse abstraite, sans jamais insister
+  si le client préfère attendre.
+- **Les crédits ne sont plus un argument** : supprimé toute idée d'afficher le coût en
+  crédits comme argument commercial dans le PRD ou ailleurs — ce sujet reste
+  strictement opérationnel (confirmer la clé API, prévenir avant un appel qui
+  consomme), jamais un levier de vente.
+
 ## 1.31 — 2026-10-28
 - **Ton "raisonnement en direct" plutôt que formulaire** (`regles-entretien.md` §0,
   nouveau) : comparatif direct avec l'assistant PRD d'un concurrent — leur fil ne pose
