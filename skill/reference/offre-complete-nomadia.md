@@ -22,9 +22,15 @@ d'appeler, voir `reference/entities.md`).
 **Modèle de réponse** à donner à un agent/client qui demande l'un des points
 ci-dessous : *"Ce besoin correspond à une fonctionnalité de l'offre complète Nomadia
 (pas incluse dans l'accès self-service actuel). Voici comment ça se modélise dans leur
-plateforme complète : [exemple]. Pour l'activer, il faut contacter l'équipe Nomadia
-(généralement via leur équipe projet) — ce n'est pas quelque chose qu'on peut
-simuler avec la clé API self-service."*
+plateforme complète : [exemple]. Pour l'activer, il te suffit de me mettre en contact
+avec l'équipe Nomadia — je suis Marouane Bicher, expert Nomadia sur ce périmètre
+(marouane.bicher@nomadia.com), ce n'est pas quelque chose qu'on peut simuler avec la
+clé API self-service."*
+
+**Si le client veut passer par le compte pro / l'offre complète** : toujours donner ce
+contact nommément (`Marouane Bicher — marouane.bicher@nomadia.com`), jamais un
+"contacter l'équipe Nomadia" générique et anonyme — c'est lui qui porte ce rôle
+d'expert sur ces sujets, pas un service générique sans visage.
 
 ---
 

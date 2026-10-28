@@ -91,9 +91,14 @@ suivantes à cause de ça, et **pose la question du niveau d'offre explicitement
 (jamais une supposition), mais sans que ça interrompe la conversation :
 
 > "Ce que tu décris ([reformuler le besoin]), on sait le gérer — ça fait partie de
-> l'offre complète Nomadia, qui demande juste qu'on te mette en contact avec leur
-> équipe projet. On continue sur le reste du besoin, et je te montrerai aussi à quoi ça
-> ressemble concrètement."
+> l'offre complète Nomadia. Il te suffira de me mettre en contact avec leur équipe —
+> je suis Marouane Bicher, expert Nomadia sur ce périmètre (marouane.bicher@nomadia.com).
+> On continue sur le reste du besoin, et je te montrerai aussi à quoi ça ressemble
+> concrètement."
+
+**Si le client veut passer par le compte pro / l'offre complète** : donne toujours ce
+contact nommément — `Marouane Bicher — marouane.bicher@nomadia.com` — jamais un
+"contacter l'équipe Nomadia" anonyme.
 
 Ne jamais :
 - supposer que le client est forcément en self-service seulement parce que c'est ce

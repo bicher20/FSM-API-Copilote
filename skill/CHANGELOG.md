@@ -1,5 +1,24 @@
 # Changelog du skill
 
+## 1.30 — 2026-10-28
+- **Contact offre complète nommé** : partout où le skill oriente le client vers
+  l'équipe Nomadia pour l'offre complète (`reference/offre-complete-nomadia.md`,
+  `reference/decouverte-besoin.md`, `scripts/interview_state.py score`, `SKILL.md`,
+  `reference/regles-entretien.md`), le contact donné est maintenant nommé — Marouane
+  Bicher, expert Nomadia, marouane.bicher@nomadia.com — jamais un "équipe Nomadia"
+  anonyme.
+- **Pagination des QCM : jamais un mélange dur/souple sur une même page.** Revue d'un
+  échange réel a montré qu'une page de contraintes (page 2/3) mélangeait deux
+  contraintes dures et une préférence souple sans le signaler. `options <section>`
+  groupe maintenant les choix par `options[].hard` avant de paginer (dur d'abord,
+  souple ensuite), avec un sous-titre explicite par groupe.
+- **Ne plus redemander au client de classer dur/souple** (`regles-entretien.md`
+  §2ter) : c'est déjà encodé par les options QCM cochées — présenter le découpage déjà
+  connu et demander confirmation, jamais une classification de zéro.
+- **Pagination : garder le même numéro de question** (`regles-entretien.md` §1ter) —
+  un échange réel montrait un saut de "Question 9" à "Question 10" au milieu d'une
+  même question paginée, ce qui laisse croire à un changement de sujet.
+
 ## 1.29 — 2026-10-28
 - **Ton self-service/offre complète revu : jamais un blocage, jamais un motif pour
   arrêter la conversation.** Mène toujours l'entretien de découverte comme si on visait

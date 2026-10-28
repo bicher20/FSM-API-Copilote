@@ -239,6 +239,26 @@ def _option_visible(opt: dict, state: dict | None) -> bool:
     return bool(_selected_option_ids(sec_state) & any_of)
 
 
+def _grouped_visible_options(sec_def: dict, visible: list[dict]) -> list[tuple[str | None, list[dict]]]:
+    """Regroupe les options visibles par 'hard' (dur / souple) avant pagination, pour
+    qu'une page ne mélange jamais une contrainte dure et une préférence souple sans le
+    dire — jamais paginer à l'aveugle sur l'ordre brut du fichier. Sections sans flag
+    'hard' (la plupart) : un seul groupe sans sous-titre, comportement inchangé."""
+    if not any("hard" in opt for opt in sec_def.get("options", [])):
+        return [(None, visible)]
+    hard = [o for o in visible if o.get("hard") is True]
+    soft = [o for o in visible if o.get("hard") is False]
+    other = [o for o in visible if "hard" not in o]
+    groups: list[tuple[str | None, list[dict]]] = []
+    if hard:
+        groups.append(("Contraintes dures (jamais violées)", hard))
+    if soft:
+        groups.append(("Préférences souples (arbitrables)", soft))
+    if other:
+        groups.append((None, other))
+    return groups
+
+
 def cmd_options(args):
     sections, _ = load_sections()
     sec_def = next((s for s in sections if s["id"] == args.section), None)
@@ -254,15 +274,27 @@ def cmd_options(args):
     visible = [opt for opt in all_options if _option_visible(opt, state)]
     hidden_count = len(all_options) - len(visible)
 
-    total_pages = max(1, -(-len(visible) // MAX_CHOICES_PER_SCREEN))  # ceil division
+    # Pagine GROUPE PAR GROUPE (dur, puis souple) pour qu'une page ne mélange jamais
+    # les deux sans le dire — jamais un découpage brut sur l'ordre du fichier.
+    groups = _grouped_visible_options(sec_def, visible)
+    pages: list[tuple[str | None, list[dict]]] = []
+    for group_label, group_opts in groups:
+        if not group_opts:
+            continue
+        for i in range(0, len(group_opts), MAX_CHOICES_PER_SCREEN):
+            pages.append((group_label, group_opts[i:i + MAX_CHOICES_PER_SCREEN]))
+    if not pages:
+        pages = [(None, [])]
+    total_pages = len(pages)
     page = max(1, min(getattr(args, "page", 1) or 1, total_pages))
-    start_idx = (page - 1) * MAX_CHOICES_PER_SCREEN
-    chunk = visible[start_idx:start_idx + MAX_CHOICES_PER_SCREEN]
+    group_label, chunk = pages[page - 1]
 
     print(sec_def["opening_question"])
     if total_pages > 1:
         print(c(f"(partie {page}/{total_pages} — jamais plus de {MAX_CHOICES_PER_SCREEN} choix "
                 f"à la fois pour rester lisible pour le client)", "dim"))
+    if group_label:
+        print(c(f"-- {group_label} --", "bold"))
     for i, opt in enumerate(chunk, start=1):
         id_tag = c(f"[id: {opt['id']}]", "dim")
         print(f"  {c(str(i), 'cyan', 'bold')}. {opt['label']}   {id_tag}")
@@ -727,10 +759,12 @@ def cmd_score(args):
         print("     -> NE STOPPE PAS l'entretien pour autant : continue à recueillir le besoin "
               "exactement comme si tu visais l'offre complète (ne réduis jamais le périmètre des "
               "questions à cause du niveau d'offre détecté). Présente ça positivement au client, "
-              "jamais comme un blocage : \"ça, on sait le gérer — il faudra juste qu'on te mette "
-              "en contact avec l'équipe Nomadia pour l'offre complète.\" Note-le dans le PRD "
-              "(section niveau_offre) pour que ce soit visible au moment de construire — voir "
-              "reference/regles-entretien.md §7.")
+              "jamais comme un blocage : \"ça, on sait le gérer — il te suffira de me mettre en "
+              "contact avec l'équipe Nomadia (Marouane Bicher, expert Nomadia sur ce périmètre — "
+              "marouane.bicher@nomadia.com).\" Donne toujours ce contact nommément si le client "
+              "veut passer par le compte pro, jamais un \"équipe Nomadia\" anonyme. Note-le dans "
+              "le PRD (section niveau_offre) pour que ce soit visible au moment de construire — "
+              "voir reference/regles-entretien.md §7.")
     elif not triggers and has_self_service:
         print(f"{c('[OK]', 'green', 'bold')} Self-service suffit : aucun besoin cité ne dépasse "
               "ce que couvre une clé self-service.")
