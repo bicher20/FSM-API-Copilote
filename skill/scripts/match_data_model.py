@@ -163,10 +163,31 @@ def match_fields(client_fields: list[str]) -> list[dict]:
 
 
 def cmd_match(args: argparse.Namespace) -> None:
-    with open(args.input, encoding="utf-8") as f:
-        client_fields = json.load(f)
+    try:
+        with open(args.input, encoding="utf-8") as f:
+            client_fields = json.load(f)
+    except FileNotFoundError:
+        print(f"[ERREUR] fichier introuvable : {args.input}")
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"[ERREUR] {args.input} n'est pas un JSON valide : {e}")
+        sys.exit(1)
+
     if not isinstance(client_fields, list):
         print("[ERREUR] le fichier d'entrée doit être une liste JSON de chaînes.")
+        sys.exit(1)
+    if not client_fields:
+        print("[ERREUR] la liste est vide — rien à rapprocher.")
+        sys.exit(1)
+    non_strings = [v for v in client_fields if not isinstance(v, str)]
+    if non_strings:
+        print(f"[ERREUR] la liste doit contenir uniquement des chaînes — valeur(s) non "
+              f"textuelle(s) trouvée(s) : {non_strings!r}. Si ce sont des noms de "
+              "colonnes/tables, écris-les comme des chaînes JSON (\"nom_du_champ\").")
+        sys.exit(1)
+    empty = [i for i, v in enumerate(client_fields) if not v.strip()]
+    if empty:
+        print(f"[ERREUR] chaîne(s) vide(s) à l'index {empty} — retire-les ou précise un nom.")
         sys.exit(1)
 
     results = match_fields(client_fields)

@@ -163,7 +163,48 @@ def state_path(interview_id: str) -> Path:
 
 
 def new_interview_id() -> str:
-    return secrets.token_hex(3)  # 6 hex, cohérent avec le suffixe du nom de fichier PRD
+    # 6 hex, cohérent avec le suffixe du nom de fichier PRD. secrets.token_hex(3) a un
+    # espace de 16M valeurs : collision improbable mais jamais acceptable en silence —
+    # on vérifie explicitement plutôt que d'écraser un entretien existant par hasard.
+    for _ in range(50):
+        candidate = secrets.token_hex(3)
+        if not state_path(candidate).exists():
+            return candidate
+    return secrets.token_hex(5)  # fallback quasi jamais atteint, espace bien plus grand
+
+
+def _migrate_state(state: dict, sections: list) -> bool:
+    """Réaligne un état chargé depuis le disque sur la version ACTUELLE de
+    sections.json : ajoute toute section qui existe dans sections.json mais pas encore
+    dans cet état (ex. un entretien démarré avant que 'entites' soit scindé en 4
+    sections), et réajuste 'total_criteria' si le nombre de critères d'une section a
+    changé depuis — jamais un KeyError qui ferait planter une commande sur un vieil
+    entretien simplement parce que sections.json a évolué. Retourne True si l'état a
+    été modifié (pour savoir s'il faut le réécrire sur disque)."""
+    changed = False
+    state.setdefault("sections", {})
+    for s in sections:
+        sec_state = state["sections"].get(s["id"])
+        n_criteria = len(s["criteria"])
+        if sec_state is None:
+            state["sections"][s["id"]] = {
+                "label": s["label"],
+                "turns": [],
+                "covered_criteria": [],
+                "total_criteria": n_criteria,
+            }
+            changed = True
+            continue
+        sec_state.setdefault("turns", [])
+        sec_state.setdefault("covered_criteria", [])
+        if sec_state.get("total_criteria") != n_criteria:
+            sec_state["total_criteria"] = n_criteria
+            # un indice qui ne correspond plus à aucun critère actuel (section
+            # raccourcie depuis) est retiré, jamais laissé pointer dans le vide
+            before = sec_state["covered_criteria"]
+            sec_state["covered_criteria"] = [i for i in before if i < n_criteria]
+            changed = True
+    return changed
 
 
 def load_state(interview_id: str) -> dict:
@@ -173,7 +214,11 @@ def load_state(interview_id: str) -> dict:
               f"Lance 'start' d'abord.", file=sys.stderr)
         sys.exit(1)
     with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+        state = json.load(f)
+    sections, _ = load_sections()
+    if _migrate_state(state, sections):
+        save_state(state)
+    return state
 
 
 def save_state(state: dict):
@@ -284,8 +329,17 @@ def cmd_options(args):
               f"{', '.join(sorted(s['id'] for s in sections))}", file=sys.stderr)
         sys.exit(1)
 
-    interview_id = getattr(args, "interview", None) or latest_interview_id()
-    state = load_state(interview_id) if interview_id and state_path(interview_id).exists() else None
+    explicit_interview = getattr(args, "interview", None)
+    if explicit_interview:
+        # --interview a été donné explicitement : une erreur de frappe sur l'id ne doit
+        # JAMAIS retomber en silence sur "aucun filtrage depends_on" (ça afficherait
+        # des options déjà sans objet sans que personne ne s'en rende compte) — on
+        # charge cet entretien précis ou on échoue bruyamment, jamais un None discret.
+        interview_id = explicit_interview
+        state = load_state(interview_id)
+    else:
+        interview_id = latest_interview_id()
+        state = load_state(interview_id) if interview_id else None
 
     all_options = sec_def.get("options", [])
     visible = [opt for opt in all_options if _option_visible(opt, state)]
@@ -502,8 +556,15 @@ def cmd_list(args):
         return
     print(f"{len(files)} entretien(s) :\n")
     for path in files:
-        with open(path, "r", encoding="utf-8") as f:
-            state = json.load(f)
+        try:
+            # Passe par load_state (pas un json.load direct) pour bénéficier de la
+            # même migration de schéma que les autres commandes — sinon un entretien
+            # démarré avant une évolution de sections.json ferait planter 'list' au
+            # lieu de juste 's'auto-réparer' comme ailleurs.
+            state = load_state(path.stem)
+        except (SystemExit, json.JSONDecodeError, KeyError, OSError):
+            print(f"  {c('[ERREUR]', 'red', 'bold')} {path.name} illisible ou corrompu — ignoré.")
+            continue
         pct = compute_global_percent(state, sections)
         status_text = "PRD possible" if pct >= threshold else f"sous le seuil ({threshold}%)"
         status = c(f"{status_text:<22}", "green", "bold") if pct >= threshold else c(f"{status_text:<22}", "yellow")

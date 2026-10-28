@@ -69,6 +69,11 @@ parcourir le repo au hasard.
   par champ — voir reference/cerveau-matching.md §1.
 - scripts/test_validate_payload.py — tests de régression du validateur. Lancer avant
   tout commit qui touche validate_payload.py.
+- scripts/test_interview_state.py — tests de régression du moteur d'entretien (en
+  process, sur un sections.json de test). Lancer avant tout commit qui touche
+  interview_state.py ou reference/sections.json — couvre notamment la migration de
+  schéma (un entretien démarré avant une évolution de sections.json ne doit jamais
+  planter).
 - scripts/interview_state.py start|list|options|record|progress|prd|edit|score|handoff
   — entretien de découverte du besoin en QCM ton conversationnel (options numérotées, jamais plus
   de 4 à la fois — pagination automatique sinon via `--page`, + un choix numéroté

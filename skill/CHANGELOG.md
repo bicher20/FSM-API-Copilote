@@ -1,5 +1,38 @@
 # Changelog du skill
 
+## 1.35 — 2026-10-28 — Durcissement du code (audit demandé)
+- **Bug réel corrigé : KeyError latent si `sections.json` évolue.** `interview_state.py`
+  indexait directement `state["sections"][id]` à plusieurs endroits
+  (`compute_global_percent`, `cmd_progress`, `render_prd_markdown`,
+  `_build_global_roundup`) — un entretien démarré AVANT une évolution du schéma
+  (exactement ce qui s'est produit cette session même, quand "entites" a été scindé en
+  4 sections) plantait toute commande dès qu'une section manquait. Nouvelle fonction
+  `_migrate_state()`, appelée automatiquement par `load_state()` : ajoute les sections
+  manquantes avec un squelette vide, réaligne `total_criteria` si le nombre de
+  critères d'une section a changé, et retire tout indice de critère devenu hors
+  limites — jamais de crash, jamais de donnée fantôme.
+- **Bug réel corrigé : `options --interview ID` avec un id inexistant retombait en
+  silence sur un affichage NON filtré** (sans erreur, sans avertissement) au lieu
+  d'échouer bruyamment comme toutes les autres commandes — risquait de présenter au
+  client des choix déjà sans objet sans que l'agent s'en rende compte. Corrigé : un
+  `--interview` explicite mais introuvable échoue maintenant comme partout ailleurs.
+- **`cmd_list` passe maintenant par `load_state()`** (migration + tolérance) au lieu
+  d'un `json.load` direct — un vieil entretien ou un fichier corrompu n'interrompt
+  plus `list` pour tous les autres, juste signalé et ignoré.
+- **`new_interview_id()` ne peut plus silencieusement réutiliser un id déjà pris**
+  (collision théorique sur `secrets.token_hex(3)`, 16M valeurs) — vérifie
+  explicitement avant de retourner.
+- **`match_data_model.py match`** rejette maintenant explicitement un JSON introuvable/
+  invalide, une liste vide, ou contenant des valeurs non textuelles — avant, une
+  entrée mal formée aurait fait planter le script avec une trace Python brute au lieu
+  d'un message clair.
+- **Nouveau `scripts/test_interview_state.py`** : suite de tests en process (jamais
+  sur le vrai `.interview_state/` ni le vrai `sections.json`) couvrant le filtrage
+  `depends_on`, la pagination groupée dur/souple, `record`/`score`/`handoff`/`prd`
+  (seuil, distinction non-négociable/souple par section ET dans le récapitulatif
+  global), et surtout la migration de schéma décrite ci-dessus — pour que ce genre de
+  régression soit détecté avant un commit, pas en situation réelle avec un client.
+
 ## 1.34 — 2026-10-28
 - **Nouvelle commande `interview_state.py handoff`** : génère un message prêt à
   relire/adapter (jamais envoyé automatiquement) pour mettre le client en relation
