@@ -73,11 +73,16 @@ Usage :
            contraintes cochées, celles qui correspondent à un mécanisme offre-complète-
            only documenté (sections.json: options[].offre_complete_trigger — stock de
            pièces, ordre entre jobs, binôme/multi-ressources), compare au niveau d'offre
-           confirmé en section niveau_offre, et signale explicitement un décalage
-           (besoin détecté mais clé self-service/pas encore de clé/pas clarifié) au lieu
-           de laisser l'agent le remarquer ou pas. Ne couvre QUE ces 3 mécanismes-là —
-           horizon de planification, disponibilité récurrente et priorité de rdv dédiée
-           restent à vérifier soi-même (voir reference/offre-complete-nomadia.md).
+           confirmé en section niveau_offre, et signale explicitement le cas "offre
+           complète requise" (besoin détecté mais clé self-service/pas encore de clé/pas
+           clarifié) au lieu de laisser l'agent le remarquer ou pas. Ce signal n'est
+           JAMAIS un blocage : mène toujours l'entretien comme si on visait l'offre
+           complète (jamais un périmètre réduit selon le niveau d'offre détecté), et
+           présente le self-service au client sur un mode positif — "on sait gérer ça,
+           il faudra juste nous contacter" — jamais comme une limite qui arrête la
+           conversation. Ne couvre QUE ces 3 mécanismes-là — horizon de planification,
+           disponibilité récurrente et priorité de rdv dédiée restent à vérifier
+           soi-même (voir reference/offre-complete-nomadia.md).
 
 Évaluation de couverture — volontairement simple et vérifiable, PAS de NLP/LLM dans ce
 script : un critère d'une section est marqué couvert dès que le client a choisi une
@@ -715,13 +720,17 @@ def cmd_score(args):
         print(f"{c('[OK]', 'green', 'bold')} Cohérent : le client a déjà accès à l'offre complète, "
               "qui couvre ces mécanismes.")
     elif triggers and (has_self_service or no_key_yet or tier_unknown):
-        print(f"{c('[MISMATCH]', 'red', 'bold')} Décalage détecté : ces mécanismes ne sont PAS "
-              "couverts par une clé self-service (voir reference/offre-complete-nomadia.md) — "
-              "le client a besoin d'un projet avec l'équipe Nomadia (offre complète), mais a "
-              "répondu self-service / pas encore de clé / pas clarifié en section niveau_offre.")
-        print("     -> Ne construis pas un payload qui dépend de ces mécanismes sans avoir "
-              "explicitement remis ce décalage devant le client et obtenu sa décision (voir "
-              "reference/regles-entretien.md §7).")
+        print(f"{c('[OFFRE COMPLETE REQUISE]', 'yellow', 'bold')} Ces mécanismes dépassent le "
+              "self-service (voir reference/offre-complete-nomadia.md) — rien de bloquant : "
+              "l'offre complète Nomadia les gère. Le client n'a pour l'instant confirmé que "
+              "self-service / pas encore de clé / pas clarifié en section niveau_offre.")
+        print("     -> NE STOPPE PAS l'entretien pour autant : continue à recueillir le besoin "
+              "exactement comme si tu visais l'offre complète (ne réduis jamais le périmètre des "
+              "questions à cause du niveau d'offre détecté). Présente ça positivement au client, "
+              "jamais comme un blocage : \"ça, on sait le gérer — il faudra juste qu'on te mette "
+              "en contact avec l'équipe Nomadia pour l'offre complète.\" Note-le dans le PRD "
+              "(section niveau_offre) pour que ce soit visible au moment de construire — voir "
+              "reference/regles-entretien.md §7.")
     elif not triggers and has_self_service:
         print(f"{c('[OK]', 'green', 'bold')} Self-service suffit : aucun besoin cité ne dépasse "
               "ce que couvre une clé self-service.")

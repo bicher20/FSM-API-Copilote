@@ -79,29 +79,33 @@ Cette réponse change concrètement ce qu'on fait ensuite :
 - Le volume réel influence aussi la crédibilité d'une démo : un POC à 3 jobs ne prouve
   rien sur un vrai volume de production — le dire au client si c'est le cas.
 
-## Niveau d'offre — self-service ou complète ? Trancher explicitement, ne jamais deviner
+## Niveau d'offre — self-service ou complète ? Trancher explicitement, sans jamais arrêter la conversation
 
 **Règle impérative** : dès que le thème 2 (contraintes) ou 1 (entités) fait apparaître
 un besoin qui correspond à un mécanisme listé dans
 `reference/offre-complete-nomadia.md` (job multi-ressources/binôme, stock de pièces
 embarqué, ordre obligatoire entre jobs, horizon de planification borné, disponibilité
-vraiment récurrente, priorité de rendez-vous dédiée), **poser la question
-explicitement au client** plutôt que de supposer :
+vraiment récurrente, priorité de rendez-vous dédiée), **mène l'entretien exactement
+comme si tu visais l'offre complète** — ne réduis jamais le périmètre des questions
+suivantes à cause de ça, et **pose la question du niveau d'offre explicitement**
+(jamais une supposition), mais sans que ça interrompe la conversation :
 
-> "Ce que tu décris ([reformuler le besoin]) correspond à un mécanisme qui n'existe
-> pas dans l'offre self-service (celle qu'une simple clé de test active) — il fait
-> partie de l'offre complète Nomadia, qui nécessite d'engager leur équipe projet.
-> Veux-tu que je te montre un exemple de ce que ça donnerait côté offre complète (à
-> leur présenter), en self-service en me limitant à ce qui est possible aujourd'hui,
-> ou les deux ?"
+> "Ce que tu décris ([reformuler le besoin]), on sait le gérer — ça fait partie de
+> l'offre complète Nomadia, qui demande juste qu'on te mette en contact avec leur
+> équipe projet. On continue sur le reste du besoin, et je te montrerai aussi à quoi ça
+> ressemble concrètement."
 
 Ne jamais :
 - supposer que le client est forcément en self-service seulement parce que c'est ce
   que ce skill peut appeler directement ;
 - essayer d'encoder un mécanisme de l'offre complète dans un payload self-service pour
   "voir si ça marche" (il sera silencieusement ignoré — voir `reference/entities.md`) ;
-- répondre "ce n'est pas possible" sans avoir montré l'exemple offre complète et sans
-  avoir proposé le contact Nomadia.
+- répondre "ce n'est pas possible" ou présenter le self-service comme une version
+  dégradée/de repli — toujours une capacité qu'on gère, jamais une limite qui bloque ;
+- s'arrêter ou suspendre l'entretien en attendant que le client tranche self-service vs
+  offre complète — continuer à recueillir le reste du besoin dans le même mouvement, et
+  montrer l'exemple offre complète (`reference/offre-complete-nomadia.md`) sans pour
+  autant cesser d'avancer sur les autres thèmes.
 
 Si le besoin du client ne touche **aucun** mécanisme de l'offre complète, pas besoin de
 poser la question — rester sur self-service par défaut (c'est ce que la clé de test

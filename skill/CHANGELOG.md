@@ -1,5 +1,21 @@
 # Changelog du skill
 
+## 1.29 — 2026-10-28
+- **Ton self-service/offre complète revu : jamais un blocage, jamais un motif pour
+  arrêter la conversation.** Mène toujours l'entretien de découverte comme si on visait
+  l'offre complète (périmètre des questions jamais réduit selon le niveau d'offre
+  détecté). Le self-service est présenté au client positivement — "on sait gérer ça, il
+  faut juste nous mettre en contact avec l'équipe Nomadia" — jamais comme une limite ou
+  une version dégradée.
+- `scripts/interview_state.py score` : le signal `[MISMATCH]` devient
+  `[OFFRE COMPLETE REQUISE]`, avec une consigne explicite de ne jamais stopper
+  l'entretien pour autant.
+- `reference/decouverte-besoin.md` : script de présentation au client reformulé dans
+  cet esprit (plus de "en self-service en me limitant à ce qui est possible
+  aujourd'hui" présenté comme une alternative équivalente).
+- `reference/regles-entretien.md` §7 et `SKILL.md` §0ter/étape 2 mis à jour en
+  conséquence.
+
 ## 1.28 — 2026-10-27
 - **Jamais plus de 4 choix affichés au client en une fois** : `options <section>`
   coupe maintenant automatiquement toute section ayant plus de

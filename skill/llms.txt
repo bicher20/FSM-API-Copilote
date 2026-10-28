@@ -73,8 +73,11 @@ parcourir le repo au hasard.
   "Nice to have" agrégé sur tous les thèmes (contraintes + objectifs), pas seulement par
   section ; et `score` compare les contraintes citées qui impliquent un mécanisme
   offre-complète-only (`sections.json: options[].offre_complete_trigger`) au niveau
-  d'offre confirmé par le client, et signale explicitement un décalage. Voir SKILL.md
-  §0ter et reference/regles-entretien.md.
+  d'offre confirmé par le client, et signale "offre complète requise" — jamais un motif
+  pour arrêter l'entretien : on mène toujours la découverte comme si on visait l'offre
+  complète, et le self-service se présente au client positivement ("on gère ça, il faut
+  nous contacter"), pas comme une limite. Voir SKILL.md §0ter et
+  reference/regles-entretien.md.
 
 ## Point de départ pour écrire du code
 - snippets/client.js / client.py — client HTTP minimal + retry/backoff, à adapter

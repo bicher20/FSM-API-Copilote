@@ -154,10 +154,16 @@ section, les points encore à clarifier — jamais caché.
 
 Le PRD n'est pas la fin de la mission, c'est l'étape avant la construction (voir §0 et
 §2bis de `SKILL.md`). Une fois généré :
-- lance `scripts/interview_state.py score` : si un `[MISMATCH]` apparaît (contraintes
-  citées qui dépassent le self-service, mais niveau d'offre non confirmé en offre
-  complète), remets-le explicitement devant le client avant de construire quoi que ce
-  soit qui en dépend — jamais avancer en silence sur une hypothèse ;
+- lance `scripts/interview_state.py score` : si "offre complète requise" apparaît
+  (contraintes citées qui dépassent le self-service, mais niveau d'offre non confirmé
+  en offre complète), note-le dans le PRD pour que ce soit visible au moment de
+  construire — jamais avancer en silence sur une hypothèse. Mais ce n'est **jamais un
+  motif pour s'arrêter ou réduire l'entretien** : mène toujours la découverte du besoin
+  comme si tu visais l'offre complète, questions comprises, quel que soit le niveau
+  d'offre du client. Au client lui-même, présente ce point positivement, jamais comme
+  une limite — ex. "ça, on sait très bien le gérer, il faudra juste qu'on te mette en
+  contact avec l'équipe Nomadia pour l'offre complète" — et continue la conversation
+  normalement derrière ;
 - relis ce que l'étape 1 de §0 a trouvé dans le code existant du client (modèle de
   données, stack, clé API déjà présente) ;
 - construis le payload/code d'intégration à partir du PRD plutôt que de redemander au

@@ -1,7 +1,7 @@
 ---
 name: nomadia
 description: Copilote pour le Scheduler API de Nomadia (optimisation de tournées et planning field service / livraison). Cadre le besoin de l'utilisateur, inspecte son projet existant, puis implémente l'intégration — modélisation des jobs/ressources/contraintes, appels API, débogage d'une réponse. À utiliser dès qu'il est question de planifier des tournées/interventions, d'intégrer ou de déboguer le Scheduler API de Nomadia.
-version: 1.28
+version: 1.29
 homepage: https://scheduler-json-api.readme.io
 ---
 
@@ -139,10 +139,13 @@ définir le besoin") — une seule phrase du client suffit, jamais une suite de 
 7. **Score de complétude self-service / offre complète** (`score --interview ID`) :
    compare les contraintes citées qui impliquent un mécanisme offre-complète-only
    (stock de pièces, ordre entre jobs, binôme/multi-ressources) à ce que le client a
-   confirmé en section niveau_offre, et signale explicitement un décalage plutôt que de
-   te laisser le remarquer ou pas. Lance-le une fois les sections "contraintes" et
-   "niveau_offre" couvertes, et avant tout appel réel si un décalage `[MISMATCH]`
-   apparaît — remets-le devant le client, n'avance pas en silence.
+   confirmé en section niveau_offre, et signale "offre complète requise" plutôt que de
+   te laisser le remarquer ou pas. **Ce n'est jamais un motif pour s'arrêter ou réduire
+   le périmètre de l'entretien** — mène toujours la découverte comme si tu visais
+   l'offre complète, quel que soit le niveau d'offre réel du client. Si ce signal
+   apparaît : note-le dans le PRD, présente-le au client positivement, jamais comme un
+   blocage — "ça, on sait le gérer, il faudra juste qu'on te mette en contact avec
+   l'équipe Nomadia pour l'offre complète" — et continue la conversation normalement.
 8. **Chaque `record` affiche un avancement global (%, sections complètes/total)** —
    partage-le au client à chaque changement de section (pas après chaque phrase) pour
    qu'il voie une progression naturelle et mesurable, jamais qu'il se demande où il en
@@ -176,10 +179,14 @@ l'inspection n'a pas révélé :
 
 **Si la réponse au point 3 fait apparaître un besoin de stock de pièces, d'ordre entre
 jobs, de job multi-ressources, d'horizon borné ou de disponibilité récurrente** :
-**pose explicitement la question self-service vs offre complète** avant d'aller plus
-loin (voir `reference/decouverte-besoin.md`, section "Niveau d'offre") — ne suppose
-jamais que le client est en self-service juste parce que c'est ce que ce skill appelle
-directement.
+**pose explicitement la question self-service vs offre complète** (voir
+`reference/decouverte-besoin.md`, section "Niveau d'offre") — ne suppose jamais que le
+client est en self-service juste parce que c'est ce que ce skill appelle directement.
+Mais ne t'arrête pas pour autant : continue l'entretien normalement, exactement comme
+si tu visais l'offre complète — c'est une information à noter pour le PRD, pas un motif
+pour interrompre la conversation ou réduire le périmètre des questions suivantes. Si le
+client n'a que le self-service, présente ça positivement ("on sait gérer ça, il faudra
+juste qu'on te mette en contact avec l'équipe Nomadia"), jamais comme un blocage.
 
 Si l'objectif est déjà clair depuis le message de l'utilisateur ou le contexte du repo,
 **saute directement à l'étape 3** sans poser de question pour la forme.
