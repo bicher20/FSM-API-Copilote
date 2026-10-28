@@ -122,7 +122,11 @@ try:
     # --- rien n'est encore couvert : prd doit refuser sous le seuil, et lister les
     #     points à clarifier si on force quand même ---
     try:
-        ist.cmd_prd(SimpleNamespace(interview=iid, force=False, output_dir=str(old_state_dir.parent / "tmp_out_early"),
+        # output_dir n'est jamais atteint tant que le refus sous le seuil est
+        # correct (cmd_prd sort avant toute écriture) — valeur bidon volontaire,
+        # jamais un chemin dans le repo, pour ne rien écrire même si ce refus
+        # venait à régresser silencieusement.
+        ist.cmd_prd(SimpleNamespace(interview=iid, force=False, output_dir="/nonexistent/should-not-be-used",
                                      summary=None, entity=None))
         check("prd refuse sous le seuil sans --force", False, "aucune exception levée")
     except SystemExit as e:
