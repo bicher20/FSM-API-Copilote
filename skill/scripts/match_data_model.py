@@ -38,6 +38,7 @@ Usage :
 
 import argparse
 import json
+import re
 import sys
 import unicodedata
 from difflib import SequenceMatcher
@@ -107,8 +108,19 @@ VOCABULARY = {
 }
 
 
+def _split_camel_case(s: str) -> str:
+    """Insère un '_' aux frontières camelCase (ex: 'disponibiliteRessource' ->
+    'disponibilite_Ressource') AVANT toute mise en minuscule — sinon la frontière de
+    casse est perdue et le découpage par token échoue silencieusement sur ce style de
+    nommage (repéré en testant contre un corpus client volontairement mixte FR/EN/
+    camelCase, voir CHANGELOG)."""
+    return re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", s)
+
+
 def _normalize(s: str) -> str:
-    """minuscule, sans accents, séparateurs uniformisés — pour comparer sans bruit."""
+    """minuscule, sans accents, séparateurs uniformisés — pour comparer sans bruit.
+    Le découpage camelCase doit être fait par l'appelant AVANT normalize (voir
+    _split_camel_case) car cette fonction met en minuscule et détruit l'info de casse."""
     s = unicodedata.normalize("NFKD", s)
     s = "".join(c for c in s if not unicodedata.combining(c))
     s = s.lower().strip()
@@ -138,14 +150,14 @@ def _confidence_label(score: float) -> str:
 def match_fields(client_fields: list[str]) -> list[dict]:
     results = []
     for raw_field in client_fields:
-        norm_field = _normalize(raw_field)
+        norm_field = _normalize(_split_camel_case(raw_field))
         field_tokens = _tokens(norm_field)
         best_entity = None
         best_score = 0.0
         best_synonym = None
         for entity_key, synonyms in VOCABULARY.items():
             for syn in synonyms:
-                norm_syn = _normalize(syn)
+                norm_syn = _normalize(_split_camel_case(syn))
                 syn_tokens = _tokens(norm_syn)
                 if norm_field == norm_syn:
                     # correspondance exacte -> score maximal direct

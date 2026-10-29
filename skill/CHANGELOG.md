@@ -1,5 +1,20 @@
 # Changelog du skill
 
+## 1.37 — 2026-10-29 — `match_data_model.py` gère le camelCase
+- **Les champs client en camelCase (`disponibiliteRessource`, `planningHebdomadaire`,
+  `contactTelephoneSite`...) finissaient en "aucune correspondance fiable".** La
+  comparaison par token (`_tokens()`, découpage sur `_`) ne voyait qu'un seul token
+  géant sur un nom camelCase, puisque `_normalize()` passe tout en minuscule avant tout
+  découpage et détruit donc la frontière de casse. Ajout de `_split_camel_case()`,
+  appelée avant `_normalize()`, qui insère un `_` à chaque frontière minuscule→majuscule
+  (`disponibiliteRessource` → `disponibilite_Ressource`) — un corpus client réel mélange
+  très souvent snake_case, camelCase et français brut selon l'ORM/ancien système d'où
+  il vient.
+- Ajout `scripts/fixtures/corpus_fsm_generique.json` (corpus de test mixte FR/EN/
+  camelCase, 30 champs) et `scripts/test_match_data_model.py` (régression sur la
+  découpe camelCase + vérifie qu'elle n'invente pas de faux positif sur un champ
+  réellement hors vocabulaire, `clientNomSociete`).
+
 ## 1.36 — 2026-10-28 — `match_data_model.py` validé contre un vrai schéma FSM open source
 - **Deux faux positifs réels corrigés dans le rapprochement de champs.** En testant
   `match_data_model.py` contre les noms de champs réels d'`OCA/field-service` (module
